@@ -1,0 +1,24 @@
+# IDE / Text Editors: Settings (only shared .vscode settings are tracked)
+.idea/
+.vscode/*
+!.vscode/settings.json
+
+# Python: Environments
+.venv**
+
+# Node.js Dependencies
+node_modules/
+dist/
+
+# Vite: Lock files (choose one)
+pnpm-lock.yaml
+
+# Local-only files
+docs/
+.github/copilot-instructions.md
+.github/instructions/
+examples/
+
+# Upstream references: local clones, dev-only, never published
+references/
+pnpm-lock.yaml

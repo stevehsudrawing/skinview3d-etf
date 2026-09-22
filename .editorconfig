@@ -1,0 +1,11 @@
+# EditorConfig - https://editorconfig.org
+# Project-wide file format: UTF-8 (no BOM), LF line endings, 2-space
+# indentation. Supported natively by VS Code and most editors.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2

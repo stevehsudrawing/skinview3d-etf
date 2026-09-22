@@ -1,0 +1,17 @@
+# Authoritative ignore list: `format` / `format:check` pass
+# `--ignore-path .prettierignore`, so `.gitignore` is deliberately not
+# consulted - this keeps the local-only `examples/` tree formatted.
+
+# Build output
+dist/
+
+# Vendor / dev-only content
+node_modules/
+references/
+
+# Manual-conventions documentation
+docs/
+.github/
+
+# Generated
+pnpm-lock.yaml

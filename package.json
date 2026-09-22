@@ -1,0 +1,61 @@
+{
+  "name": "skinview3d-etf",
+  "version": "0.0.1",
+  "description": "Unofficial skinview3d extension that renders ETF (Entity Texture Features) player skin features on the 3D player model.",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsup",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "format": "prettier --write . --ignore-path .prettierignore",
+    "format:check": "prettier --check . --ignore-path .prettierignore",
+    "dev": "vite examples",
+    "prepare": "husky"
+  },
+  "peerDependencies": {
+    "skinview3d": "^3.4.0",
+    "three": "^0.156.0"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.5.1",
+      "onFail": "warn"
+    }
+  },
+  "packageManager": "pnpm@12.5.1",
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@commitlint/types": "^21.2.3",
+    "@eslint/js": "^10.0.1",
+    "@types/pngjs": "^6.0.5",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "pngjs": "^7.0.0",
+    "prettier": "^3.9.8",
+    "skinview3d": "^3.4.2",
+    "three": "^0.156.1",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.0",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
+  }
+}

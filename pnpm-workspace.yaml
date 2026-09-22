@@ -1,0 +1,5 @@
+# pnpm >= 11 keeps project settings in this file (the package.json
+# "pnpm" field is no longer read). Build scripts stay blocked by
+# default; esbuild (a tsup dependency) needs its install script.
+allowBuilds:
+  esbuild: true
