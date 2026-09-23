@@ -1,9 +1,24 @@
 /**
  * skinview3d-etf public entry point.
  *
- * Placeholder for Phase A of the v0.0.1 plan. The real API -
- * `attachETFSkinFeatures(viewer, options)` returning
- * `{ refresh(), rebind(), update(dt), detach() }` - arrives with the
- * integration phase.
+ * The decoder is available now - `decodeSkin()` reads every ETF player
+ * skin feature into plain data and prepared overlay images. The
+ * renderer API - `attachETFSkinFeatures(viewer, options)` returning
+ * `{ refresh(), rebind(), update(dt), detach() }` - arrives in a later
+ * v0.0.1 commit.
  */
-export {};
+
+export { decodeSkin } from "./decode/index";
+export type {
+  BlinkInfo,
+  BlinkMode,
+  DecodeResult,
+  JacketInfo,
+  NoseInfo,
+  PaletteId,
+  PatternInfo,
+  PixelData,
+  Rect,
+  RGBA,
+  SlotValues,
+} from "./decode/types";

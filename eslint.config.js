@@ -4,7 +4,9 @@ import tseslint from "typescript-eslint";
 
 export default [
   {
-    ignores: ["dist/", "node_modules/", "references/"],
+    // Local-only trees: vendored reference clones, dev tools and
+    // scratch space are never committed (see .gitignore).
+    ignores: ["dist/", "node_modules/", "references/", "temp/", "tools/"],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,

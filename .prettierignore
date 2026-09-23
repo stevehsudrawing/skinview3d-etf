@@ -9,6 +9,10 @@ dist/
 node_modules/
 references/
 
+# Local-only dev tools and scratch space (never committed)
+tools/
+temp/
+
 # Manual-conventions documentation
 docs/
 .github/

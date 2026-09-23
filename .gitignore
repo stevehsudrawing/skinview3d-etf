@@ -18,7 +18,8 @@ docs/
 .github/copilot-instructions.md
 .github/instructions/
 examples/
+tools/
+temp/
 
-# Upstream references: local clones, dev-only, never published
+# Upstream references: local clones, dev-only
 references/
-pnpm-lock.yaml

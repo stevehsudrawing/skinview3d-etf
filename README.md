@@ -8,23 +8,36 @@ player skin features on the 3D player model:
 - transparency on the base skin layer;
 - emissive (glowing) pixels;
 - blinking eyes;
-- villager nose;
-- in-skin custom cape.
+- nose (villager and textured);
+- jacket/dress extension.
 
-These features are planned for v0.0.1. Enchanted (glint) pixels and
-jacket/dress extensions are deferred to a later release.
+The v0.0.1 decoder is complete and available now: `decodeSkin()` reads
+every ETF player skin feature - the marker and its choice cells, the
+palette and the seven choice slots, transparency and forced-solid,
+blinking, nose, jacket (styles 1-8) and the emissive/enchanted pattern
+data - and prepares the overlay images the renderer consumes. The
+renderer for transparency, emissive, blinking and nose arrives in
+later v0.0.1 commits; jacket and glint rendering is planned after
+that.
+
+The in-skin cape no longer exists upstream (all code paths are
+commented out), so it is out of scope; the five former cape texture
+regions are reused as textured-nose sources.
 
 ## 1. Status
 
-Early development. The package currently contains scaffolding only: it
-is neither functional nor published yet.
+Early development. The decoder (`decodeSkin()`) is implemented and
+unit-tested against the ETF example skins; the renderer and the
+`attachETFSkinFeatures()` entry point are still pending. Nothing is
+published to npm yet.
 
 ## 2. Roadmap
 
 - [x] package scaffold and tooling (build, test, lint, git hooks);
-- [ ] decode layer for the ETF player skin format;
-- [ ] transparency, villager nose and in-skin cape rendering;
-- [ ] emissive (glowing) pixels and blinking eyes;
+- [x] decoder for the ETF player skin format (complete: marker, slots,
+      transparency, blinking, nose, jacket, emissive, enchanted);
+- [ ] transparency, nose and blinking rendering;
+- [ ] emissive (glowing) pixels rendering;
 - [ ] integration entry point and a local demo page;
 - [ ] v0.0.1 release on npm.
 
