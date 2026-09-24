@@ -30,6 +30,9 @@
     "skinview3d": "^3.4.0",
     "three": "^0.156.0"
   },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
