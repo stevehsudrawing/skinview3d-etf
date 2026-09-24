@@ -16,9 +16,10 @@ every ETF player skin feature - the marker and its choice cells, the
 palette and the seven choice slots, transparency and forced-solid,
 blinking, nose, jacket (styles 1-8) and the emissive/enchanted pattern
 data - and prepares the overlay images the renderer consumes. The
-renderer for transparency, emissive, blinking and nose arrives in
-later v0.0.1 commits; jacket and glint rendering is planned after
-that.
+renderer is underway: `attachETFSkinFeatures()` renders transparency
+and the nose (villager and textured) on a live viewer; emissive and
+blinking arrive in later v0.0.1 commits, and jacket and glint
+rendering are planned after that.
 
 The in-skin cape no longer exists upstream (all code paths are
 commented out), so it is out of scope; the five former cape texture
@@ -26,19 +27,23 @@ regions are reused as textured-nose sources.
 
 ## 1. Status
 
-Early development. The decoder (`decodeSkin()`) is implemented and
-unit-tested against the ETF example skins; the renderer and the
-`attachETFSkinFeatures()` entry point are still pending. Nothing is
-published to npm yet.
+Early development. The decoder (`decodeSkin()`) is complete and
+unit-tested against the ETF example skins. The renderer is underway:
+`attachETFSkinFeatures()` renders transparency and the nose (villager
+and textured) on a live viewer; emissive and blinking arrive next.
+Nothing is published to npm yet.
 
 ## 2. Roadmap
 
 - [x] package scaffold and tooling (build, test, lint, git hooks);
 - [x] decoder for the ETF player skin format (complete: marker, slots,
       transparency, blinking, nose, jacket, emissive, enchanted);
-- [ ] transparency, nose and blinking rendering;
+- [x] renderer entry point (`attachETFSkinFeatures()`) with
+      transparency and nose rendering;
 - [ ] emissive (glowing) pixels rendering;
-- [ ] integration entry point and a local demo page;
+- [ ] blinking rendering;
+- [ ] demo integration (per-feature toggles, blockbench coexistence)
+      and the release checklist;
 - [ ] v0.0.1 release on npm.
 
 ## 3. Credits and disclaimer
