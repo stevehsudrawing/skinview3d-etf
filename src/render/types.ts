@@ -44,7 +44,7 @@ export type ETFTextureInput = TextureSource | RemoteImage | PixelData | Texture;
 export interface SkinFeatureToggles {
   /** Enables transparency on the base skin layer. */
   transparency?: boolean;
-  /** Reserved - emissive rendering lands in a later v0.0.1 commit. */
+  /** Enables the fullbright emissive pixel overlays. */
   emissive?: boolean;
   /** Reserved - blinking lands in a later v0.0.1 commit. */
   blink?: boolean;
@@ -70,7 +70,11 @@ export interface ETFSkinFeaturesOptions {
   features?: SkinFeatureToggles;
   /** Blink timing; reserved for the blinking commit. */
   blink?: BlinkTiming;
-  /** Adds a bloom pass to the emissive pixels; reserved. */
+  /**
+   * Reserved - accepted and ignored. Upstream renders emissive
+   * pixels fullbright without post-processing; an optional bloom
+   * quality mode is deferred.
+   */
   bloom?: boolean;
   /**
    * When `true` (the default) the controller installs its own ticker

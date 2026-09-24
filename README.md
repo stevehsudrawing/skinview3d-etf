@@ -1,5 +1,11 @@
 # skinview3d-etf
 
+> [!WARNING]
+> This project is in **pre-alpha**. The public API, rendering
+> behaviour, package layout and documentation may change without
+> notice at any time; undocumented breaking changes can occur in any
+> release. Do not use it in production yet.
+
 Unofficial, community-built extension for
 [skinview3d](https://github.com/bs-community/skinview3d) that renders
 [ETF (Entity Texture Features)](https://github.com/Traben-0/Entity_Texture_Features)
@@ -16,10 +22,10 @@ every ETF player skin feature - the marker and its choice cells, the
 palette and the seven choice slots, transparency and forced-solid,
 blinking, nose, jacket (styles 1-8) and the emissive/enchanted pattern
 data - and prepares the overlay images the renderer consumes. The
-renderer is underway: `attachETFSkinFeatures()` renders transparency
-and the nose (villager and textured) on a live viewer; emissive and
-blinking arrive in later v0.0.1 commits, and jacket and glint
-rendering are planned after that.
+renderer is underway: `attachETFSkinFeatures()` renders transparency,
+the nose (villager and textured) and the emissive (glowing) pixels
+on a live viewer; blinking arrives in a later v0.0.1 commit, and
+jacket and glint rendering are planned after that.
 
 The in-skin cape no longer exists upstream (all code paths are
 commented out), so it is out of scope; the five former cape texture
@@ -29,9 +35,9 @@ regions are reused as textured-nose sources.
 
 Early development. The decoder (`decodeSkin()`) is complete and
 unit-tested against the ETF example skins. The renderer is underway:
-`attachETFSkinFeatures()` renders transparency and the nose (villager
-and textured) on a live viewer; emissive and blinking arrive next.
-Nothing is published to npm yet.
+`attachETFSkinFeatures()` renders transparency, the nose (villager
+and textured) and the emissive (glowing) pixels on a live viewer;
+blinking arrives next. Nothing is published to npm yet.
 
 ## 2. Roadmap
 
@@ -40,7 +46,7 @@ Nothing is published to npm yet.
       transparency, blinking, nose, jacket, emissive, enchanted);
 - [x] renderer entry point (`attachETFSkinFeatures()`) with
       transparency and nose rendering;
-- [ ] emissive (glowing) pixels rendering;
+- [x] emissive (glowing) pixels rendering;
 - [ ] blinking rendering;
 - [ ] demo integration (per-feature toggles, blockbench coexistence)
       and the release checklist;

@@ -1,15 +1,21 @@
 /**
  * The renderer controller behind `attachETFSkinFeatures()`: validates
  * the viewer, decodes the current skin and owns every render artifact
- * (canvas edits, material flags, the nose mesh) with full restore on
- * `detach()`.
+ * (canvas edits, material flags, the nose mesh, the emissive
+ * overlays) with full restore on `detach()`.
  */
 
 import type { SkinViewer } from "skinview3d";
-import type { Mesh, MeshStandardMaterial, Texture } from "three";
+import type {
+  CanvasTexture,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  Texture,
+} from "three";
 import { decodeSkin } from "../decode/index";
 import { cloneImage } from "../decode/pixels";
-import type { DecodeResult, PixelData } from "../decode/types";
+import type { DecodeResult, PatternInfo, PixelData } from "../decode/types";
 import {
   paintCanvasPixels,
   pixelsEqual,
@@ -17,6 +23,13 @@ import {
   readCanvasPixels,
 } from "./canvas";
 import { DEFAULT_VILLAGER_NOSE_DATA_URL } from "./default-textures";
+import {
+  createEmissiveMaterial,
+  createEmissiveOverlays,
+  createGlowTexture,
+  disposeEmissiveOverlays,
+  repaintGlowTexture,
+} from "./emissive";
 import {
   createTexturedNoseMesh,
   createVillagerNoseMesh,
@@ -43,7 +56,7 @@ interface NormalisedOptions {
   features: Required<SkinFeatureToggles>;
   /** Blink timing; reserved for the blinking commit. */
   blink: { closedMs: number; periodMs: number };
-  /** Bloom switch; reserved for the emissive commit. */
+  /** Bloom switch; accepted and ignored - deferred quality mode. */
   bloom: boolean;
   /** Ticker management switch; reserved for the blinking commit. */
   manageTicker: boolean;
@@ -88,9 +101,10 @@ function normaliseOptions(options: ETFSkinFeaturesOptions): NormalisedOptions {
  * Attaches the ETF skin features to a live skinview3d viewer.
  *
  * Decodes the viewer's current skin immediately and renders the
- * supported features (transparency and the nose). Call
- * `controller.refresh()` after every `viewer.loadSkin()`; call
- * `controller.detach()` to restore the viewer exactly as it was.
+ * supported features (transparency, the nose and the emissive
+ * pixels). Call `controller.refresh()` after every
+ * `viewer.loadSkin()`; call `controller.detach()` to restore the
+ * viewer exactly as it was.
  *
  * @param viewer - The skinview3d viewer to extend.
  * @param options - Feature switches and texture overrides.
@@ -115,6 +129,9 @@ export function attachETFSkinFeatures(
   let lastPainted: PixelData | null = null;
   let skinEdited = false;
   let noseMesh: NoseMesh | null = null;
+  let glowTexture: CanvasTexture | null = null;
+  let glowMaterial: MeshBasicMaterial | null = null;
+  let glowMeshes: Mesh[] = [];
   let villagerTexture: HTMLCanvasElement | null = null;
   let villagerPending = false;
   let villagerFailed = false;
@@ -198,6 +215,20 @@ export function attachETFSkinFeatures(
     }
   }
 
+  /** Removes and disposes the emissive overlays, material and texture. */
+  function clearEmissive(): void {
+    disposeEmissiveOverlays(glowMeshes);
+    glowMeshes = [];
+    if (glowMaterial !== null) {
+      glowMaterial.dispose();
+      glowMaterial = null;
+    }
+    if (glowTexture !== null) {
+      glowTexture.dispose();
+      glowTexture = null;
+    }
+  }
+
   /**
    * Starts resolving the villager nose texture in the background.
    * The result re-applies the features once loaded; stale loads (after
@@ -277,12 +308,35 @@ export function attachETFSkinFeatures(
   }
 
   /**
+   * (Re)builds the emissive overlays for the given pattern: the glow
+   * texture is created on first use and repainted afterwards, the
+   * shared material is created once, and the overlay meshes are
+   * rebuilt from scratch.
+   *
+   * @param pattern - The decoded emissive pattern.
+   */
+  function rebuildEmissive(pattern: PatternInfo): void {
+    disposeEmissiveOverlays(glowMeshes);
+    glowMeshes = [];
+    if (glowTexture === null) {
+      glowTexture = createGlowTexture(pattern.mask);
+    } else {
+      repaintGlowTexture(glowTexture, pattern.mask);
+    }
+    if (glowMaterial === null) {
+      glowMaterial = createEmissiveMaterial(glowTexture);
+    }
+    glowMeshes = createEmissiveOverlays(viewer.playerObject.skin, glowMaterial);
+  }
+
+  /**
    * Restores the baselines (canvas pixels and material flags), then
    * applies every enabled feature. Idempotent by construction.
    */
   function apply(): void {
     if (detached || decoded === null || !decoded.supported) {
       clearNose();
+      clearEmissive();
       return;
     }
     const materials = collectLayerMaterials(viewer.playerObject.skin);
@@ -317,11 +371,18 @@ export function attachETFSkinFeatures(
       setTransparent(materials, materialOriginals, true);
     }
     rebuildNose();
+    const emissive = decoded.emissive;
+    if (settings.features.emissive && emissive !== null) {
+      rebuildEmissive(emissive);
+    } else {
+      clearEmissive();
+    }
   }
 
   /** Removes every render artifact and restores the baselines. */
   function unapply(): void {
     clearNose();
+    clearEmissive();
     restoreTransparent(materialOriginals);
     if (skinEdited && baselinePixels !== null) {
       paintCanvasPixels(viewer.skinCanvas, baselinePixels);

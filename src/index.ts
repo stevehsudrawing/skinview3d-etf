@@ -3,9 +3,9 @@
  *
  * `decodeSkin()` reads every ETF player skin feature into plain data
  * and prepared overlay images; `attachETFSkinFeatures()` renders the
- * supported features (transparency and the nose) on a live
- * `skinview3d` viewer and returns a controller whose `refresh()` must
- * be called after every `viewer.loadSkin()`.
+ * supported features (transparency, the nose and the emissive
+ * pixels) on a live `skinview3d` viewer and returns a controller
+ * whose `refresh()` must be called after every `viewer.loadSkin()`.
  */
 
 export { decodeSkin } from "./decode/index";
