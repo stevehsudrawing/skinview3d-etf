@@ -28,6 +28,7 @@ import {
   collectLayerMaterials,
   restoreTransparent,
   setTransparent,
+  type MaterialState,
 } from "./transparency";
 import type {
   ETFController,
@@ -107,7 +108,7 @@ export function attachETFSkinFeatures(
   }
   const settings = normaliseOptions(options);
   const warned = new Set<string>();
-  const materialOriginals = new Map<MeshStandardMaterial, boolean>();
+  const materialOriginals = new Map<MeshStandardMaterial, MaterialState>();
 
   let decoded: DecodeResult | null = null;
   let baselinePixels: PixelData | null = null;

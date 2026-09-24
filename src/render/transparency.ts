@@ -1,10 +1,24 @@
 /**
  * Transparency feature: toggles the skin's layer-1 materials and
- * remembers every original flag so they can be restored.
+ * remembers the original settings (transparency and face culling) so
+ * they can be restored.
  */
 
 import type { SkinObject } from "skinview3d";
-import type { Mesh, MeshStandardMaterial } from "three";
+import {
+  DoubleSide,
+  type Mesh,
+  type MeshStandardMaterial,
+  type Side,
+} from "three";
+
+/** Original layer-1 material settings, saved before the first change. */
+export interface MaterialState {
+  /** The original `transparent` flag. */
+  transparent: boolean;
+  /** The original `side` value. */
+  side: Side;
+}
 
 /**
  * Collects the unique layer-1 materials of the six body parts (the
@@ -40,41 +54,55 @@ export function collectLayerMaterials(
 }
 
 /**
- * Applies the `transparent` flag to the given materials, storing the
- * original value of every material the first time it is seen.
+ * Applies the translucent look to the given materials: the
+ * `transparent` flag plus `DoubleSide`, because the in-game
+ * translucent render type does not cull back faces - a see-through
+ * skin shows the inside of the model. The original settings are saved
+ * the first time each material is seen.
  *
  * @param materials - The materials to update.
- * @param originals - Map receiving the original flags.
- * @param on - The transparency value to apply.
+ * @param originals - Map receiving the original settings.
+ * @param on - Whether the translucent look is active.
  */
 export function setTransparent(
   materials: readonly MeshStandardMaterial[],
-  originals: Map<MeshStandardMaterial, boolean>,
+  originals: Map<MeshStandardMaterial, MaterialState>,
   on: boolean,
 ): void {
   for (const material of materials) {
-    if (!originals.has(material)) {
-      originals.set(material, material.transparent);
+    let saved = originals.get(material);
+    if (saved === undefined) {
+      saved = { transparent: material.transparent, side: material.side };
+      originals.set(material, saved);
     }
-    const next = on ? true : (originals.get(material) ?? material.transparent);
-    if (material.transparent !== next) {
-      material.transparent = next;
+    const nextTransparent = on ? true : saved.transparent;
+    const nextSide: Side = on ? DoubleSide : saved.side;
+    if (
+      material.transparent !== nextTransparent ||
+      material.side !== nextSide
+    ) {
+      material.transparent = nextTransparent;
+      material.side = nextSide;
       material.needsUpdate = true;
     }
   }
 }
 
 /**
- * Restores the saved `transparent` flag of every known material.
+ * Restores the saved translucency settings of every known material.
  *
- * @param originals - The saved flags.
+ * @param originals - The saved settings.
  */
 export function restoreTransparent(
-  originals: Map<MeshStandardMaterial, boolean>,
+  originals: Map<MeshStandardMaterial, MaterialState>,
 ): void {
-  for (const [material, transparent] of originals) {
-    if (material.transparent !== transparent) {
-      material.transparent = transparent;
+  for (const [material, saved] of originals) {
+    if (
+      material.transparent !== saved.transparent ||
+      material.side !== saved.side
+    ) {
+      material.transparent = saved.transparent;
+      material.side = saved.side;
       material.needsUpdate = true;
     }
   }
