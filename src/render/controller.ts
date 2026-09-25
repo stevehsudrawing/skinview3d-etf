@@ -1,20 +1,14 @@
 /**
  * The renderer controller behind `attachETFSkinFeatures()`: validates
  * the viewer, decodes the current skin and owns every render artifact
- * (canvas edits, material flags, the nose mesh, the emissive
+ * (canvas edits, material swaps, the nose mesh, the emissive
  * overlays, the blink repaints) with full restore on `detach()`.
  * Teardown always follows the same order: blink snapshot, ticker,
- * nose, emissive, material flags, canvas baseline.
+ * nose, emissive, material swaps, canvas baseline.
  */
 
 import type { SkinViewer } from "skinview3d";
-import type {
-  CanvasTexture,
-  Mesh,
-  MeshBasicMaterial,
-  MeshStandardMaterial,
-  Texture,
-} from "three";
+import type { CanvasTexture, Mesh, MeshBasicMaterial, Texture } from "three";
 import { SKIN_SIZE } from "../decode/core/constants";
 import { buildMask, cloneImage, createImage } from "../decode/core/pixels";
 import type {
@@ -32,7 +26,7 @@ import {
 } from "./core/canvas";
 import { DEFAULT_VILLAGER_NOSE_DATA_URL } from "./core/default-textures";
 import { normalizeBlinkOptions, normalizeOptions } from "./core/options";
-import { headLayerMaterial, layerMapsOf, layerMaterialsOf } from "./core/parts";
+import { headLayerMaterial, layerMapsOf } from "./core/parts";
 import { createSkinSpaceTexture, resolveTextureInput } from "./core/textures";
 import { startTicker, type TickerHandle } from "./core/ticker";
 import type {
@@ -65,11 +59,7 @@ import {
   disposeNose,
   type NoseMesh,
 } from "./features/nose";
-import {
-  restoreTransparent,
-  setTransparent,
-  type MaterialState,
-} from "./features/transparency";
+import { createTranslucentSides } from "./features/transparency";
 
 /**
  * A fully transparent, skin-sized glow mask used whenever a blink
@@ -79,8 +69,6 @@ const EMPTY_GLOW_MASK: PixelData = createImage(SKIN_SIZE, SKIN_SIZE);
 
 /** Cached mesh lookups for the current viewer binding. */
 interface SkinTargets {
-  /** The unique layer-1 materials of the six parts. */
-  materials: MeshStandardMaterial[];
   /** The unique textures bound by the six parts' layers. */
   maps: Texture[];
 }
@@ -110,7 +98,7 @@ export function attachETFSkinFeatures(
   }
   const settings = normalizeOptions(options);
   const warned = new Set<string>();
-  const materialOriginals = new Map<MeshStandardMaterial, MaterialState>();
+  const sides = createTranslucentSides();
 
   let decoded: DecodeResult | null = null;
   let targets: SkinTargets | null = null;
@@ -155,10 +143,8 @@ export function attachETFSkinFeatures(
    * @returns The fresh lookup snapshot.
    */
   function resolveTargets(): SkinTargets {
-    const skin = viewer.playerObject.skin;
     const resolved: SkinTargets = {
-      materials: layerMaterialsOf(skin),
-      maps: layerMapsOf(skin),
+      maps: layerMapsOf(viewer.playerObject.skin),
     };
     targets = resolved;
     return resolved;
@@ -405,8 +391,7 @@ export function attachETFSkinFeatures(
       syncTicker();
       return;
     }
-    const resolved = resolveTargets();
-    restoreTransparent(materialOriginals);
+    resolveTargets();
 
     const transparencyActive =
       settings.features.transparency && decoded.transparency.enabled;
@@ -433,9 +418,8 @@ export function attachETFSkinFeatures(
       lastPainted = null;
     }
 
-    if (transparencyActive) {
-      setTransparent(resolved.materials, materialOriginals, true);
-    }
+    const skin = viewer.playerObject.skin;
+    sides.sync(skin, decoded.skin, skin.modelType, transparencyActive);
     rebuildNose();
     const emissive = decoded.emissive;
     if (settings.features.emissive && emissive !== null) {
@@ -453,7 +437,7 @@ export function attachETFSkinFeatures(
     stopTicker();
     clearNose();
     clearEmissive();
-    restoreTransparent(materialOriginals);
+    sides.restore();
     if (skinEdited && baselinePixels !== null) {
       paintCanvasPixels(viewer.skinCanvas, baselinePixels);
       markSkinDirty();
@@ -535,6 +519,7 @@ export function attachETFSkinFeatures(
       return;
     }
     unapply();
+    sides.dispose();
     textureGeneration++;
     villagerTexture = null;
     villagerPending = false;
