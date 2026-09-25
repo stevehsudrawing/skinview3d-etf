@@ -8,8 +8,8 @@ import {
   MARKER_CELLS,
   MARKER_SIGNATURE,
   PALETTE,
+  paletteColor,
   SLOTS,
-  paletteColour,
 } from "../../src/decode/constants";
 import { createImage, fillRect, setPixel } from "../../src/decode/pixels";
 import type { PaletteId, PixelData, Rect, RGBA } from "../../src/decode/types";
@@ -32,7 +32,7 @@ export function createBlankSkin(): PixelData {
  * @param skin - The skin to mutate.
  * @param x - Pixel column.
  * @param y - Pixel row.
- * @param rgba - The colour to write.
+ * @param rgba - The color to write.
  */
 export function paintPixel(
   skin: PixelData,
@@ -44,7 +44,7 @@ export function paintPixel(
 }
 
 /**
- * Paints a rectangle with a palette colour.
+ * Paints a rectangle with a palette color.
  *
  * @param skin - The skin to mutate.
  * @param rect - The rectangle to fill.
@@ -55,7 +55,7 @@ export function paintRectWithPalette(
   rect: Rect,
   id: PaletteId,
 ): void {
-  fillRect(skin, rect, paletteColour(id));
+  fillRect(skin, rect, paletteColor(id));
 }
 
 /**
@@ -70,7 +70,7 @@ export function paintMarker(skin: PixelData): void {
 }
 
 /**
- * Paints one marker-choice cell with a palette colour, or clears it.
+ * Paints one marker-choice cell with a palette color, or clears it.
  *
  * @param skin - The skin to mutate.
  * @param index - The cell index 0-3 in upstream read order.
@@ -82,16 +82,11 @@ export function paintCell(
   id: PaletteId | null,
 ): void {
   const cell = MARKER_CELLS[index];
-  setPixel(
-    skin,
-    cell.x,
-    cell.y,
-    id === null ? [0, 0, 0, 0] : paletteColour(id),
-  );
+  setPixel(skin, cell.x, cell.y, id === null ? [0, 0, 0, 0] : paletteColor(id));
 }
 
 /**
- * Paints one choice slot with a palette colour, or clears it.
+ * Paints one choice slot with a palette color, or clears it.
  *
  * @param skin - The skin to mutate.
  * @param name - The slot to write.
@@ -103,12 +98,7 @@ export function paintSlot(
   id: PaletteId | null,
 ): void {
   const slot = SLOTS[name];
-  setPixel(
-    skin,
-    slot.x,
-    slot.y,
-    id === null ? [0, 0, 0, 0] : paletteColour(id),
-  );
+  setPixel(skin, slot.x, slot.y, id === null ? [0, 0, 0, 0] : paletteColor(id));
 }
 
 /**
@@ -128,7 +118,7 @@ export function createMarkedSkin(): PixelData {
  * @param id - The palette id.
  * @returns The exact RGBA of the entry.
  */
-export function colourOf(id: PaletteId): RGBA {
+export function colorOf(id: PaletteId): RGBA {
   const entry = PALETTE.find((candidate) => candidate.id === id);
   if (entry === undefined) {
     throw new Error(`unknown palette id ${id}`);

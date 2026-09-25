@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   DEPRECATED_NOSE_RECTS,
   NOSE_CAPE_REGIONS,
-  NOSE_COLOUR,
+  NOSE_COLOR,
 } from "../../src/decode/constants";
 import { decodeSkin } from "../../src/decode/index";
 import { decodeNose } from "../../src/decode/nose";
-import { getPixel, sameColour, setPixel } from "../../src/decode/pixels";
+import { getPixel, sameColor, setPixel } from "../../src/decode/pixels";
 import { fixturesAvailable, loadSkin } from "../fixtures/skins";
 import {
   createMarkedSkin,
@@ -45,7 +45,7 @@ describe("nose", () => {
       removesSource: false,
     });
     expect(result.removals).toEqual([]);
-    expect(getPixel(decodeSkin(skin).skin, 11, 13)).toEqual(NOSE_COLOUR);
+    expect(getPixel(decodeSkin(skin).skin, 11, 13)).toEqual(NOSE_COLOR);
   });
 
   it("requires all six pixels of a deprecated rectangle", () => {
@@ -165,9 +165,9 @@ describe.skipIf(!fixturesAvailable)("nose fixtures", () => {
     let faceNose = 0;
     for (let y = 13; y <= 15; y++) {
       for (let x = 11; x <= 12; x++) {
-        if (sameColour(getPixel(original, x, y), NOSE_COLOUR)) {
+        if (sameColor(getPixel(original, x, y), NOSE_COLOR)) {
           faceNose++;
-          expect(getPixel(result.skin, x, y)).toEqual(NOSE_COLOUR);
+          expect(getPixel(result.skin, x, y)).toEqual(NOSE_COLOR);
         }
       }
     }

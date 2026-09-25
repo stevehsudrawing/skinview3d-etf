@@ -2,9 +2,9 @@
  * Frozen ETF player-skin format constants.
  *
  * Every constant was derived (2026-09-23) from the upstream decoder's
- * read behaviour and verified against the ETF example skins; see the
+ * read behavior and verified against the ETF example skins; see the
  * notes at each constant. All coordinates are 64x64 layout pixels and
- * all colours are opaque unless stated otherwise.
+ * all colors are opaque unless stated otherwise.
  */
 
 import type { PaletteId, Rect, RGBA } from "./types";
@@ -58,9 +58,9 @@ export const MARKER_BOXES: readonly Rect[] = [
   { x1: 56, y1: 40, x2: 63, y2: 47 },
 ];
 
-/** One colour-guide entry. */
+/** One color-guide entry. */
 export interface PaletteEntry {
-  /** The colour-guide id. */
+  /** The color-guide id. */
   id: PaletteId;
   /** The display name used in the upstream editor. */
   name: string;
@@ -68,7 +68,7 @@ export interface PaletteEntry {
   rgba: RGBA;
 }
 
-/** The eight colour-guide swatches plus the villager nose colour. */
+/** The eight color-guide swatches plus the villager nose color. */
 export const PALETTE: readonly PaletteEntry[] = [
   { id: 1, name: "pink", rgba: [255, 0, 255, 255] },
   { id: 2, name: "cyan", rgba: [0, 255, 255, 255] },
@@ -87,7 +87,7 @@ export const PALETTE: readonly PaletteEntry[] = [
  * @param id - The palette id to resolve.
  * @returns The exact RGBA of the entry.
  */
-export function paletteColour(id: PaletteId): RGBA {
+export function paletteColor(id: PaletteId): RGBA {
   const entry = PALETTE.find((candidate) => candidate.id === id);
   if (entry === undefined) {
     throw new Error(`unknown palette id ${id}`);
@@ -95,8 +95,8 @@ export function paletteColour(id: PaletteId): RGBA {
   return entry.rgba;
 }
 
-/** The villager nose colour (palette id 666). */
-export const NOSE_COLOUR: RGBA = paletteColour(666);
+/** The villager nose color (palette id 666). */
+export const NOSE_COLOR: RGBA = paletteColor(666);
 
 /** The seven choice-slot coordinates. */
 export const SLOTS = {

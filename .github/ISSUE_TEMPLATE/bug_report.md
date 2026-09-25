@@ -53,9 +53,9 @@ assignees: ""
 2.
 3.
 
-## 6. Expected behaviour
+## 6. Expected behavior
 
-## 7. Actual behaviour
+## 7. Actual behavior
 
 ## 8. Debug information
 

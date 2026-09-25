@@ -2,7 +2,7 @@
 
 > [!WARNING]
 > This project is in **pre-alpha**. The public API, rendering
-> behaviour, package layout and documentation may change without
+> behavior, package layout and documentation may change without
 > notice at any time; undocumented breaking changes can occur in any
 > release. Do not use it in production yet.
 

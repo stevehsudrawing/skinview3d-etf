@@ -1,6 +1,6 @@
 /**
  * `ImageData`-like pixel helpers used by the decoder: creation, reads
- * and writes, rectangle operations and colour-key matching.
+ * and writes, rectangle operations and color-key matching.
  *
  * All helpers assume in-bounds coordinates; callers work on 64x64
  * buffers with fixed rectangles. No helper imports `three` or
@@ -54,7 +54,7 @@ export function getPixel(image: PixelData, x: number, y: number): RGBA {
  * @param image - The target image (mutated).
  * @param x - Pixel column.
  * @param y - Pixel row.
- * @param rgba - The colour to write.
+ * @param rgba - The color to write.
  */
 export function setPixel(
   image: PixelData,
@@ -71,22 +71,22 @@ export function setPixel(
 }
 
 /**
- * Compares two colours channel by channel (alpha included).
+ * Compares two colors channel by channel (alpha included).
  *
- * @param a - The first colour.
- * @param b - The second colour.
+ * @param a - The first color.
+ * @param b - The second color.
  * @returns True when all four channels are equal.
  */
-export function sameColour(a: RGBA, b: RGBA): boolean {
+export function sameColor(a: RGBA, b: RGBA): boolean {
   return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
 }
 
 /**
- * Fills an inclusive rectangle with a colour.
+ * Fills an inclusive rectangle with a color.
  *
  * @param image - The target image (mutated).
  * @param rect - The rectangle to fill.
- * @param rgba - The fill colour.
+ * @param rgba - The fill color.
  */
 export function fillRect(image: PixelData, rect: Rect, rgba: RGBA): void {
   for (let y = rect.y1; y <= rect.y2; y++) {
@@ -148,23 +148,23 @@ export function stripAlphaRect(image: PixelData, rect: Rect): void {
 }
 
 /**
- * Converts a colour to a comparable string key.
+ * Converts a color to a comparable string key.
  *
- * @param rgba - The colour to pack.
+ * @param rgba - The color to pack.
  * @returns A `"r,g,b,a"` key.
  */
-function colourKey(rgba: RGBA): string {
+function colorKey(rgba: RGBA): string {
   return `${rgba[0]},${rgba[1]},${rgba[2]},${rgba[3]}`;
 }
 
 /**
- * Collects the distinct non-transparent colours of an inclusive
+ * Collects the distinct non-transparent colors of an inclusive
  * rectangle. A pixel counts when its alpha channel differs from zero,
- * which mirrors how upstream reads key colours.
+ * which mirrors how upstream reads key colors.
  *
  * @param image - The source image.
  * @param rect - The region to scan.
- * @returns The distinct colours in row-major first-seen order.
+ * @returns The distinct colors in row-major first-seen order.
  */
 export function collectKeys(image: PixelData, rect: Rect): RGBA[] {
   const seen = new Set<string>();
@@ -175,7 +175,7 @@ export function collectKeys(image: PixelData, rect: Rect): RGBA[] {
       if (rgba[3] === 0) {
         continue;
       }
-      const key = colourKey(rgba);
+      const key = colorKey(rgba);
       if (!seen.has(key)) {
         seen.add(key);
         keys.push(rgba);
@@ -191,20 +191,20 @@ export function collectKeys(image: PixelData, rect: Rect): RGBA[] {
  * transparent.
  *
  * @param image - The source image.
- * @param keys - The key colours to keep.
+ * @param keys - The key colors to keep.
  * @returns The overlay, or `null` when no pixel matches.
  */
 export function buildMask(
   image: PixelData,
   keys: readonly RGBA[],
 ): PixelData | null {
-  const wanted = new Set(keys.map(colourKey));
+  const wanted = new Set(keys.map(colorKey));
   const mask = createImage(image.width, image.height);
   let matched = false;
   for (let y = 0; y < image.height; y++) {
     for (let x = 0; x < image.width; x++) {
       const rgba = getPixel(image, x, y);
-      if (wanted.has(colourKey(rgba))) {
+      if (wanted.has(colorKey(rgba))) {
         setPixel(mask, x, y, rgba);
         matched = true;
       }
@@ -214,18 +214,18 @@ export function buildMask(
 }
 
 /**
- * Counts the pixels of an image whose RGBA equals a colour exactly.
+ * Counts the pixels of an image whose RGBA equals a color exactly.
  *
  * @param image - The source image.
- * @param rgba - The colour to count.
+ * @param rgba - The color to count.
  * @returns The number of matching pixels.
  */
 export function countPixels(image: PixelData, rgba: RGBA): number {
-  const wanted = colourKey(rgba);
+  const wanted = colorKey(rgba);
   let count = 0;
   for (let y = 0; y < image.height; y++) {
     for (let x = 0; x < image.width; x++) {
-      if (colourKey(getPixel(image, x, y)) === wanted) {
+      if (colorKey(getPixel(image, x, y)) === wanted) {
         count++;
       }
     }

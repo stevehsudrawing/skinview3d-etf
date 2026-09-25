@@ -50,8 +50,8 @@ import type {
   SkinFeatureToggles,
 } from "./types";
 
-/** Internal, fully normalised options. */
-interface NormalisedOptions {
+/** Internal, fully normalized options. */
+interface NormalizedOptions {
   /** Every feature switch with defaults applied. */
   features: Required<SkinFeatureToggles>;
   /** Blink timing; reserved for the blinking commit. */
@@ -72,9 +72,9 @@ interface NormalisedOptions {
  * Applies defaults to the user options.
  *
  * @param options - The user options, if any.
- * @returns The normalised settings.
+ * @returns The normalized settings.
  */
-function normaliseOptions(options: ETFSkinFeaturesOptions): NormalisedOptions {
+function normalizeOptions(options: ETFSkinFeaturesOptions): NormalizedOptions {
   const features = options.features ?? {};
   return {
     features: {
@@ -120,7 +120,7 @@ export function attachETFSkinFeatures(
       "attachETFSkinFeatures expects a skinview3d SkinViewer",
     );
   }
-  const settings = normaliseOptions(options);
+  const settings = normalizeOptions(options);
   const warned = new Set<string>();
   const materialOriginals = new Map<MeshStandardMaterial, MaterialState>();
 

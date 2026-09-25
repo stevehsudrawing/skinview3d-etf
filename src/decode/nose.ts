@@ -6,11 +6,11 @@
 import {
   DEPRECATED_NOSE_RECTS,
   NOSE_CAPE_REGIONS,
-  NOSE_COLOUR,
+  NOSE_COLOR,
   NOSE_TYPE9_PIXEL,
   SLOTS,
 } from "./constants";
-import { createImage, getPixel, sameColour, setPixel } from "./pixels";
+import { createImage, getPixel, sameColor, setPixel } from "./pixels";
 import type { NoseInfo, PaletteId, PixelData, Rect } from "./types";
 
 /** The result of {@link decodeNose}. */
@@ -23,7 +23,7 @@ export interface NoseDecodeResult {
 
 /**
  * Checks whether every pixel of a rectangle equals the villager nose
- * colour.
+ * color.
  *
  * @param image - The source image.
  * @param rect - The six-pixel rectangle to check.
@@ -32,7 +32,7 @@ export interface NoseDecodeResult {
 function allNosePixels(image: PixelData, rect: Rect): boolean {
   for (let y = rect.y1; y <= rect.y2; y++) {
     for (let x = rect.x1; x <= rect.x2; x++) {
-      if (!sameColour(getPixel(image, x, y), NOSE_COLOUR)) {
+      if (!sameColor(getPixel(image, x, y), NOSE_COLOR)) {
         return false;
       }
     }
@@ -42,7 +42,7 @@ function allNosePixels(image: PixelData, rect: Rect): boolean {
 
 /**
  * Resolves the nose slot, including the raw type-9 encoding: when the
- * slot holds no palette colour, the literal pixel value `9` selects
+ * slot holds no palette color, the literal pixel value `9` selects
  * the "villager-textured-remove" type.
  *
  * @param image - The skin image.
@@ -57,7 +57,7 @@ function resolveNoseChoice(
     return slot;
   }
   const raw = getPixel(image, SLOTS.nose.x, SLOTS.nose.y);
-  return sameColour(raw, NOSE_TYPE9_PIXEL) ? 9 : null;
+  return sameColor(raw, NOSE_TYPE9_PIXEL) ? 9 : null;
 }
 
 /**

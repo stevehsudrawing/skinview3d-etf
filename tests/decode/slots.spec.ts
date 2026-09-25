@@ -38,7 +38,7 @@ describe("choice slots", () => {
     expect(readSlots(skin).cape).toBe(1);
   });
 
-  it("treats alpha variants, placeholder greys and transparency as unset", () => {
+  it("treats alpha variants, placeholder grays and transparency as unset", () => {
     const skin = createMarkedSkin();
     setPixel(skin, 52, 16, [255, 0, 255, 254]);
     setPixel(skin, 52, 17, [64, 64, 64, 255]);
@@ -46,7 +46,7 @@ describe("choice slots", () => {
     expect(readSlots(skin)).toEqual(ALL_UNSET);
   });
 
-  it("does not resolve the raw type-9 nose pixel as a palette colour", () => {
+  it("does not resolve the raw type-9 nose pixel as a palette color", () => {
     const skin = createMarkedSkin();
     setPixel(skin, 53, 17, [9, 0, 0, 0]);
     expect(readChoice(skin, 53, 17)).toBeNull();

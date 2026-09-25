@@ -1,5 +1,5 @@
 /**
- * Emissive/enchanted pattern decoding: box selection, colour-key
+ * Emissive/enchanted pattern decoding: box selection, color-key
  * collection and matching-mask preparation.
  */
 
@@ -25,7 +25,7 @@ export function selectBox(
 }
 
 /**
- * Decodes one pattern: it collects the box's key colours and cuts the
+ * Decodes one pattern: it collects the box's key colors and cuts the
  * matching overlay from the working skin. The pattern is off when the
  * box holds no non-transparent pixel or nothing in the skin matches a
  * key.

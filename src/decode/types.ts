@@ -35,12 +35,12 @@ export interface Rect {
   y2: number;
 }
 
-/** An 8-bit RGBA colour tuple; every channel is 0-255. */
+/** An 8-bit RGBA color tuple; every channel is 0-255. */
 export type RGBA = readonly [number, number, number, number];
 
 /**
- * A colour-guide id: 1-8 for the eight paint swatches, 666 for the
- * villager nose colour. Values are matched with exact RGBA equality.
+ * A color-guide id: 1-8 for the eight paint swatches, 666 for the
+ * villager nose color. Values are matched with exact RGBA equality.
  */
 export type PaletteId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 666;
 
@@ -107,12 +107,12 @@ export interface JacketInfo {
   texture: PixelData;
 }
 
-/** An emissive or enchanted colour-key pattern. */
+/** An emissive or enchanted color-key pattern. */
 export interface PatternInfo {
   /** The selected 8x8 pattern box. */
   box: Rect;
   /**
-   * The distinct non-transparent colours read from the box, in
+   * The distinct non-transparent colors read from the box, in
    * row-major first-seen order.
    */
   keys: RGBA[];
@@ -141,7 +141,7 @@ export interface SlotValues {
   cape: PaletteId | null;
   /**
    * Nose slot `(53,17)`; palette ids 1-8 select a nose. The nose
-   * colour (666) reads through as a palette id but is ignored by the
+   * color (666) reads through as a palette id but is ignored by the
    * nose decoder; nose type 9 is encoded outside the palette (see
    * {@link DecodeResult.nose}).
    */
