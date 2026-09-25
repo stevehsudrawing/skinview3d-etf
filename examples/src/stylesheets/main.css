@@ -49,20 +49,44 @@ body {
 
 .control-group {
   border: 1px solid #dddddd;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 8px 12px;
+  border-collapse: collapse;
 }
 
-.control-group label {
-  align-items: center;
-  display: flex;
-  gap: 6px;
+.control-group th,
+.control-group td {
+  padding: 4px 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.control-group th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.control-group .group-title {
+  color: #555555;
+  padding-bottom: 8px;
+  padding-top: 8px;
+}
+
+.control-group td {
+  white-space: nowrap;
+}
+
+.control-group input[type="checkbox"] {
+  margin: 0;
+  vertical-align: middle;
 }
 
 .control-group input[type="range"] {
+  vertical-align: middle;
   width: 140px;
+}
+
+.control-group button[type="button"] {
+  font: inherit;
+  margin-left: 6px;
 }
 
 .upload {
@@ -71,14 +95,14 @@ body {
   gap: 6px;
 }
 
-.label {
-  color: #555555;
-  font-weight: 600;
-}
-
 .status {
   color: #555555;
   min-height: 1.2em;
+}
+
+footer {
+  color: #555555;
+  margin-top: 16px;
 }
 
 figure {

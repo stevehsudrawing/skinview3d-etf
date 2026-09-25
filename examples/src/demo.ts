@@ -3,11 +3,11 @@
  *
  * Creates a `SkinViewer` inside a square stage, attaches the ETF
  * features through the public `attachETFSkinFeatures()` API and
- * offers two-column controls grouped by owner (the extension first):
- * the extension's attach switch plus the transparency / nose /
- * emissive toggles, and the host's built-in action presets plus
- * light-intensity sliders. The skin shown comes from the shared
- * fixture bar above the tabs.
+ * offers two aligned control tables grouped by owner (the extension
+ * first): the extension's attach switch plus the transparency / nose /
+ * emissive toggles, and the host's action presets, model picker,
+ * background color and light-intensity sliders (with reset buttons).
+ * The skin shown comes from the shared fixture bar above the tabs.
  */
 
 import {
@@ -21,6 +21,7 @@ import {
   WalkingAnimation,
   WaveAnimation,
   type PlayerAnimation,
+  type SkinLoadOptions,
 } from "skinview3d";
 import type { ETFController } from "../../src/index";
 import { attachETFSkinFeatures } from "../../src/index";
@@ -55,6 +56,86 @@ const ANIMATIONS: ReadonlyArray<{
   { id: "swim", create: () => new SwimAnimation() },
   { id: "fly", create: () => new FlyingAnimation() },
 ];
+
+/** Model picker entries: the label shown and the `loadSkin()` value. */
+const MODEL_OPTIONS: ReadonlyArray<{
+  /** Option label shown in the picker. */
+  label: string;
+  /** Value passed to `loadSkin()`. */
+  model: NonNullable<SkinLoadOptions["model"]>;
+}> = [
+  { label: "auto", model: "auto-detect" },
+  { label: "Steve", model: "default" },
+  { label: "Alex", model: "slim" },
+];
+
+/**
+ * Builds one option row for a control table and ties its controls to
+ * the row label through `aria-labelledby`.
+ *
+ * @param label - The row label (left column).
+ * @param controls - The control elements (right column).
+ * @returns The `<tr>` element.
+ */
+function optionRow(label: string, ...controls: Node[]): HTMLTableRowElement {
+  const row = document.createElement("tr");
+  const header = document.createElement("th");
+  header.id = `demo-option-${label.toLowerCase()}`;
+  header.scope = "row";
+  header.textContent = label;
+  const cell = document.createElement("td");
+  for (const control of controls) {
+    if (
+      (control instanceof HTMLInputElement ||
+        control instanceof HTMLSelectElement) &&
+      !control.hasAttribute("aria-label")
+    ) {
+      control.setAttribute("aria-labelledby", header.id);
+    }
+  }
+  cell.append(...controls);
+  row.append(header, cell);
+  return row;
+}
+
+/**
+ * Builds a control table for one owner group.
+ *
+ * @param title - The group title.
+ * @param rows - The option rows.
+ * @returns The `<table>` element.
+ */
+function controlTable(
+  title: string,
+  rows: readonly HTMLTableRowElement[],
+): HTMLTableElement {
+  const table = document.createElement("table");
+  table.className = "control-group";
+  const titleRow = document.createElement("tr");
+  const header = document.createElement("th");
+  header.colSpan = 2;
+  header.className = "group-title";
+  header.textContent = title;
+  titleRow.append(header);
+  table.append(titleRow, ...rows);
+  return table;
+}
+
+/**
+ * Builds a small reset button for a slider row.
+ *
+ * @param label - The accessible label.
+ * @param onClick - The click handler.
+ * @returns The `<button>` element.
+ */
+function resetButton(label: string, onClick: () => void): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = "reset";
+  button.setAttribute("aria-label", label);
+  button.addEventListener("click", onClick);
+  return button;
+}
 
 /** Handle used by the tab shell to pause a hidden viewer. */
 export interface DemoHandle {
@@ -154,7 +235,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
    */
   const showFixture = async (fixture: Fixture): Promise<void> => {
     report(`loading ${fixture.name}...`);
-    await viewer.loadSkin(fixture.url);
+    await viewer.loadSkin(fixture.url, { model: selectedModel() });
     controller?.refresh();
     report(`showing ${fixture.name}`);
   };
@@ -198,6 +279,39 @@ export function initDemo(container: HTMLElement): DemoHandle {
     viewer.animation = preset === undefined ? null : preset.create();
   });
 
+  const modelSelect = document.createElement("select");
+  for (const entry of MODEL_OPTIONS) {
+    const option = document.createElement("option");
+    option.value = entry.model;
+    option.textContent = entry.label;
+    modelSelect.append(option);
+  }
+  modelSelect.addEventListener("change", () => {
+    const current = getSelectedFixture();
+    if (current !== undefined) {
+      loadFixture(current);
+    }
+  });
+
+  /**
+   * Resolves the model value currently chosen in the picker.
+   *
+   * @returns The `loadSkin()` model value.
+   */
+  const selectedModel = (): NonNullable<SkinLoadOptions["model"]> => {
+    const match = MODEL_OPTIONS.find(
+      (entry) => entry.model === modelSelect.value,
+    );
+    return match?.model ?? "auto-detect";
+  };
+
+  const backgroundInput = document.createElement("input");
+  backgroundInput.type = "color";
+  backgroundInput.value = "#ffffff";
+  backgroundInput.addEventListener("input", () => {
+    viewer.background = backgroundInput.value;
+  });
+
   const ambientLight = document.createElement("input");
   ambientLight.type = "range";
   ambientLight.min = "0";
@@ -220,6 +334,17 @@ export function initDemo(container: HTMLElement): DemoHandle {
     viewer.cameraLight.intensity = Number(cameraLight.value);
   });
 
+  const ambientDefault = viewer.globalLight.intensity;
+  const cameraDefault = viewer.cameraLight.intensity;
+  const ambientReset = resetButton("reset ambient", () => {
+    ambientLight.value = String(ambientDefault);
+    viewer.globalLight.intensity = ambientDefault;
+  });
+  const cameraReset = resetButton("reset camera", () => {
+    cameraLight.value = String(cameraDefault);
+    viewer.cameraLight.intensity = cameraDefault;
+  });
+
   const attachBox = document.createElement("input");
   attachBox.type = "checkbox";
   attachBox.disabled = true;
@@ -231,39 +356,24 @@ export function initDemo(container: HTMLElement): DemoHandle {
     }
   });
 
-  const attachRow = document.createElement("label");
-  attachRow.append(attachBox, " attach");
-  const transparencyRow = document.createElement("label");
-  transparencyRow.append(transparencyBox, " transparency");
-  const noseRow = document.createElement("label");
-  noseRow.append(noseBox, " nose");
-  const emissiveRow = document.createElement("label");
-  emissiveRow.append(emissiveBox, " emissive");
+  const etfTable = controlTable("skinview3d-etf:", [
+    optionRow("attach", attachBox),
+    optionRow("transparency", transparencyBox),
+    optionRow("nose", noseBox),
+    optionRow("emissive", emissiveBox),
+  ]);
 
-  const etfGroup = document.createElement("div");
-  etfGroup.className = "control-group";
-  const etfLabel = document.createElement("span");
-  etfLabel.className = "label";
-  etfLabel.textContent = "skinview3d-etf:";
-  etfGroup.append(etfLabel, attachRow, transparencyRow, noseRow, emissiveRow);
-
-  const actionRow = document.createElement("label");
-  actionRow.append("action ", animationSelect);
-  const ambientRow = document.createElement("label");
-  ambientRow.append("ambient ", ambientLight);
-  const cameraRow = document.createElement("label");
-  cameraRow.append("camera ", cameraLight);
-
-  const hostGroup = document.createElement("div");
-  hostGroup.className = "control-group";
-  const hostLabel = document.createElement("span");
-  hostLabel.className = "label";
-  hostLabel.textContent = "skinview3d:";
-  hostGroup.append(hostLabel, actionRow, ambientRow, cameraRow);
+  const hostTable = controlTable("skinview3d:", [
+    optionRow("action", animationSelect),
+    optionRow("model", modelSelect),
+    optionRow("background", backgroundInput),
+    optionRow("ambient", ambientLight, ambientReset),
+    optionRow("camera", cameraLight, cameraReset),
+  ]);
 
   const controls = document.createElement("div");
   controls.className = "controls";
-  controls.append(etfGroup, hostGroup);
+  controls.append(etfTable, hostTable);
   container.append(controls, status);
 
   /**

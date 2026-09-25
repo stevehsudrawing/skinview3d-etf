@@ -1,7 +1,8 @@
 /**
  * PNG-only skin upload for the demo shell: validates the picked file
- * locally and publishes it as the shared fixture. Uploaded pixels
- * never leave the browser.
+ * locally and publishes it as the shared fixture. Rejections surface
+ * through `alert()`; accepted uploads are reported through the
+ * callback. Uploaded pixels never leave the browser.
  */
 
 import { loadImageData, setUploadedFixture, type Fixture } from "./fixtures";
@@ -36,14 +37,14 @@ async function hasPngSignature(file: File): Promise<boolean> {
 
 /**
  * Builds the upload control: a labeled file input that validates the
- * picked PNG, reports rejections through the callback and publishes
- * accepted skins as the shared fixture.
+ * picked PNG, alerts on rejections and publishes accepted skins as
+ * the shared fixture.
  *
- * @param onMessage - Receives the status or error message to show.
+ * @param onUploaded - Receives the message for an accepted upload.
  * @returns The `<label>` element wrapping the file input.
  */
 export function createUploadControl(
-  onMessage: (message: string) => void,
+  onUploaded: (message: string) => void,
 ): HTMLLabelElement {
   /**
    * Probes the image and publishes it when it passes validation.
@@ -52,7 +53,7 @@ export function createUploadControl(
    */
   const addFixture = async (file: File): Promise<void> => {
     if (!(await hasPngSignature(file))) {
-      onMessage("only PNG files are supported");
+      alert("only PNG files are supported");
       return;
     }
     const url = URL.createObjectURL(file);
@@ -65,7 +66,7 @@ export function createUploadControl(
     }
     if (!isSupportedSize(probe.width, probe.height)) {
       URL.revokeObjectURL(url);
-      onMessage(
+      alert(
         `unsupported skin size ${probe.width}x${probe.height}: ` +
           "use a 64x64 skin or a legacy 64x32 skin",
       );
@@ -74,7 +75,7 @@ export function createUploadControl(
     const fixture: Fixture = { name: file.name, url, origin: "uploaded" };
     setUploadedFixture(fixture);
     const note = probe.height === 32 ? " (legacy 64x32, converted)" : "";
-    onMessage(`uploaded ${file.name}${note}`);
+    onUploaded(`uploaded ${file.name}${note}`);
   };
 
   /**
@@ -86,7 +87,7 @@ export function createUploadControl(
     try {
       await addFixture(file);
     } catch (error) {
-      onMessage(`upload failed: ${String(error)}`);
+      alert(`upload failed: ${String(error)}`);
     }
   };
 
