@@ -19,8 +19,27 @@ const DEFAULT_PERIOD_MS = 6000;
 /** Default closed phase in milliseconds. */
 const DEFAULT_CLOSED_MS = 250;
 
+/** Default half-closed phase (lead and tail), from the closed phase. */
+const DEFAULT_HALF_CLOSED_MS = Math.round(DEFAULT_CLOSED_MS / 2);
+
 /** Smallest accepted blink interval in milliseconds. */
 const MIN_PERIOD_MS = 100;
+
+/**
+ * The documented blink defaults, exported for consumers that quote or
+ * reset them. The resolver derives the same numbers when options are
+ * omitted; the option specs assert both stay in sync.
+ */
+export const DEFAULT_BLINK_OPTIONS = {
+  /** Interval between blinks, in ms. */
+  periodMs: DEFAULT_PERIOD_MS,
+  /** Fully closed phase, in ms. */
+  closedMs: DEFAULT_CLOSED_MS,
+  /** Half-closed lead phase, in ms. */
+  halfClosedMs: DEFAULT_HALF_CLOSED_MS,
+  /** Half-closed tail phase, in ms. */
+  reopenMs: DEFAULT_HALF_CLOSED_MS,
+} as const;
 
 /** Fully resolved blink settings. */
 export interface NormalizedBlinkOptions {

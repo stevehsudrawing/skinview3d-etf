@@ -5,7 +5,10 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { normalizeOptions } from "../../src/render/core/options";
+import {
+  DEFAULT_BLINK_OPTIONS,
+  normalizeOptions,
+} from "../../src/render/core/options";
 
 describe("normalizeOptions", () => {
   it("applies the documented defaults", () => {
@@ -30,6 +33,16 @@ describe("normalizeOptions", () => {
     expect(settings.villagerNoseTexture).toBeUndefined();
     expect(settings.glintTexture).toBeUndefined();
     expect(settings.onWarning).toBeNull();
+  });
+
+  it("keeps the exported blink defaults in sync with the resolver", () => {
+    const settings = normalizeOptions({});
+    expect({
+      periodMs: settings.blink.interval,
+      closedMs: settings.blink.closedMs,
+      halfClosedMs: settings.blink.halfClosedMs,
+      reopenMs: settings.blink.reopenMs,
+    }).toEqual(DEFAULT_BLINK_OPTIONS);
   });
 
   it("merges partial feature switches over the defaults", () => {

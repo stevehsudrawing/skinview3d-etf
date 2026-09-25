@@ -37,17 +37,9 @@ export interface PartLayers {
  * @returns The parts in {@link BODY_PART_IDS} order.
  */
 export function partsOf(skin: SkinObject): PartLayers[] {
-  const parts = [
-    skin.head,
-    skin.body,
-    skin.leftArm,
-    skin.rightArm,
-    skin.leftLeg,
-    skin.rightLeg,
-  ];
-  return parts.map((part) => ({
-    inner: part.innerLayer as Mesh,
-    outer: part.outerLayer as Mesh,
+  return BODY_PART_IDS.map((id) => ({
+    inner: skin[id].innerLayer as Mesh,
+    outer: skin[id].outerLayer as Mesh,
   }));
 }
 

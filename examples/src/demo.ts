@@ -1,18 +1,15 @@
 /**
- * The 3D demo tab.
+ * The 3D demo tab: the page assembly around the shared fixture bar.
  *
  * Creates a `SkinViewer` inside a square stage (with a `reset`
  * overlay that restores the camera pose), attaches the ETF features
  * through the public `attachETFSkinFeatures()` API and offers three
  * aligned control tables grouped by owning package (the extension,
- * the blockbench animation provider, the host viewer). Every control
- * surface is the exact API keyword with its description in a tooltip;
- * the blink rows couple to each other, the reset buttons share one
- * column, and the blockbench group picks its input file (`animation`,
- * the bundled copy or a
- * transient `[upload]` entry) and the name to play (`animationName`,
- * the list following the file) with the provider's `paused` /
- * `speed` / `setAnimation` controls. The host picker and the
+ * the blockbench animation provider, the host viewer; the builders
+ * live in `controls.ts`, the provider group in `blockbench.ts`).
+ * Every control surface is the exact API keyword with its
+ * description in a tooltip; the blink rows couple to each other and
+ * the row action buttons share one column. The host picker and the
  * blockbench pair share the single `viewer.animation` slot and call
  * `controller.rebind()` whenever the slot object changes; the skin
  * shown comes from the shared fixture bar above the tabs.
@@ -31,16 +28,15 @@ import {
   type PlayerAnimation,
   type SkinLoadOptions,
 } from "skinview3d";
-import { SkinViewBlockbench } from "skinview3d-blockbench";
 import type { BlinkState, ETFController } from "../../src/index";
-import { attachETFSkinFeatures } from "../../src/index";
-import exampleAnimation from "./assets/animations/example.animation.json";
+import { attachETFSkinFeatures, DEFAULT_BLINK_OPTIONS } from "../../src/index";
+import { createBlockbenchGroup } from "./blockbench";
+import { actionButton, controlTable, optionRow } from "./controls";
 import {
   getSelectedFixture,
   onFixtureSelected,
   type Fixture,
 } from "./fixtures";
-import { createAnimationUploadControl } from "./upload";
 
 /** Built-in action presets offered by the demo. */
 const ANIMATIONS: ReadonlyArray<{
@@ -79,128 +75,6 @@ const MODEL_OPTIONS: ReadonlyArray<{
   { label: "Steve", model: "default" },
   { label: "Alex", model: "slim" },
 ];
-
-/** The documented blink defaults the demo resets back to. */
-const BLINK_DEFAULTS = {
-  /** Fixed interval between blinks, in ms. */
-  periodMs: 6000,
-  /** Fully closed phase, in ms. */
-  closedMs: 250,
-  /** Half-closed lead phase, in ms. */
-  halfClosedMs: 125,
-  /** Half-closed tail phase, in ms. */
-  reopenMs: 125,
-} as const;
-
-/** Animation names inside the bundled blockbench fixture. */
-const BLOCKBENCH_NAMES = Object.keys(exampleAnimation.animations);
-
-/**
- * Builds one option row for a control table: the label is the API
- * keyword wrapped in a `code` element whose `title` describes it, and
- * the controls are tied to the label through `aria-labelledby` (the
- * id is namespaced by `controlTable`).
- *
- * @param label - The API keyword (left column).
- * @param description - The plain-English tooltip text.
- * @param controls - The control elements (right column).
- * @param reset - A per-row reset button, when the row has one.
- * @returns The `<tr>` element.
- */
-function optionRow(
-  label: string,
-  description: string,
-  controls: readonly Node[],
-  reset?: HTMLButtonElement,
-): HTMLTableRowElement {
-  const row = document.createElement("tr");
-  const header = document.createElement("th");
-  header.id = `demo-option-${label.toLowerCase()}`;
-  header.scope = "row";
-  const keyword = document.createElement("code");
-  keyword.textContent = label;
-  keyword.title = description;
-  header.append(keyword);
-  const cell = document.createElement("td");
-  for (const control of controls) {
-    if (
-      (control instanceof HTMLInputElement ||
-        control instanceof HTMLSelectElement) &&
-      !control.hasAttribute("aria-label")
-    ) {
-      control.setAttribute("aria-labelledby", header.id);
-    }
-  }
-  cell.append(...controls);
-  if (reset !== undefined) {
-    cell.append(reset);
-  }
-  row.append(header, cell);
-  return row;
-}
-
-/**
- * Builds a control table for one owner group; the group title doubles
- * as the `<th>` id namespace, so equal keywords in different tables
- * stay addressable.
- *
- * @param title - The group title.
- * @param rows - The option rows.
- * @returns The `<table>` element.
- */
-function controlTable(
-  title: string,
-  rows: readonly HTMLTableRowElement[],
-): HTMLTableElement {
-  const table = document.createElement("table");
-  table.className = "control-group";
-  const titleRow = document.createElement("tr");
-  const header = document.createElement("th");
-  header.colSpan = 2;
-  header.className = "group-title";
-  header.textContent = title;
-  titleRow.append(header);
-  const slug = title.replace(/:$/, "").toLowerCase();
-  for (const row of rows) {
-    const rowHeader = row.querySelector("th");
-    const keyword = rowHeader?.querySelector("code")?.textContent;
-    if (rowHeader === null || keyword === undefined) {
-      continue;
-    }
-    const previousId = rowHeader.id;
-    rowHeader.id = `demo-option-${slug}-${keyword.toLowerCase()}`;
-    for (const control of row.querySelectorAll(
-      `[aria-labelledby="${previousId}"]`,
-    )) {
-      control.setAttribute("aria-labelledby", rowHeader.id);
-    }
-  }
-  table.append(titleRow, ...rows);
-  return table;
-}
-
-/**
- * Builds a row action button; the `row-reset` class lets every row
- * action align in one column. The visible text is the API keyword.
- *
- * @param text - The visible label (the API keyword).
- * @param label - The accessible label.
- * @param onClick - The click handler.
- * @returns The `<button>` element.
- */
-function actionButton(
-  text: string,
-  label: string,
-  onClick: () => void,
-): HTMLButtonElement {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "row-reset";
-  button.textContent = text;
-  button.setAttribute("aria-label", label);
-  button.addEventListener("click", onClick);
-  return button;
-}
 
 /** Handle used by the tab shell to pause a hidden viewer. */
 export interface DemoHandle {
@@ -411,35 +285,45 @@ export function initDemo(container: HTMLElement): DemoHandle {
     return input;
   }
 
-  const periodMin = timingInput(BLINK_DEFAULTS.periodMs, 100, applyPeriod);
-  const periodMax = timingInput(BLINK_DEFAULTS.periodMs, 100, applyPeriod);
-  const closedInput = timingInput(BLINK_DEFAULTS.closedMs, 10, (value) =>
+  const periodMin = timingInput(
+    DEFAULT_BLINK_OPTIONS.periodMs,
+    100,
+    applyPeriod,
+  );
+  const periodMax = timingInput(
+    DEFAULT_BLINK_OPTIONS.periodMs,
+    100,
+    applyPeriod,
+  );
+  const closedInput = timingInput(DEFAULT_BLINK_OPTIONS.closedMs, 10, (value) =>
     controller?.setBlinkOptions({ closedMs: value }),
   );
   const halfClosedInput = timingInput(
-    BLINK_DEFAULTS.halfClosedMs,
+    DEFAULT_BLINK_OPTIONS.halfClosedMs,
     10,
     (value) => controller?.setBlinkOptions({ halfClosedMs: value }),
   );
-  const reopenInput = timingInput(BLINK_DEFAULTS.reopenMs, 10, (value) =>
+  const reopenInput = timingInput(DEFAULT_BLINK_OPTIONS.reopenMs, 10, (value) =>
     controller?.setBlinkOptions({ reopenMs: value }),
   );
   const periodReset = actionButton("reset", "reset periodMs", () => {
-    periodMin.value = String(BLINK_DEFAULTS.periodMs);
-    periodMax.value = String(BLINK_DEFAULTS.periodMs);
-    controller?.setBlinkOptions({ periodMs: BLINK_DEFAULTS.periodMs });
+    periodMin.value = String(DEFAULT_BLINK_OPTIONS.periodMs);
+    periodMax.value = String(DEFAULT_BLINK_OPTIONS.periodMs);
+    controller?.setBlinkOptions({ periodMs: DEFAULT_BLINK_OPTIONS.periodMs });
   });
   const closedReset = actionButton("reset", "reset closedMs", () => {
-    closedInput.value = String(BLINK_DEFAULTS.closedMs);
-    controller?.setBlinkOptions({ closedMs: BLINK_DEFAULTS.closedMs });
+    closedInput.value = String(DEFAULT_BLINK_OPTIONS.closedMs);
+    controller?.setBlinkOptions({ closedMs: DEFAULT_BLINK_OPTIONS.closedMs });
   });
   const halfClosedReset = actionButton("reset", "reset halfClosedMs", () => {
-    halfClosedInput.value = String(BLINK_DEFAULTS.halfClosedMs);
-    controller?.setBlinkOptions({ halfClosedMs: BLINK_DEFAULTS.halfClosedMs });
+    halfClosedInput.value = String(DEFAULT_BLINK_OPTIONS.halfClosedMs);
+    controller?.setBlinkOptions({
+      halfClosedMs: DEFAULT_BLINK_OPTIONS.halfClosedMs,
+    });
   });
   const reopenReset = actionButton("reset", "reset reopenMs", () => {
-    reopenInput.value = String(BLINK_DEFAULTS.reopenMs);
-    controller?.setBlinkOptions({ reopenMs: BLINK_DEFAULTS.reopenMs });
+    reopenInput.value = String(DEFAULT_BLINK_OPTIONS.reopenMs);
+    controller?.setBlinkOptions({ reopenMs: DEFAULT_BLINK_OPTIONS.reopenMs });
   });
 
   /**
@@ -488,211 +372,18 @@ export function initDemo(container: HTMLElement): DemoHandle {
     );
     // The viewer resets the pose whenever the animation slot changes.
     viewer.animation = preset === undefined ? null : preset.create();
-    animationNameSelect.value = "none";
-    syncBlockbenchAvailability();
+    blockbenchGroup.release();
     controller?.rebind();
   });
 
-  const forceLoopBox = document.createElement("input");
-  forceLoopBox.type = "checkbox";
-  forceLoopBox.checked = true;
-  forceLoopBox.addEventListener("change", () => {
-    const provider = currentProvider();
-    if (provider !== null) {
-      provider.forceLoop = forceLoopBox.checked;
-    }
-  });
-
-  const pausedBox = document.createElement("input");
-  pausedBox.type = "checkbox";
-  pausedBox.addEventListener("change", () => {
-    const provider = currentProvider();
-    if (provider !== null) {
-      provider.paused = pausedBox.checked;
-    }
-  });
-
-  const speedInput = document.createElement("input");
-  speedInput.type = "number";
-  speedInput.min = "0";
-  speedInput.step = "0.25";
-  speedInput.value = "1";
-  speedInput.addEventListener("change", () => {
-    const parsed = Number.parseFloat(speedInput.value);
-    if (!Number.isFinite(parsed) || parsed < 0) {
-      return;
-    }
-    const provider = currentProvider();
-    if (provider !== null) {
-      provider.speed = parsed;
-    }
-  });
-
-  /** The bundled provider, built lazily on first use. */
-  let blockbench: SkinViewBlockbench | null = null;
-
-  /**
-   * The transient upload (file name and the provider built from it),
-   * mirroring the skin bar's single `[upload]` entry.
-   */
-  let animationUpload: {
-    /** File name shown in the picker. */
-    name: string;
-    /** The provider built from the parsed file. */
-    provider: SkinViewBlockbench;
-  } | null = null;
-
-  /** The file option reserved for the current upload. */
-  let uploadOption: HTMLOptionElement | null = null;
-
-  /**
-   * Returns the animation names of one file picker value.
-   *
-   * @param value - The file picker value.
-   * @returns The names inside that file.
-   */
-  const fileNames = (value: string): readonly string[] =>
-    value.startsWith("uploaded:")
-      ? (animationUpload?.provider.animationNames ?? [])
-      : BLOCKBENCH_NAMES;
-
-  /**
-   * Returns the provider of the selected file, building the bundled
-   * one on first use.
-   *
-   * @returns The provider behind the file picker.
-   */
-  const fileProvider = (): SkinViewBlockbench | null => {
-    if (animationFileSelect.value.startsWith("uploaded:")) {
-      return animationUpload?.provider ?? null;
-    }
-    blockbench ??= new SkinViewBlockbench({
-      animation: exampleAnimation,
-      onFinish: () => {
-        report("animation finished");
-      },
-    });
-    return blockbench;
-  };
-
-  /**
-   * Resolves the provider behind the current name picker value.
-   *
-   * @returns The active provider, or `null` for `none`.
-   */
-  const currentProvider = (): SkinViewBlockbench | null =>
-    animationNameSelect.value === "none" ? null : fileProvider();
-
-  /**
-   * Applies the name picker: moves the selected file's provider into
-   * the slot when needed and (re)starts its animation.
-   */
-  const play = (): void => {
-    const provider = fileProvider();
-    if (provider === null) {
-      return;
-    }
-    const name = animationNameSelect.value;
-    if (name === "none") {
-      if (viewer.animation === provider) {
-        viewer.animation = null;
-        controller?.rebind();
-      }
-      return;
-    }
-    if (viewer.animation !== provider) {
-      viewer.animation = provider;
+  const blockbenchGroup = createBlockbenchGroup({
+    viewer,
+    report,
+    onSlotChange: () => {
+      animationSelect.value = "none";
       controller?.rebind();
-    }
-    provider.forceLoop = forceLoopBox.checked;
-    provider.setAnimation(name);
-    pausedBox.checked = provider.paused;
-    speedInput.value = String(provider.speed);
-    animationSelect.value = "none";
-  };
-
-  const animationFileSelect = document.createElement("select");
-  {
-    const option = document.createElement("option");
-    option.value = "example.animation.json";
-    option.textContent = "example.animation.json";
-    animationFileSelect.append(option);
-  }
-
-  const animationNameSelect = document.createElement("select");
-
-  /**
-   * Rebuilds the animation-name list for the selected file.
-   *
-   * @param startFirst - Start the file's first animation.
-   */
-  const applyFile = (startFirst: boolean): void => {
-    const names = fileNames(animationFileSelect.value);
-    animationNameSelect.replaceChildren();
-    const noneOption = document.createElement("option");
-    noneOption.value = "none";
-    noneOption.textContent = "none";
-    animationNameSelect.append(noneOption);
-    for (const name of names) {
-      const option = document.createElement("option");
-      option.value = name;
-      option.textContent = name;
-      animationNameSelect.append(option);
-    }
-    animationNameSelect.value =
-      startFirst && names[0] !== undefined ? names[0] : "none";
-    if (startFirst) {
-      play();
-    }
-  };
-
-  animationFileSelect.addEventListener("change", () => {
-    applyFile(true);
-    syncBlockbenchAvailability();
+    },
   });
-  animationNameSelect.addEventListener("change", () => {
-    play();
-    syncBlockbenchAvailability();
-  });
-
-  const restartButton = actionButton("setAnimation", "setAnimation", () => {
-    if (animationNameSelect.value !== "none") {
-      play();
-    }
-  });
-  restartButton.title = "restart the selected animation from the start";
-
-  const uploadInput = createAnimationUploadControl((name, provider) => {
-    provider.onFinish = () => {
-      report("animation finished");
-    };
-    animationUpload = { name, provider };
-    if (uploadOption === null) {
-      uploadOption = document.createElement("option");
-      animationFileSelect.append(uploadOption);
-    }
-    uploadOption.value = `uploaded:${name}`;
-    uploadOption.textContent = `[upload] ${name}`;
-    animationFileSelect.value = uploadOption.value;
-    applyFile(true);
-    syncBlockbenchAvailability();
-    report(`uploaded ${name}`);
-  });
-
-  /**
-   * Recomputes which blockbench controls accept input: the playback
-   * rows follow the animation picker; the file picker, the upload and
-   * `forceLoop` stay available.
-   */
-  function syncBlockbenchAvailability(): void {
-    const active = animationNameSelect.value !== "none";
-    pausedBox.disabled = !active;
-    speedInput.disabled = !active;
-    restartButton.disabled = !active;
-  }
-
-  applyFile(false);
-  syncBlockbenchAvailability();
 
   const modelSelect = document.createElement("select");
   for (const entry of MODEL_OPTIONS) {
@@ -847,44 +538,9 @@ export function initDemo(container: HTMLElement): DemoHandle {
     ]),
   ]);
 
-  const blockbenchTable = controlTable("skinview3d-blockbench:", [
-    optionRow(
-      "animation",
-      "animation: the provider's input file; pick the bundled copy " +
-        "or an uploaded one - the animation list follows this file",
-      [animationFileSelect, uploadInput],
-    ),
-    optionRow(
-      "animationName",
-      "SkinViewBlockbench.animationName: play a name from the selected " +
-        "file; none removes viewer.animation (the torso grouping " +
-        "persists once created)",
-      [animationNameSelect, restartButton],
-    ),
-    optionRow(
-      "forceLoop",
-      "forceLoop: keep looping; the fixture has no loop key, so " +
-        "unchecked plays once",
-      [forceLoopBox],
-    ),
-    optionRow(
-      "paused",
-      "paused: freeze playback; resuming advances the provider's own " +
-        "clock (a jump) and a paused provider silences the hooked " +
-        "blink; a finished single play stays paused",
-      [pausedBox],
-    ),
-    optionRow(
-      "speed",
-      "speed: playback rate; 0 freezes without the clock jump (the " +
-        "blink timebase freezes with it)",
-      [speedInput],
-    ),
-  ]);
-
   const controls = document.createElement("div");
   controls.className = "controls";
-  controls.append(etfTable, blockbenchTable, hostTable);
+  controls.append(etfTable, blockbenchGroup.table, hostTable);
   container.append(controls, status);
 
   /**

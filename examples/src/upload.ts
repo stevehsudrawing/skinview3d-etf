@@ -11,6 +11,40 @@ import {
 } from "skinview3d-blockbench";
 import { loadImageData, setUploadedFixture, type Fixture } from "./fixtures";
 
+/**
+ * Builds a file input that funnels every pick through one handler
+ * with the shared rejection flow: the picker value is reset so the
+ * same file can be picked again, and thrown errors alert.
+ *
+ * @param accept - The `accept` attribute for the picker.
+ * @param handle - Receives every picked file.
+ * @returns The file `<input>` element.
+ */
+function createFilePickedInput(
+  accept: string,
+  handle: (file: File) => Promise<void>,
+): HTMLInputElement {
+  const choose = async (file: File): Promise<void> => {
+    try {
+      await handle(file);
+    } catch (error) {
+      alert(`upload failed: ${String(error)}`);
+    }
+  };
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = accept;
+  input.addEventListener("change", () => {
+    const file = input.files?.[0];
+    // Reset the value so picking the same file again still fires.
+    input.value = "";
+    if (file !== undefined) {
+      void choose(file);
+    }
+  });
+  return input;
+}
+
 /** The PNG file signature (first eight bytes). */
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
@@ -82,31 +116,7 @@ export function createUploadControl(
     onUploaded(`uploaded ${file.name}${note}`);
   };
 
-  /**
-   * Validates and publishes one picked file.
-   *
-   * @param file - The picked file.
-   */
-  const choose = async (file: File): Promise<void> => {
-    try {
-      await addFixture(file);
-    } catch (error) {
-      alert(`upload failed: ${String(error)}`);
-    }
-  };
-
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/png";
-  input.addEventListener("change", () => {
-    const file = input.files?.[0];
-    // Reset the value so picking the same file again still fires.
-    input.value = "";
-    if (file !== undefined) {
-      void choose(file);
-    }
-  });
-
+  const input = createFilePickedInput("image/png", addFixture);
   const label = document.createElement("label");
   label.className = "upload";
   label.append("upload PNG ", input);
@@ -127,7 +137,7 @@ export function createAnimationUploadControl(
   onLoaded: (name: string, provider: SkinViewBlockbench) => void,
 ): HTMLInputElement {
   /**
-   * Parses and trial-builds one picked file.
+   * Parses and builds the provider for one picked file.
    *
    * @param file - The picked file.
    */
@@ -137,31 +147,7 @@ export function createAnimationUploadControl(
     onLoaded(file.name, provider);
   };
 
-  /**
-   * Validates and publishes one picked file.
-   *
-   * @param file - The picked file.
-   */
-  const choose = async (file: File): Promise<void> => {
-    try {
-      await addAnimation(file);
-    } catch (error) {
-      alert(`upload failed: ${String(error)}`);
-    }
-  };
-
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = ".json,application/json";
-  input.addEventListener("change", () => {
-    const file = input.files?.[0];
-    // Reset the value so picking the same file again still fires.
-    input.value = "";
-    if (file !== undefined) {
-      void choose(file);
-    }
-  });
-
+  const input = createFilePickedInput(".json,application/json", addAnimation);
   input.title = "upload your own Blockbench .animation.json";
   return input;
 }

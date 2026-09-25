@@ -72,7 +72,8 @@ Blinking runs automatically while the viewer's animation slot is free
 (or shared through `addAnimation`); pass `manageTicker: false` and
 call `controller.update(dt)` yourself in a custom render loop, and use
 `controller.setBlinkOptions({ state: "closed" })` to hold a fixed eye
-state or change the timing at runtime.
+state or change the timing at runtime. The documented defaults are
+exported as `DEFAULT_BLINK_OPTIONS`.
 
 The extension never rebuilds the scene graph and never seizes the
 viewer's animation slot; it adds artifacts under the existing meshes

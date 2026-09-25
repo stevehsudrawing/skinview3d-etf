@@ -24,6 +24,7 @@ export type {
 } from "./decode/core/types";
 export { decodeSkin } from "./decode/index";
 export { attachETFSkinFeatures } from "./render/controller";
+export { DEFAULT_BLINK_OPTIONS } from "./render/core/options";
 export type {
   BlinkOptions,
   BlinkState,
