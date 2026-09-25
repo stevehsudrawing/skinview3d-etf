@@ -1,10 +1,10 @@
 # skinview3d-etf
 
 > [!WARNING]
-> This project is in **pre-alpha**. The public API, rendering
-> behavior, package layout and documentation may change without
-> notice at any time; undocumented breaking changes can occur in any
-> release. Do not use it in production yet.
+> This project is in **alpha** (first release `0.0.1`). The public
+> API, rendering behavior, package layout and documentation may still
+> change in any `0.x` release; treat every minor release as
+> potentially breaking. Do not use it in production yet.
 
 Unofficial, community-built extension for
 [skinview3d](https://github.com/bs-community/skinview3d) that renders
@@ -22,10 +22,10 @@ every ETF player skin feature - the marker and its choice cells, the
 palette and the seven choice slots, transparency and forced-solid,
 blinking, nose, jacket (styles 1-8) and the emissive/enchanted pattern
 data - and prepares the overlay images the renderer consumes. The
-renderer is underway: `attachETFSkinFeatures()` renders transparency,
-the nose (villager and textured), the emissive (glowing) pixels and
-blinking eyes on a live viewer; jacket and glint rendering are
-planned after v0.0.1.
+renderer ships transparency, the nose (villager and textured), the
+emissive (glowing) pixels and blinking eyes through
+`attachETFSkinFeatures()` on a live viewer; jacket and glint
+rendering are planned after v0.0.1.
 
 The in-skin cape no longer exists upstream (all code paths are
 commented out), so it is out of scope; the five former cape texture
@@ -34,16 +34,22 @@ regions are reused as textured-nose sources.
 ## 1. Status
 
 Early development. The decoder (`decodeSkin()`) is complete and
-unit-tested against the ETF example skins. The renderer is underway:
-`attachETFSkinFeatures()` renders transparency, the nose (villager
-and textured), the emissive (glowing) pixels and blinking eyes on a
-live viewer. Nothing is published to npm yet.
+unit-tested against the ETF example skins. The renderer ships
+transparency, the nose (villager and textured), the emissive
+(glowing) pixels and blinking eyes on a live viewer; jacket and glint
+rendering are planned after v0.0.1. Published on npm as
+`skinview3d-etf`; a live demo deploys from `main` (§4).
 
 ## 2. Usage
 
-The package is not published to npm yet (see §1). Until the release,
-use it from a local build or a checkout. `skinview3d` and `three` are
-peer dependencies, so install the versions the viewer already uses.
+Install from npm:
+
+```sh
+npm install skinview3d-etf
+```
+
+`skinview3d` and `three` are peer dependencies, so install the
+versions the viewer already uses.
 
 ```ts
 import { SkinViewer } from "skinview3d";
@@ -99,7 +105,7 @@ and pnpm enabled through `corepack enable` (the repository pins
 ```sh
 pnpm install
 pnpm typecheck   # tsc --noEmit
-pnpm build       # tsup -> dist/ (ESM + type declarations)
+pnpm build       # tsup -> dist/ (minified ESM + type declarations)
 pnpm test        # vitest; real-fixture specs skip when the local
                  # example skins are absent
 pnpm lint        # eslint
@@ -151,7 +157,7 @@ to the 3D view. The demo is not part of the npm package.
 - [x] blinking rendering;
 - [x] public demo (`examples/`: sample skin, PNG upload, per-feature
       toggles);
-- [ ] blockbench coexistence check and the release checklist;
+- [x] blockbench coexistence check and the release checklist;
 - [ ] v0.0.1 release on npm.
 
 ## 6. Credits and disclaimer
