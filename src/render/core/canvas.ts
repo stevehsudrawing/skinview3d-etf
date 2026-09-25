@@ -3,7 +3,7 @@
  * comparing pixel buffers.
  */
 
-import type { PixelData } from "../../decode/core/types";
+import type { PixelData, Rect } from "../../decode/core/types";
 
 /**
  * Reads the full pixel content of a canvas.
@@ -78,4 +78,35 @@ export function pixelsEqual(a: PixelData, b: PixelData): boolean {
     }
   }
   return true;
+}
+
+/**
+ * Writes one rectangle of a pixel buffer onto a canvas, leaving the
+ * rest of the canvas untouched. The buffer must match the canvas size.
+ *
+ * @param canvas - The target canvas.
+ * @param pixels - The source buffer.
+ * @param rect - The rectangle to write (inclusive bounds).
+ * @throws Error when a 2d context is unavailable.
+ */
+export function paintCanvasRect(
+  canvas: HTMLCanvasElement,
+  pixels: PixelData,
+  rect: Rect,
+): void {
+  const context = canvas.getContext("2d");
+  if (context === null) {
+    throw new Error("2d canvas context unavailable");
+  }
+  const image = context.createImageData(pixels.width, pixels.height);
+  image.data.set(pixels.data);
+  context.putImageData(
+    image,
+    0,
+    0,
+    rect.x1,
+    rect.y1,
+    rect.x2 - rect.x1 + 1,
+    rect.y2 - rect.y1 + 1,
+  );
 }

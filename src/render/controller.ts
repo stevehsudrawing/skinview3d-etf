@@ -2,7 +2,7 @@
  * The renderer controller behind `attachETFSkinFeatures()`: validates
  * the viewer, decodes the current skin and owns every render artifact
  * (canvas edits, material flags, the nose mesh, the emissive
- * overlays) with full restore on `detach()`.
+ * overlays, the blink repaints) with full restore on `detach()`.
  */
 
 import type { SkinViewer } from "skinview3d";
@@ -13,8 +13,9 @@ import type {
   MeshStandardMaterial,
   Texture,
 } from "three";
-import { cloneImage } from "../decode/core/pixels";
+import { buildMask, cloneImage, createImage } from "../decode/core/pixels";
 import type {
+  BlinkInfo,
   DecodeResult,
   PatternInfo,
   PixelData,
@@ -28,12 +29,26 @@ import {
 } from "./core/canvas";
 import { DEFAULT_VILLAGER_NOSE_DATA_URL } from "./core/default-textures";
 import { createSkinSpaceTexture, resolveTextureInput } from "./core/textures";
+import { startTicker, type TickerHandle } from "./core/ticker";
 import type {
+  BlinkOptions,
   ETFController,
   ETFSkinFeaturesOptions,
   ETFTextureInput,
   SkinFeatureToggles,
 } from "./core/types";
+import {
+  blinkRects,
+  blinkSeed,
+  blinkStateFrame,
+  createBlinkPainter,
+  createBlinkScheduler,
+  normalizeBlinkOptions,
+  type BlinkGlow,
+  type BlinkPainter,
+  type BlinkScheduler,
+  type NormalizedBlinkOptions,
+} from "./features/blinking";
 import {
   createEmissiveMaterial,
   createEmissiveOverlays,
@@ -58,11 +73,11 @@ import {
 interface NormalizedOptions {
   /** Every feature switch with defaults applied. */
   features: Required<SkinFeatureToggles>;
-  /** Blink timing; reserved for the blinking commit. */
-  blink: { closedMs: number; periodMs: number };
+  /** Normalized blink behaviour: state, interval and phases. */
+  blink: NormalizedBlinkOptions;
   /** Bloom switch; accepted and ignored - deferred quality mode. */
   bloom: boolean;
-  /** Ticker management switch; reserved for the blinking commit. */
+  /** Whether the controller drives `update(dt)` from the viewer. */
   manageTicker: boolean;
   /** Villager nose override: `undefined` = built-in, `null` = off. */
   villagerNoseTexture: ETFTextureInput | null | undefined;
@@ -71,6 +86,12 @@ interface NormalizedOptions {
   /** Warning sink, or `null` for `console.warn`. */
   onWarning: ((message: string) => void) | null;
 }
+
+/**
+ * A fully transparent, skin-sized glow mask used whenever a blink
+ * frame has no glowing pixels of its own.
+ */
+const EMPTY_GLOW_MASK: PixelData = createImage(64, 64);
 
 /**
  * Applies defaults to the user options.
@@ -89,10 +110,7 @@ function normalizeOptions(options: ETFSkinFeaturesOptions): NormalizedOptions {
       jacket: features.jacket ?? true,
       enchanted: features.enchanted ?? true,
     },
-    blink: {
-      closedMs: options.blink?.closedMs ?? 250,
-      periodMs: options.blink?.periodMs ?? 6000,
-    },
+    blink: normalizeBlinkOptions(options.blink),
     bloom: options.bloom ?? false,
     manageTicker: options.manageTicker ?? true,
     villagerNoseTexture: options.villagerNoseTexture,
@@ -105,8 +123,8 @@ function normalizeOptions(options: ETFSkinFeaturesOptions): NormalizedOptions {
  * Attaches the ETF skin features to a live skinview3d viewer.
  *
  * Decodes the viewer's current skin immediately and renders the
- * supported features (transparency, the nose and the emissive
- * pixels). Call `controller.refresh()` after every
+ * supported features (transparency, the nose, the emissive pixels
+ * and blinking eyes). Call `controller.refresh()` after every
  * `viewer.loadSkin()`; call `controller.detach()` to restore the
  * viewer exactly as it was.
  *
@@ -136,6 +154,9 @@ export function attachETFSkinFeatures(
   let glowTexture: CanvasTexture | null = null;
   let glowMaterial: MeshBasicMaterial | null = null;
   let glowMeshes: Mesh[] = [];
+  let blinkPainter: BlinkPainter | null = null;
+  let blinkScheduler: BlinkScheduler | null = null;
+  let ticker: TickerHandle | null = null;
   let villagerTexture: HTMLCanvasElement | null = null;
   let villagerPending = false;
   let villagerFailed = false;
@@ -230,6 +251,118 @@ export function attachETFSkinFeatures(
     if (glowTexture !== null) {
       glowTexture.dispose();
       glowTexture = null;
+    }
+  }
+
+  /** Restores and drops the current blink painter and scheduler. */
+  function teardownBlink(): void {
+    if (blinkPainter !== null) {
+      blinkPainter.restore();
+      blinkPainter = null;
+    }
+    blinkScheduler = null;
+  }
+
+  /**
+   * Whether the emissive mask has any glowing pixel inside the
+   * rectangles a blink repaints.
+   *
+   * @param info - The decoded blink data.
+   * @returns `true` when the glow content has to follow the blink.
+   */
+  function glowOverlaps(info: BlinkInfo): boolean {
+    const mask = decoded?.emissive?.mask ?? null;
+    if (mask === null) {
+      return false;
+    }
+    return blinkRects(info).some((rect) => {
+      for (let y = rect.y1; y <= rect.y2; y++) {
+        for (let x = rect.x1; x <= rect.x2; x++) {
+          if (mask.data[(y * mask.width + x) * 4 + 3] !== 0) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+  }
+
+  /**
+   * Builds the glow integration for the blink painter: the per-frame
+   * masks are precomputed here once, so toggling a frame only
+   * repaints the glow texture.
+   *
+   * @param info - The decoded blink data.
+   * @returns The glow hooks, or `null` when nothing glows under the
+   * blink rectangles.
+   */
+  function buildBlinkGlow(info: BlinkInfo): BlinkGlow | null {
+    const pattern = decoded?.emissive ?? null;
+    if (
+      !settings.features.emissive ||
+      pattern === null ||
+      glowTexture === null ||
+      !glowOverlaps(info)
+    ) {
+      return null;
+    }
+    return {
+      openMask: pattern.mask,
+      frameMasks: info.frames.map((frame) => buildMask(frame, pattern.keys)),
+      repaint: (mask) => {
+        if (glowTexture !== null) {
+          repaintGlowTexture(glowTexture, mask ?? EMPTY_GLOW_MASK);
+        }
+      },
+    };
+  }
+
+  /**
+   * (Re)builds the blink painter and scheduler for the current decode
+   * and applies the configured eye state.
+   */
+  function setupBlink(): void {
+    const info = decoded?.blink ?? null;
+    if (
+      detached ||
+      !settings.features.blink ||
+      decoded === null ||
+      !decoded.supported ||
+      info === null
+    ) {
+      return;
+    }
+    blinkScheduler = createBlinkScheduler(
+      info.frames.length,
+      settings.blink,
+      blinkSeed(decoded.skin.data),
+    );
+    blinkPainter = createBlinkPainter(
+      viewer.skinCanvas,
+      info,
+      buildBlinkGlow(info),
+      markSkinDirty,
+    );
+    blinkPainter.show(blinkStateFrame(settings.blink.state, info));
+  }
+
+  /**
+   * Starts or stops the managed ticker so it runs exactly while the
+   * blink feature is enabled and in the `"auto"` state.
+   */
+  function syncTicker(): void {
+    const needed =
+      settings.manageTicker &&
+      settings.features.blink &&
+      settings.blink.state === "auto" &&
+      decoded !== null &&
+      decoded.supported &&
+      decoded.blink !== null;
+    if (needed && ticker === null) {
+      ticker = startTicker(viewer, update);
+    } else if (!needed && ticker !== null) {
+      ticker.dispose();
+      ticker = null;
     }
   }
 
@@ -338,9 +471,11 @@ export function attachETFSkinFeatures(
    * applies every enabled feature. Idempotent by construction.
    */
   function apply(): void {
+    teardownBlink();
     if (detached || decoded === null || !decoded.supported) {
       clearNose();
       clearEmissive();
+      syncTicker();
       return;
     }
     const materials = collectLayerMaterials(viewer.playerObject.skin);
@@ -381,10 +516,17 @@ export function attachETFSkinFeatures(
     } else {
       clearEmissive();
     }
+    setupBlink();
+    syncTicker();
   }
 
   /** Removes every render artifact and restores the baselines. */
   function unapply(): void {
+    teardownBlink();
+    if (ticker !== null) {
+      ticker.dispose();
+      ticker = null;
+    }
     clearNose();
     clearEmissive();
     restoreTransparent(materialOriginals);
@@ -404,6 +546,9 @@ export function attachETFSkinFeatures(
   function refresh(): void {
     if (detached) {
       return;
+    }
+    if (blinkPainter !== null) {
+      blinkPainter.restore();
     }
     const current = readCanvasPixels(viewer.skinCanvas);
     let source = current;
@@ -427,20 +572,40 @@ export function attachETFSkinFeatures(
     apply();
   }
 
-  /** Re-resolves the viewer's meshes and re-applies the state. */
+  /**
+   * Re-resolves the viewer's meshes and re-applies the state, then
+   * re-attaches the managed ticker (the host may have replaced the
+   * animation slot).
+   */
   function rebind(): void {
     if (detached) {
       return;
+    }
+    if (ticker !== null) {
+      ticker.dispose();
+      ticker = null;
     }
     apply();
   }
 
   /**
-   * Advances time-based features; a no-op until the blinking commit,
-   * where the ticker will drive it with seconds.
+   * Advances the blink schedule by `dt` seconds; negative deltas are
+   * ignored. The managed ticker calls this automatically unless
+   * `manageTicker` is `false`.
+   *
+   * @param dt - Time since the previous update, in seconds.
    */
-  function update(): void {
-    // Reserved: the blinking commit implements the watchdog here.
+  function update(dt: number): void {
+    if (
+      detached ||
+      blinkScheduler === null ||
+      blinkPainter === null ||
+      settings.blink.state !== "auto"
+    ) {
+      return;
+    }
+    const frame = blinkScheduler.advance(Math.max(0, dt) * 1000);
+    blinkPainter.show(frame);
   }
 
   /** Restores everything and disposes the renderer resources. */
@@ -490,6 +655,27 @@ export function attachETFSkinFeatures(
     apply();
   }
 
+  /**
+   * Merges blink options (state and/or timing) and restarts the
+   * blink schedule.
+   *
+   * @param options - The partial blink options to apply.
+   */
+  function setBlinkOptions(options: BlinkOptions): void {
+    if (detached) {
+      return;
+    }
+    settings.blink = normalizeBlinkOptions({
+      state: settings.blink.state,
+      periodMs: settings.blink.interval,
+      closedMs: settings.blink.closedMs,
+      halfClosedMs: settings.blink.halfClosedMs,
+      reopenMs: settings.blink.reopenMs,
+      ...options,
+    });
+    apply();
+  }
+
   refresh();
   return {
     refresh,
@@ -498,5 +684,6 @@ export function attachETFSkinFeatures(
     detach,
     setFeatures,
     setVillagerNoseTexture,
+    setBlinkOptions,
   };
 }

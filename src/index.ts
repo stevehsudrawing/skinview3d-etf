@@ -3,9 +3,10 @@
  *
  * `decodeSkin()` reads every ETF player skin feature into plain data
  * and prepared overlay images; `attachETFSkinFeatures()` renders the
- * supported features (transparency, the nose and the emissive
- * pixels) on a live `skinview3d` viewer and returns a controller
- * whose `refresh()` must be called after every `viewer.loadSkin()`.
+ * supported features (transparency, the nose, the emissive pixels
+ * and blinking eyes) on a live `skinview3d` viewer and returns a
+ * controller whose `refresh()` must be called after every
+ * `viewer.loadSkin()`.
  */
 
 export type {
@@ -24,7 +25,8 @@ export type {
 export { decodeSkin } from "./decode/index";
 export { attachETFSkinFeatures } from "./render/controller";
 export type {
-  BlinkTiming,
+  BlinkOptions,
+  BlinkState,
   ETFController,
   ETFSkinFeaturesOptions,
   ETFTextureInput,

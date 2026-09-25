@@ -5,8 +5,9 @@
  * features through the public `attachETFSkinFeatures()` API and
  * offers two aligned control tables grouped by owner (the extension
  * first): the extension's attach switch plus the transparency / nose /
- * emissive toggles, and the host's action presets, model picker,
- * background color and light-intensity sliders (with reset buttons).
+ * emissive / blink toggles and the eye-state picker, and the host's
+ * action presets, model picker, background color and light-intensity
+ * sliders (with reset buttons).
  * The skin shown comes from the shared fixture bar above the tabs.
  */
 
@@ -23,7 +24,7 @@ import {
   type PlayerAnimation,
   type SkinLoadOptions,
 } from "skinview3d";
-import type { ETFController } from "../../src/index";
+import type { BlinkState, ETFController } from "../../src/index";
 import { attachETFSkinFeatures } from "../../src/index";
 import {
   getSelectedFixture,
@@ -202,17 +203,21 @@ export function initDemo(container: HTMLElement): DemoHandle {
         transparency: transparencyBox.checked,
         nose: noseBox.checked,
         emissive: emissiveBox.checked,
+        blink: blinkBox.checked,
       },
       onWarning: (message) => {
         report(`warning: ${message}`);
         console.warn(message);
       },
     });
+    (window as unknown as { __etf?: ETFController | null }).__etf = controller;
     attachBox.checked = true;
     attachBox.disabled = false;
     transparencyBox.disabled = false;
     noseBox.disabled = false;
     emissiveBox.disabled = false;
+    blinkBox.disabled = false;
+    blinkStateSelect.disabled = false;
   };
 
   /** Detaches and disposes the controller when attached. */
@@ -222,10 +227,13 @@ export function initDemo(container: HTMLElement): DemoHandle {
     }
     controller.detach();
     controller = null;
+    (window as unknown as { __etf?: ETFController | null }).__etf = null;
     attachBox.checked = false;
     transparencyBox.disabled = true;
     noseBox.disabled = true;
     emissiveBox.disabled = true;
+    blinkBox.disabled = true;
+    blinkStateSelect.disabled = true;
   };
 
   /**
@@ -262,6 +270,28 @@ export function initDemo(container: HTMLElement): DemoHandle {
   emissiveBox.disabled = true;
   emissiveBox.addEventListener("change", () => {
     controller?.setFeatures({ emissive: emissiveBox.checked });
+  });
+
+  const blinkBox = document.createElement("input");
+  blinkBox.type = "checkbox";
+  blinkBox.checked = true;
+  blinkBox.disabled = true;
+  blinkBox.addEventListener("change", () => {
+    controller?.setFeatures({ blink: blinkBox.checked });
+  });
+
+  const blinkStateSelect = document.createElement("select");
+  for (const state of ["auto", "open", "halfClosed", "closed"]) {
+    const option = document.createElement("option");
+    option.value = state;
+    option.textContent = state;
+    blinkStateSelect.append(option);
+  }
+  blinkStateSelect.disabled = true;
+  blinkStateSelect.addEventListener("change", () => {
+    controller?.setBlinkOptions({
+      state: blinkStateSelect.value as BlinkState,
+    });
   });
 
   const animationSelect = document.createElement("select");
@@ -361,6 +391,8 @@ export function initDemo(container: HTMLElement): DemoHandle {
     optionRow("transparency", transparencyBox),
     optionRow("nose", noseBox),
     optionRow("emissive", emissiveBox),
+    optionRow("blink", blinkBox),
+    optionRow("eyes", blinkStateSelect),
   ]);
 
   const hostTable = controlTable("skinview3d:", [

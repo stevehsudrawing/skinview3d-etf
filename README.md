@@ -23,9 +23,9 @@ palette and the seven choice slots, transparency and forced-solid,
 blinking, nose, jacket (styles 1-8) and the emissive/enchanted pattern
 data - and prepares the overlay images the renderer consumes. The
 renderer is underway: `attachETFSkinFeatures()` renders transparency,
-the nose (villager and textured) and the emissive (glowing) pixels
-on a live viewer; blinking arrives in a later v0.0.1 commit, and
-jacket and glint rendering are planned after that.
+the nose (villager and textured), the emissive (glowing) pixels and
+blinking eyes on a live viewer; jacket and glint rendering are
+planned after v0.0.1.
 
 The in-skin cape no longer exists upstream (all code paths are
 commented out), so it is out of scope; the five former cape texture
@@ -36,8 +36,8 @@ regions are reused as textured-nose sources.
 Early development. The decoder (`decodeSkin()`) is complete and
 unit-tested against the ETF example skins. The renderer is underway:
 `attachETFSkinFeatures()` renders transparency, the nose (villager
-and textured) and the emissive (glowing) pixels on a live viewer;
-blinking arrives next. Nothing is published to npm yet.
+and textured), the emissive (glowing) pixels and blinking eyes on a
+live viewer. Nothing is published to npm yet.
 
 ## 2. Usage
 
@@ -54,6 +54,9 @@ await viewer.loadSkin(skinUrl);
 
 const controller = attachETFSkinFeatures(viewer, {
   features: { transparency: true, emissive: true, nose: true },
+  // Blinking: intervals are in ms; a [min, max] tuple re-rolls the
+  // interval after every blink.
+  blink: { periodMs: [4000, 10000], closedMs: 200 },
   onWarning: (message) => console.warn(message),
 });
 
@@ -64,6 +67,12 @@ controller.refresh();
 // Restores every artifact and leaves the viewer exactly as it was:
 controller.detach();
 ```
+
+Blinking runs automatically while the viewer's animation slot is free
+(or shared through `addAnimation`); pass `manageTicker: false` and
+call `controller.update(dt)` yourself in a custom render loop, and use
+`controller.setBlinkOptions({ state: "closed" })` to hold a fixed eye
+state or change the timing at runtime.
 
 The extension never rebuilds the scene graph and never seizes the
 viewer's animation slot; it adds artifacts under the existing meshes
@@ -125,18 +134,18 @@ the npm package.
 - [x] renderer entry point (`attachETFSkinFeatures()`) with
       transparency and nose rendering;
 - [x] emissive (glowing) pixels rendering;
-- [ ] blinking rendering;
+- [x] blinking rendering;
 - [x] public demo (`examples/`: sample skin, PNG upload, per-feature
       toggles);
 - [ ] blockbench coexistence check and the release checklist;
 - [ ] v0.0.1 release on npm.
 
-## 5. Credits and disclaimer
+## 6. Credits and disclaimer
 
 Not affiliated with or endorsed by the ETF or skinview3d projects. ETF
 is LGPL-3.0 and serves as a specification reference only; no ETF code,
 comments, or assets are copied into this project.
 
-## 6. License
+## 7. License
 
 MIT - see [LICENSE](LICENSE).
