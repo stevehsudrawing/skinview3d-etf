@@ -5,6 +5,7 @@
  */
 
 import { FORCED_SOLID_RECTS } from "./core/constants";
+import { convertLegacySkin, isLegacySkin } from "./core/legacy";
 import { clearRect, cloneImage, stripAlphaRect } from "./core/pixels";
 import type {
   BlinkInfo,
@@ -41,7 +42,7 @@ function emptySlots(): SlotValues {
 }
 
 /**
- * Builds the result for an unsupported (non-64x64) skin.
+ * Builds the result for an unsupported-size skin.
  *
  * @param image - The skin image.
  * @returns A disabled result with one warning.
@@ -51,7 +52,7 @@ function unsupportedResult(image: PixelData): DecodeResult {
     supported: false,
     warnings: [
       `Unsupported skin size ${image.width}x${image.height}: ETF player ` +
-        "skin features require a 64x64 RGBA skin.",
+        "skin features require a 64x64 skin (or a legacy 64x32 skin).",
     ],
     hasMarker: false,
     cells: [null, null, null, null],
@@ -98,8 +99,10 @@ function assertPixelData(image: PixelData): void {
  * textured, with the prepared 8x8 image), jacket (with the prepared
  * coat texture and removal rectangles applied to `skin`), emissive and
  * enchanted patterns (with matching masks), plus the modified base
- * skin. Only 64x64 skins are supported; other sizes decode as
- * `supported: false` with a warning and no features.
+ * skin. Only 64x64 skins are supported natively; legacy 64x32 skins
+ * are converted to the 1.8 layout first (`core/legacy.ts`), and every
+ * other size decodes as `supported: false` with a warning and no
+ * features.
  *
  * @param image - The skin as an `ImageData`-compatible buffer.
  * @returns The decoded features and prepared artifacts.
@@ -107,16 +110,17 @@ function assertPixelData(image: PixelData): void {
  */
 export function decodeSkin(image: PixelData): DecodeResult {
   assertPixelData(image);
-  if (image.width !== 64 || image.height !== 64) {
-    return unsupportedResult(image);
+  const source = isLegacySkin(image) ? convertLegacySkin(image) : image;
+  if (source.width !== 64 || source.height !== 64) {
+    return unsupportedResult(source);
   }
 
-  const hasMarker = checkSignature(image);
+  const hasMarker = checkSignature(source);
   const cells: (PaletteId | null)[] = hasMarker
-    ? readCells(image)
+    ? readCells(source)
     : [null, null, null, null];
-  const slots = hasMarker ? readSlots(image) : emptySlots();
-  const skin = cloneImage(image);
+  const slots = hasMarker ? readSlots(source) : emptySlots();
+  const skin = cloneImage(source);
 
   let blink: BlinkInfo | null = null;
   let nose: NoseInfo | null = null;
@@ -130,14 +134,14 @@ export function decodeSkin(image: PixelData): DecodeResult {
     // removals, then the forced-solid strips - all mirrored from the
     // upstream processing order so that the frames and masks below see
     // the same working skin the renderer will.
-    const noseResult = decodeNose(image, slots.nose);
+    const noseResult = decodeNose(source, slots.nose);
     nose = noseResult.info;
     for (const rect of noseResult.removals) {
       clearRect(skin, rect);
     }
 
     const jacketResult = decodeJacket(
-      image,
+      source,
       slots.jacketStyle,
       slots.jacketLength,
     );

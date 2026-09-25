@@ -70,7 +70,8 @@ viewer's animation slot; it adds artifacts under the existing meshes
 and cleans all of them up on `detach()`.
 
 The decoder is a standalone, three-free module that operates on plain
-pixel buffers (`ImageData`-compatible):
+pixel buffers (`ImageData`-compatible; 64x64, plus legacy 64x32 skins,
+which are converted to the 1.8 layout first):
 
 ```ts
 import { decodeSkin } from "skinview3d-etf";

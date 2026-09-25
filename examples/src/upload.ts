@@ -73,7 +73,8 @@ export function createUploadControl(
     }
     const fixture: Fixture = { name: file.name, url, origin: "uploaded" };
     setUploadedFixture(fixture);
-    onMessage(`uploaded ${file.name}`);
+    const note = probe.height === 32 ? " (legacy 64x32, converted)" : "";
+    onMessage(`uploaded ${file.name}${note}`);
   };
 
   /**
