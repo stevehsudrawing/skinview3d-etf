@@ -55,6 +55,7 @@
     "pngjs": "^7.0.0",
     "prettier": "^3.9.8",
     "skinview3d": "^3.4.2",
+    "skinview3d-blockbench": "^1.0.19",
     "three": "^0.156.1",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",

@@ -120,12 +120,18 @@ accepts a PNG upload of your own skin: 64x64, or a legacy 64x32 skin
 that is converted automatically (rejected files raise a browser
 alert). The 3D tab carries the feature toggles, built-in action
 presets, a model picker (auto / Steve / Alex), a solid background
-color and the light sliders; every control row is labeled with its
-API keyword and shows the option's description as a hover tooltip,
-the blink rows follow the feature switch (disabling `blink` disables
-the eye-state picker, and a fixed state disables the timing inputs),
-and a `reset` button in the stage's corner restores the camera pose.
-The footer links back to the source repository. Uploaded files are
+color and the light sliders; the tables group by owning package and
+a `skinview3d-blockbench:` group picks its input file (`animation`,
+the bundled self-made copy or a transient `[upload]` entry) and
+plays any of its animations (`animationName`) next to the ETF
+features, with the provider's `paused` / `speed` / `setAnimation`
+controls. Every
+control row is labeled with its API keyword and shows the option's
+description as a hover tooltip, the blink rows follow the feature
+switch (disabling `blink` disables the eye-state picker, and a fixed
+state disables the timing inputs), and a `reset` button in the
+stage's corner restores the camera pose. The footer links back to
+the source repository. Uploaded files are
 processed in the browser only and are never sent anywhere. The
 decoder preview tab draws every prepared `decodeSkin()` artifact next
 to the 3D view. The demo is not part of the npm package.

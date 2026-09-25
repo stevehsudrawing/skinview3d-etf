@@ -1,10 +1,14 @@
 /**
- * PNG-only skin upload for the demo shell: validates the picked file
- * locally and publishes it as the shared fixture. Rejections surface
- * through `alert()`; accepted uploads are reported through the
- * callback. Uploaded pixels never leave the browser.
+ * File uploads for the demo shell: the PNG skin picker (validates the
+ * file and publishes it as the shared fixture) and the Blockbench
+ * animation picker (parses and trial-builds a provider). Rejections
+ * surface through `alert()`; uploaded data never leaves the browser.
  */
 
+import {
+  SkinViewBlockbench,
+  type AnimationFileType,
+} from "skinview3d-blockbench";
 import { loadImageData, setUploadedFixture, type Fixture } from "./fixtures";
 
 /** The PNG file signature (first eight bytes). */
@@ -107,4 +111,57 @@ export function createUploadControl(
   label.className = "upload";
   label.append("upload PNG ", input);
   return label;
+}
+
+/**
+ * Builds the animation-file upload control: reads the picked
+ * `.animation.json`, validates it by trial-building the provider and
+ * hands both to the demo. Rejections alert like the PNG upload; the
+ * input carries no label text (its control row names it).
+ *
+ * @param onLoaded - Receives the file name and the provider built
+ * from the parsed file.
+ * @returns The file `<input>` element.
+ */
+export function createAnimationUploadControl(
+  onLoaded: (name: string, provider: SkinViewBlockbench) => void,
+): HTMLInputElement {
+  /**
+   * Parses and trial-builds one picked file.
+   *
+   * @param file - The picked file.
+   */
+  const addAnimation = async (file: File): Promise<void> => {
+    const animation = JSON.parse(await file.text()) as AnimationFileType;
+    const provider = new SkinViewBlockbench({ animation });
+    onLoaded(file.name, provider);
+  };
+
+  /**
+   * Validates and publishes one picked file.
+   *
+   * @param file - The picked file.
+   */
+  const choose = async (file: File): Promise<void> => {
+    try {
+      await addAnimation(file);
+    } catch (error) {
+      alert(`upload failed: ${String(error)}`);
+    }
+  };
+
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json,application/json";
+  input.addEventListener("change", () => {
+    const file = input.files?.[0];
+    // Reset the value so picking the same file again still fires.
+    input.value = "";
+    if (file !== undefined) {
+      void choose(file);
+    }
+  });
+
+  input.title = "upload your own Blockbench .animation.json";
+  return input;
 }

@@ -89,6 +89,7 @@ body {
 .control-group td {
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   white-space: nowrap;
 }
@@ -99,9 +100,10 @@ body {
   font-size: 1rem;
 }
 
-/* Annotated `code` labels (those with a `title` description): the
-   dashed underline marks them, the `help` cursor signals the hint. */
-code[title] {
+/* Annotated elements (those with a `title` description, buttons
+   included): the dashed underline marks them, the `help` cursor
+   signals the hint. */
+[title] {
   cursor: help;
   text-decoration: underline dashed;
   text-decoration-color: #999999;
@@ -109,6 +111,12 @@ code[title] {
 }
 
 .control-group input[type="number"] {
+  width: 72px;
+}
+
+/* The upload input drops to its own line under the file select. */
+.control-group input[type="file"] {
+  flex-basis: 100%;
   width: 72px;
 }
 
