@@ -7,6 +7,14 @@
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stevehsudrawing/skinview3d-etf.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stevehsudrawing/skinview3d-etf/issues"
+  },
+  "homepage": "https://stevehsudrawing.github.io/skinview3d-etf/",
   "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -24,6 +32,7 @@
     "format": "prettier --write . --ignore-path .prettierignore",
     "format:check": "prettier --check . --ignore-path .prettierignore",
     "dev": "vite examples",
+    "build:demo": "vite build examples",
     "prepare": "husky"
   },
   "peerDependencies": {

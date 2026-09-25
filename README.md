@@ -115,6 +115,9 @@ pnpm install
 pnpm dev    # serves the demo (default http://localhost:5173/)
 ```
 
+A live build is deployed from `main` to the
+[demo page](https://stevehsudrawing.github.io/skinview3d-etf/).
+
 The page attaches the extension to a live `skinview3d` viewer, offers
 the bundled sample skin (`examples/src/assets/skins/example.png`) and
 accepts a PNG upload of your own skin: 64x64, or a legacy 64x32 skin
