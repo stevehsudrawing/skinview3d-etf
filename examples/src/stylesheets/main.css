@@ -1,0 +1,110 @@
+body {
+  font-family: sans-serif;
+  margin: 24px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin: 16px 0 12px;
+}
+
+.tab {
+  background: #e8e8e8;
+  border: 1px solid #bbbbbb;
+  cursor: pointer;
+  font: inherit;
+  padding: 6px 14px;
+}
+
+.tab[aria-selected="true"] {
+  background: #ffffff;
+  border-bottom-color: #ffffff;
+  font-weight: 600;
+}
+
+.stage {
+  aspect-ratio: 1 / 1;
+  border: 1px solid #aaaaaa;
+  width: min(100%, 640px);
+}
+
+.viewer {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.controls {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.controls[hidden] {
+  display: none;
+}
+
+.control-group {
+  border: 1px solid #dddddd;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+}
+
+.control-group label {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+.control-group input[type="range"] {
+  width: 140px;
+}
+
+.upload {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+.label {
+  color: #555555;
+  font-weight: 600;
+}
+
+.status {
+  color: #555555;
+  min-height: 1.2em;
+}
+
+figure {
+  margin: 0;
+}
+
+figcaption {
+  font-size: 12px;
+  text-align: center;
+}
+
+figure canvas {
+  background: repeating-conic-gradient(#dddddd 0% 25%, #ffffff 0% 50%) 50% /
+    16px 16px;
+  border: 1px solid #aaaaaa;
+  image-rendering: pixelated;
+  vertical-align: top;
+}
+
+pre {
+  background: #f4f4f4;
+  padding: 12px;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}

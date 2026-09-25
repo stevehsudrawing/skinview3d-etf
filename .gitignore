@@ -17,10 +17,13 @@ pnpm-lock.yaml
 docs/
 .github/copilot-instructions.md
 .github/instructions/
-examples/
 tools/
 temp/
 **/*.psd
+
+# Demo fixtures: only the self-drawn example.png is committed
+examples/src/assets/skins/*
+!examples/src/assets/skins/example.png
 
 # Upstream references: local clones, dev-only
 references/

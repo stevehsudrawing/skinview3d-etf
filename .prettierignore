@@ -1,6 +1,7 @@
 # Authoritative ignore list: `format` / `format:check` pass
 # `--ignore-path .prettierignore`, so `.gitignore` is deliberately not
-# consulted - this keeps the local-only `examples/` tree formatted.
+# consulted - this keeps the demo tree formatted even where it is
+# gitignored.
 
 # Build output
 dist/

@@ -95,12 +95,24 @@ pnpm lint        # eslint
 pnpm format:check
 ```
 
-The maintainer's local demo (`pnpm dev`, a Vite SPA that attaches the
-extension to a live viewer) lives in a local-only `examples/` tree
-that is not part of the repository and does not ship in the package;
-it expects example skins under `examples/images/example-skins/`.
+## 4. Demo
 
-## 4. Roadmap
+A Vite demo lives in `examples/` and is part of this repository:
+
+```sh
+pnpm install
+pnpm dev    # serves the demo (default http://localhost:5173/)
+```
+
+The page attaches the extension to a live `skinview3d` viewer, offers
+the bundled sample skin (`examples/src/assets/skins/example.png`) and
+accepts a PNG upload of your own skin: 64x64, or a legacy 64x32 skin
+that is converted automatically. Uploaded files are processed in the
+browser only and are never sent anywhere. The decoder preview tab
+draws every prepared `decodeSkin()` artifact next to the 3D view.
+The demo is not part of the npm package.
+
+## 5. Roadmap
 
 - [x] package scaffold and tooling (build, test, lint, git hooks);
 - [x] decoder for the ETF player skin format (complete: marker, slots,
@@ -109,8 +121,9 @@ it expects example skins under `examples/images/example-skins/`.
       transparency and nose rendering;
 - [x] emissive (glowing) pixels rendering;
 - [ ] blinking rendering;
-- [ ] demo integration (per-feature toggles, blockbench coexistence)
-      and the release checklist;
+- [x] public demo (`examples/`: sample skin, PNG upload, per-feature
+      toggles);
+- [ ] blockbench coexistence check and the release checklist;
 - [ ] v0.0.1 release on npm.
 
 ## 5. Credits and disclaimer
