@@ -1,14 +1,15 @@
 /**
  * The 3D demo tab.
  *
- * Creates a `SkinViewer` inside a square stage, attaches the ETF
- * features through the public `attachETFSkinFeatures()` API and
- * offers two aligned control tables grouped by owner (the extension
- * first): the extension's attach switch plus the transparency / nose /
- * emissive / blink toggles and the eye-state picker, and the host's
- * action presets, model picker, background color and light-intensity
- * sliders (with reset buttons).
- * The skin shown comes from the shared fixture bar above the tabs.
+ * Creates a `SkinViewer` inside a square stage (with a `reset`
+ * overlay that restores the camera pose), attaches the ETF features
+ * through the public `attachETFSkinFeatures()` API and offers two
+ * aligned control tables grouped by owner (the extension first).
+ * Every option label is the exact API keyword with its description in
+ * a `code` tooltip; the blink rows couple to each other (the eye
+ * state and the timing inputs disable with the feature) and the reset
+ * buttons share one column. The skin shown comes from the shared
+ * fixture bar above the tabs.
  */
 
 import {
@@ -70,20 +71,43 @@ const MODEL_OPTIONS: ReadonlyArray<{
   { label: "Alex", model: "slim" },
 ];
 
+/** The documented blink defaults the demo resets back to. */
+const BLINK_DEFAULTS = {
+  /** Fixed interval between blinks, in ms. */
+  periodMs: 6000,
+  /** Fully closed phase, in ms. */
+  closedMs: 250,
+  /** Half-closed lead phase, in ms. */
+  halfClosedMs: 125,
+  /** Half-closed tail phase, in ms. */
+  reopenMs: 125,
+} as const;
+
 /**
- * Builds one option row for a control table and ties its controls to
- * the row label through `aria-labelledby`.
+ * Builds one option row for a control table: the label is the API
+ * keyword wrapped in a `code` element whose `title` describes it, and
+ * the controls are tied to the label through `aria-labelledby`.
  *
- * @param label - The row label (left column).
+ * @param label - The API keyword (left column).
+ * @param description - The plain-English tooltip text.
  * @param controls - The control elements (right column).
+ * @param reset - A per-row reset button, when the row has one.
  * @returns The `<tr>` element.
  */
-function optionRow(label: string, ...controls: Node[]): HTMLTableRowElement {
+function optionRow(
+  label: string,
+  description: string,
+  controls: readonly Node[],
+  reset?: HTMLButtonElement,
+): HTMLTableRowElement {
   const row = document.createElement("tr");
   const header = document.createElement("th");
   header.id = `demo-option-${label.toLowerCase()}`;
   header.scope = "row";
-  header.textContent = label;
+  const keyword = document.createElement("code");
+  keyword.textContent = label;
+  keyword.title = description;
+  header.append(keyword);
   const cell = document.createElement("td");
   for (const control of controls) {
     if (
@@ -95,6 +119,9 @@ function optionRow(label: string, ...controls: Node[]): HTMLTableRowElement {
     }
   }
   cell.append(...controls);
+  if (reset !== undefined) {
+    cell.append(reset);
+  }
   row.append(header, cell);
   return row;
 }
@@ -123,7 +150,8 @@ function controlTable(
 }
 
 /**
- * Builds a small reset button for a slider row.
+ * Builds a small reset button for an option row; the `row-reset`
+ * class lets every reset align in one column.
  *
  * @param label - The accessible label.
  * @param onClick - The click handler.
@@ -132,6 +160,7 @@ function controlTable(
 function resetButton(label: string, onClick: () => void): HTMLButtonElement {
   const button = document.createElement("button");
   button.type = "button";
+  button.className = "row-reset";
   button.textContent = "reset";
   button.setAttribute("aria-label", label);
   button.addEventListener("click", onClick);
@@ -179,6 +208,17 @@ export function initDemo(container: HTMLElement): DemoHandle {
   });
   resizeObserver.observe(stage);
 
+  // Camera reset: the stage overlay restores the default view.
+  const resetView = document.createElement("button");
+  resetView.type = "button";
+  resetView.className = "stage-reset";
+  resetView.textContent = "reset";
+  resetView.setAttribute("aria-label", "reset camera");
+  resetView.addEventListener("click", () => {
+    viewer.resetCameraPose();
+  });
+  stage.append(resetView);
+
   const status = document.createElement("p");
   status.className = "status";
 
@@ -213,11 +253,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
     (window as unknown as { __etf?: ETFController | null }).__etf = controller;
     attachBox.checked = true;
     attachBox.disabled = false;
-    transparencyBox.disabled = false;
-    noseBox.disabled = false;
-    emissiveBox.disabled = false;
-    blinkBox.disabled = false;
-    blinkStateSelect.disabled = false;
+    syncControlAvailability();
   };
 
   /** Detaches and disposes the controller when attached. */
@@ -229,11 +265,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
     controller = null;
     (window as unknown as { __etf?: ETFController | null }).__etf = null;
     attachBox.checked = false;
-    transparencyBox.disabled = true;
-    noseBox.disabled = true;
-    emissiveBox.disabled = true;
-    blinkBox.disabled = true;
-    blinkStateSelect.disabled = true;
+    syncControlAvailability();
   };
 
   /**
@@ -278,6 +310,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
   blinkBox.disabled = true;
   blinkBox.addEventListener("change", () => {
     controller?.setFeatures({ blink: blinkBox.checked });
+    syncControlAvailability();
   });
 
   const blinkStateSelect = document.createElement("select");
@@ -292,7 +325,120 @@ export function initDemo(container: HTMLElement): DemoHandle {
     controller?.setBlinkOptions({
       state: blinkStateSelect.value as BlinkState,
     });
+    syncControlAvailability();
   });
+
+  /**
+   * Reads a timing input as a non-negative integer.
+   *
+   * @param input - The input to read.
+   * @returns The parsed value, or `null` when unusable.
+   */
+  function readTiming(input: HTMLInputElement): number | null {
+    const parsed = Number.parseInt(input.value, 10);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+  }
+
+  /** Sends the period pair; equal ends mean a fixed interval. */
+  function applyPeriod(): void {
+    const min = readTiming(periodMin);
+    const max = readTiming(periodMax);
+    if (min === null || max === null) {
+      return;
+    }
+    controller?.setBlinkOptions({ periodMs: min === max ? min : [min, max] });
+  }
+
+  /**
+   * Builds one number input for a blink timing value.
+   *
+   * @param value - The initial value in ms.
+   * @param step - The spinner step.
+   * @param apply - Receives every valid value (change events only).
+   * @returns The input element.
+   */
+  function timingInput(
+    value: number,
+    step: number,
+    apply: (value: number) => void,
+  ): HTMLInputElement {
+    const input = document.createElement("input");
+    input.type = "number";
+    input.min = "0";
+    input.step = String(step);
+    input.value = String(value);
+    input.addEventListener("change", () => {
+      const parsed = readTiming(input);
+      if (parsed !== null) {
+        apply(parsed);
+      }
+    });
+    return input;
+  }
+
+  const periodMin = timingInput(BLINK_DEFAULTS.periodMs, 100, applyPeriod);
+  const periodMax = timingInput(BLINK_DEFAULTS.periodMs, 100, applyPeriod);
+  const closedInput = timingInput(BLINK_DEFAULTS.closedMs, 10, (value) =>
+    controller?.setBlinkOptions({ closedMs: value }),
+  );
+  const halfClosedInput = timingInput(
+    BLINK_DEFAULTS.halfClosedMs,
+    10,
+    (value) => controller?.setBlinkOptions({ halfClosedMs: value }),
+  );
+  const reopenInput = timingInput(BLINK_DEFAULTS.reopenMs, 10, (value) =>
+    controller?.setBlinkOptions({ reopenMs: value }),
+  );
+  const periodReset = resetButton("reset periodMs", () => {
+    periodMin.value = String(BLINK_DEFAULTS.periodMs);
+    periodMax.value = String(BLINK_DEFAULTS.periodMs);
+    controller?.setBlinkOptions({ periodMs: BLINK_DEFAULTS.periodMs });
+  });
+  const closedReset = resetButton("reset closedMs", () => {
+    closedInput.value = String(BLINK_DEFAULTS.closedMs);
+    controller?.setBlinkOptions({ closedMs: BLINK_DEFAULTS.closedMs });
+  });
+  const halfClosedReset = resetButton("reset halfClosedMs", () => {
+    halfClosedInput.value = String(BLINK_DEFAULTS.halfClosedMs);
+    controller?.setBlinkOptions({ halfClosedMs: BLINK_DEFAULTS.halfClosedMs });
+  });
+  const reopenReset = resetButton("reset reopenMs", () => {
+    reopenInput.value = String(BLINK_DEFAULTS.reopenMs);
+    controller?.setBlinkOptions({ reopenMs: BLINK_DEFAULTS.reopenMs });
+  });
+
+  /**
+   * Recomputes which controls accept input: the feature switches
+   * follow the attach state, the eye state follows `blink`, and the
+   * timing rows (inputs and resets) follow `state === "auto"`.
+   */
+  function syncControlAvailability(): void {
+    const attached = controller !== null;
+    transparencyBox.disabled = !attached;
+    noseBox.disabled = !attached;
+    emissiveBox.disabled = !attached;
+    blinkBox.disabled = !attached;
+    const eyesOn = attached && blinkBox.checked;
+    blinkStateSelect.disabled = !eyesOn;
+    const timingOn = eyesOn && blinkStateSelect.value === "auto";
+    for (const control of [
+      periodMin,
+      periodMax,
+      closedInput,
+      halfClosedInput,
+      reopenInput,
+    ]) {
+      control.disabled = !timingOn;
+    }
+    for (const reset of [
+      periodReset,
+      closedReset,
+      halfClosedReset,
+      reopenReset,
+    ]) {
+      reset.disabled = !timingOn;
+    }
+  }
 
   const animationSelect = document.createElement("select");
   for (const id of ["none", ...ANIMATIONS.map((preset) => preset.id)]) {
@@ -342,37 +488,35 @@ export function initDemo(container: HTMLElement): DemoHandle {
     viewer.background = backgroundInput.value;
   });
 
-  const ambientLight = document.createElement("input");
-  ambientLight.type = "range";
-  ambientLight.min = "0";
-  ambientLight.max = "4";
-  ambientLight.step = "0.1";
-  ambientLight.title = "globalLight.intensity";
-  ambientLight.value = String(viewer.globalLight.intensity);
-  ambientLight.addEventListener("input", () => {
-    viewer.globalLight.intensity = Number(ambientLight.value);
+  const globalLightInput = document.createElement("input");
+  globalLightInput.type = "range";
+  globalLightInput.min = "0";
+  globalLightInput.max = "4";
+  globalLightInput.step = "0.1";
+  globalLightInput.value = String(viewer.globalLight.intensity);
+  globalLightInput.addEventListener("input", () => {
+    viewer.globalLight.intensity = Number(globalLightInput.value);
   });
 
-  const cameraLight = document.createElement("input");
-  cameraLight.type = "range";
-  cameraLight.min = "0";
-  cameraLight.max = "2";
-  cameraLight.step = "0.1";
-  cameraLight.title = "cameraLight.intensity";
-  cameraLight.value = String(viewer.cameraLight.intensity);
-  cameraLight.addEventListener("input", () => {
-    viewer.cameraLight.intensity = Number(cameraLight.value);
+  const cameraLightInput = document.createElement("input");
+  cameraLightInput.type = "range";
+  cameraLightInput.min = "0";
+  cameraLightInput.max = "2";
+  cameraLightInput.step = "0.1";
+  cameraLightInput.value = String(viewer.cameraLight.intensity);
+  cameraLightInput.addEventListener("input", () => {
+    viewer.cameraLight.intensity = Number(cameraLightInput.value);
   });
 
-  const ambientDefault = viewer.globalLight.intensity;
-  const cameraDefault = viewer.cameraLight.intensity;
-  const ambientReset = resetButton("reset ambient", () => {
-    ambientLight.value = String(ambientDefault);
-    viewer.globalLight.intensity = ambientDefault;
+  const globalLightDefault = viewer.globalLight.intensity;
+  const cameraLightDefault = viewer.cameraLight.intensity;
+  const globalLightReset = resetButton("reset globalLight", () => {
+    globalLightInput.value = String(globalLightDefault);
+    viewer.globalLight.intensity = globalLightDefault;
   });
-  const cameraReset = resetButton("reset camera", () => {
-    cameraLight.value = String(cameraDefault);
-    viewer.cameraLight.intensity = cameraDefault;
+  const cameraLightReset = resetButton("reset cameraLight", () => {
+    cameraLightInput.value = String(cameraLightDefault);
+    viewer.cameraLight.intensity = cameraLightDefault;
   });
 
   const attachBox = document.createElement("input");
@@ -387,20 +531,81 @@ export function initDemo(container: HTMLElement): DemoHandle {
   });
 
   const etfTable = controlTable("skinview3d-etf:", [
-    optionRow("attach", attachBox),
-    optionRow("transparency", transparencyBox),
-    optionRow("nose", noseBox),
-    optionRow("emissive", emissiveBox),
-    optionRow("blink", blinkBox),
-    optionRow("eyes", blinkStateSelect),
+    optionRow(
+      "attach",
+      "attach / detach the extension (attachETFSkinFeatures / detach)",
+      [attachBox],
+    ),
+    optionRow(
+      "transparency",
+      "features.transparency: honor the decoded base-layer alpha",
+      [transparencyBox],
+    ),
+    optionRow("nose", "features.nose: villager and textured noses", [noseBox]),
+    optionRow("emissive", "features.emissive: fullbright glow overlays", [
+      emissiveBox,
+    ]),
+    optionRow(
+      "blink",
+      "features.blink: automatic blinking and the fixed eye states",
+      [blinkBox],
+    ),
+    optionRow(
+      "state",
+      "blink.state: auto blinks periodically; " +
+        "open / halfClosed / closed hold that state",
+      [blinkStateSelect],
+    ),
+    optionRow(
+      "periodMs",
+      "blink.periodMs: ms between blinks; equal ends = a fixed interval",
+      [periodMin, periodMax],
+      periodReset,
+    ),
+    optionRow(
+      "closedMs",
+      "blink.closedMs: fully closed phase in ms (default 250)",
+      [closedInput],
+      closedReset,
+    ),
+    optionRow(
+      "halfClosedMs",
+      "blink.halfClosedMs: half-closed lead phase, 2-frame modes " +
+        "(default closedMs / 2)",
+      [halfClosedInput],
+      halfClosedReset,
+    ),
+    optionRow(
+      "reopenMs",
+      "blink.reopenMs: half-closed tail phase, 2-frame modes; " +
+        "0 = pop open (default halfClosedMs)",
+      [reopenInput],
+      reopenReset,
+    ),
   ]);
 
   const hostTable = controlTable("skinview3d:", [
-    optionRow("action", animationSelect),
-    optionRow("model", modelSelect),
-    optionRow("background", backgroundInput),
-    optionRow("ambient", ambientLight, ambientReset),
-    optionRow("camera", cameraLight, cameraReset),
+    optionRow(
+      "animation",
+      "viewer.animation: a built-in PlayerAnimation preset",
+      [animationSelect],
+    ),
+    optionRow(
+      "model",
+      "loadSkin({ model }): auto-detect infers slim from the texture",
+      [modelSelect],
+    ),
+    optionRow("background", "viewer.background: solid color", [
+      backgroundInput,
+    ]),
+    optionRow("globalLight", "viewer.globalLight.intensity", [
+      globalLightInput,
+      globalLightReset,
+    ]),
+    optionRow("cameraLight", "viewer.cameraLight.intensity", [
+      cameraLightInput,
+      cameraLightReset,
+    ]),
   ]);
 
   const controls = document.createElement("div");

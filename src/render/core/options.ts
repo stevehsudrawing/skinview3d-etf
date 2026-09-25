@@ -40,7 +40,7 @@ export interface NormalizedBlinkOptions {
 export interface NormalizedOptions {
   /** Every feature switch with defaults applied. */
   features: Required<SkinFeatureToggles>;
-  /** Normalized blink behaviour: state, interval and phases. */
+  /** Normalized blink behavior: state, interval and phases. */
   blink: NormalizedBlinkOptions;
   /** Bloom switch; accepted and ignored - deferred quality mode. */
   bloom: boolean;

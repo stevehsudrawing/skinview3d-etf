@@ -26,7 +26,23 @@ body {
 .stage {
   aspect-ratio: 1 / 1;
   border: 1px solid #aaaaaa;
+  position: relative;
   width: min(100%, 640px);
+}
+
+.stage-reset {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #aaaaaa;
+  bottom: 8px;
+  cursor: pointer;
+  font: inherit;
+  padding: 2px 10px;
+  position: absolute;
+  right: 8px;
+}
+
+.stage-reset:hover {
+  background: #ffffff;
 }
 
 .viewer {
@@ -71,7 +87,29 @@ body {
 }
 
 .control-group td {
+  align-items: center;
+  display: flex;
+  gap: 6px;
   white-space: nowrap;
+}
+
+/* monospace text snaps inheriting sizes to 13px in Chromium, so pin the
+   size to the root font instead of using inherit / em / medium. */
+.control-group code {
+  font-size: 1rem;
+}
+
+/* Annotated `code` labels (those with a `title` description): the
+   dashed underline marks them, the `help` cursor signals the hint. */
+code[title] {
+  cursor: help;
+  text-decoration: underline dashed;
+  text-decoration-color: #999999;
+  text-underline-offset: 2px;
+}
+
+.control-group input[type="number"] {
+  width: 72px;
 }
 
 .control-group input[type="checkbox"] {
@@ -86,7 +124,10 @@ body {
 
 .control-group button[type="button"] {
   font: inherit;
-  margin-left: 6px;
+}
+
+.control-group button.row-reset {
+  margin-left: auto;
 }
 
 .upload {

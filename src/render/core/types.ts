@@ -62,7 +62,7 @@ export interface SkinFeatureToggles {
  */
 export type BlinkState = "auto" | "open" | "halfClosed" | "closed";
 
-/** Blink behaviour options. */
+/** Blink behavior options. */
 export interface BlinkOptions {
   /**
    * Eye state. `"halfClosed"` needs a 2-frame blink mode (1-frame
@@ -101,7 +101,7 @@ export interface BlinkOptions {
 export interface ETFSkinFeaturesOptions {
   /** Per-feature switches; every feature defaults to enabled. */
   features?: SkinFeatureToggles;
-  /** Blink behaviour: eye state and timing. */
+  /** Blink behavior: eye state and timing. */
   blink?: BlinkOptions;
   /**
    * Reserved - accepted and ignored. Upstream renders emissive
