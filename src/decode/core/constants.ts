@@ -10,6 +10,13 @@
 import type { PaletteId, Rect, RGBA } from "./types";
 
 /**
+ * The 64x64 skin layout side length every feature works in. Legacy
+ * 64x32 inputs are converted into this layout first; HD skins are
+ * unsupported.
+ */
+export const SKIN_SIZE = 64;
+
+/**
  * One marker signature pixel: `[x, y, r, g, b]`. The alpha channel is
  * always 255.
  */
@@ -152,27 +159,41 @@ export interface BlinkCorner {
 }
 
 /**
+ * The face-front square the lazy blink frames copy into; its top-left
+ * corner is also the base of the optimized eye-strip row.
+ */
+export const BLINK_FACE_RECT: Rect = { x1: 8, y1: 8, x2: 15, y2: 15 };
+
+/** The hat-front square the lazy blink frames copy into. */
+export const BLINK_HAT_RECT: Rect = { x1: 40, y1: 8, x2: 47, y2: 15 };
+
+/**
  * The four lazy-blink corner squares. Frame 1 copies into the face and
  * hat front, frame 2 supplies the second (optional) frame.
  */
 export const BLINK_CORNERS: readonly BlinkCorner[] = [
-  { source: { x1: 0, y1: 0, x2: 7, y2: 7 }, targetX: 8, targetY: 8, frame: 1 },
+  {
+    source: { x1: 0, y1: 0, x2: 7, y2: 7 },
+    targetX: BLINK_FACE_RECT.x1,
+    targetY: BLINK_FACE_RECT.y1,
+    frame: 1,
+  },
   {
     source: { x1: 24, y1: 0, x2: 31, y2: 7 },
-    targetX: 8,
-    targetY: 8,
+    targetX: BLINK_FACE_RECT.x1,
+    targetY: BLINK_FACE_RECT.y1,
     frame: 2,
   },
   {
     source: { x1: 32, y1: 0, x2: 39, y2: 7 },
-    targetX: 40,
-    targetY: 8,
+    targetX: BLINK_HAT_RECT.x1,
+    targetY: BLINK_HAT_RECT.y1,
     frame: 1,
   },
   {
     source: { x1: 56, y1: 0, x2: 63, y2: 7 },
-    targetX: 40,
-    targetY: 8,
+    targetX: BLINK_HAT_RECT.x1,
+    targetY: BLINK_HAT_RECT.y1,
     frame: 2,
   },
 ];

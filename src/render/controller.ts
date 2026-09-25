@@ -3,6 +3,8 @@
  * the viewer, decodes the current skin and owns every render artifact
  * (canvas edits, material flags, the nose mesh, the emissive
  * overlays, the blink repaints) with full restore on `detach()`.
+ * Teardown always follows the same order: blink snapshot, ticker,
+ * nose, emissive, material flags, canvas baseline.
  */
 
 import type { SkinViewer } from "skinview3d";
@@ -13,6 +15,7 @@ import type {
   MeshStandardMaterial,
   Texture,
 } from "three";
+import { SKIN_SIZE } from "../decode/core/constants";
 import { buildMask, cloneImage, createImage } from "../decode/core/pixels";
 import type {
   BlinkInfo,
@@ -28,6 +31,8 @@ import {
   readCanvasPixels,
 } from "./core/canvas";
 import { DEFAULT_VILLAGER_NOSE_DATA_URL } from "./core/default-textures";
+import { normalizeBlinkOptions, normalizeOptions } from "./core/options";
+import { headLayerMaterial, layerMapsOf, layerMaterialsOf } from "./core/parts";
 import { createSkinSpaceTexture, resolveTextureInput } from "./core/textures";
 import { startTicker, type TickerHandle } from "./core/ticker";
 import type {
@@ -38,16 +43,14 @@ import type {
   SkinFeatureToggles,
 } from "./core/types";
 import {
-  blinkRects,
   blinkSeed,
   blinkStateFrame,
   createBlinkPainter,
   createBlinkScheduler,
-  normalizeBlinkOptions,
+  glowOverlaps,
   type BlinkGlow,
   type BlinkPainter,
   type BlinkScheduler,
-  type NormalizedBlinkOptions,
 } from "./features/blinking";
 import {
   createEmissiveMaterial,
@@ -63,60 +66,23 @@ import {
   type NoseMesh,
 } from "./features/nose";
 import {
-  collectLayerMaterials,
   restoreTransparent,
   setTransparent,
   type MaterialState,
 } from "./features/transparency";
 
-/** Internal, fully normalized options. */
-interface NormalizedOptions {
-  /** Every feature switch with defaults applied. */
-  features: Required<SkinFeatureToggles>;
-  /** Normalized blink behaviour: state, interval and phases. */
-  blink: NormalizedBlinkOptions;
-  /** Bloom switch; accepted and ignored - deferred quality mode. */
-  bloom: boolean;
-  /** Whether the controller drives `update(dt)` from the viewer. */
-  manageTicker: boolean;
-  /** Villager nose override: `undefined` = built-in, `null` = off. */
-  villagerNoseTexture: ETFTextureInput | null | undefined;
-  /** Glint texture; reserved for the glint renderer. */
-  glintTexture: ETFTextureInput | null | undefined;
-  /** Warning sink, or `null` for `console.warn`. */
-  onWarning: ((message: string) => void) | null;
-}
-
 /**
  * A fully transparent, skin-sized glow mask used whenever a blink
  * frame has no glowing pixels of its own.
  */
-const EMPTY_GLOW_MASK: PixelData = createImage(64, 64);
+const EMPTY_GLOW_MASK: PixelData = createImage(SKIN_SIZE, SKIN_SIZE);
 
-/**
- * Applies defaults to the user options.
- *
- * @param options - The user options, if any.
- * @returns The normalized settings.
- */
-function normalizeOptions(options: ETFSkinFeaturesOptions): NormalizedOptions {
-  const features = options.features ?? {};
-  return {
-    features: {
-      transparency: features.transparency ?? true,
-      emissive: features.emissive ?? true,
-      blink: features.blink ?? true,
-      nose: features.nose ?? true,
-      jacket: features.jacket ?? true,
-      enchanted: features.enchanted ?? true,
-    },
-    blink: normalizeBlinkOptions(options.blink),
-    bloom: options.bloom ?? false,
-    manageTicker: options.manageTicker ?? true,
-    villagerNoseTexture: options.villagerNoseTexture,
-    glintTexture: options.glintTexture,
-    onWarning: options.onWarning ?? null,
-  };
+/** Cached mesh lookups for the current viewer binding. */
+interface SkinTargets {
+  /** The unique layer-1 materials of the six parts. */
+  materials: MeshStandardMaterial[];
+  /** The unique textures bound by the six parts' layers. */
+  maps: Texture[];
 }
 
 /**
@@ -147,6 +113,7 @@ export function attachETFSkinFeatures(
   const materialOriginals = new Map<MeshStandardMaterial, MaterialState>();
 
   let decoded: DecodeResult | null = null;
+  let targets: SkinTargets | null = null;
   let baselinePixels: PixelData | null = null;
   let lastPainted: PixelData | null = null;
   let skinEdited = false;
@@ -181,52 +148,29 @@ export function attachETFSkinFeatures(
   }
 
   /**
-   * Returns the six body parts of the current skin.
+   * Rebuilds the cached mesh lookups ({@link SkinTargets}) from the
+   * live skin. `apply()` calls this, so `rebind()` and `refresh()`
+   * after host model swaps stay covered.
    *
-   * @returns The parts, fetched from the live skin object.
+   * @returns The fresh lookup snapshot.
    */
-  function bodyParts() {
+  function resolveTargets(): SkinTargets {
     const skin = viewer.playerObject.skin;
-    return [
-      skin.head,
-      skin.body,
-      skin.leftArm,
-      skin.rightArm,
-      skin.leftLeg,
-      skin.rightLeg,
-    ];
+    const resolved: SkinTargets = {
+      materials: layerMaterialsOf(skin),
+      maps: layerMapsOf(skin),
+    };
+    targets = resolved;
+    return resolved;
   }
 
   /**
-   * Returns the head's layer-1 material (the nose material template).
-   *
-   * @returns The head material.
-   */
-  function headMaterial(): MeshStandardMaterial {
-    const mesh = viewer.playerObject.skin.head.innerLayer as Mesh;
-    const material = mesh.material;
-    return (
-      Array.isArray(material) ? material[0] : material
-    ) as MeshStandardMaterial;
-  }
-
-  /**
-   * Marks every skin map bound by the six parts as needing an update.
+   * Marks every texture bound by the six parts as needing an update;
+   * uses the cached lookup and falls back to a fresh scan when called
+   * before the first `apply()`.
    */
   function markSkinDirty(): void {
-    const maps = new Set<Texture>();
-    for (const part of bodyParts()) {
-      for (const layer of [part.innerLayer, part.outerLayer]) {
-        const material = (layer as Mesh).material;
-        const entries = Array.isArray(material) ? material : [material];
-        for (const entry of entries) {
-          const map = (entry as MeshStandardMaterial).map;
-          if (map !== null) {
-            maps.add(map);
-          }
-        }
-      }
-    }
+    const maps = targets?.maps ?? layerMapsOf(viewer.playerObject.skin);
     for (const map of maps) {
       map.needsUpdate = true;
     }
@@ -264,30 +208,6 @@ export function attachETFSkinFeatures(
   }
 
   /**
-   * Whether the emissive mask has any glowing pixel inside the
-   * rectangles a blink repaints.
-   *
-   * @param info - The decoded blink data.
-   * @returns `true` when the glow content has to follow the blink.
-   */
-  function glowOverlaps(info: BlinkInfo): boolean {
-    const mask = decoded?.emissive?.mask ?? null;
-    if (mask === null) {
-      return false;
-    }
-    return blinkRects(info).some((rect) => {
-      for (let y = rect.y1; y <= rect.y2; y++) {
-        for (let x = rect.x1; x <= rect.x2; x++) {
-          if (mask.data[(y * mask.width + x) * 4 + 3] !== 0) {
-            return true;
-          }
-        }
-      }
-      return false;
-    });
-  }
-
-  /**
    * Builds the glow integration for the blink painter: the per-frame
    * masks are precomputed here once, so toggling a frame only
    * repaints the glow texture.
@@ -302,7 +222,7 @@ export function attachETFSkinFeatures(
       !settings.features.emissive ||
       pattern === null ||
       glowTexture === null ||
-      !glowOverlaps(info)
+      !glowOverlaps(pattern.mask, info)
     ) {
       return null;
     }
@@ -346,6 +266,14 @@ export function attachETFSkinFeatures(
     blinkPainter.show(blinkStateFrame(settings.blink.state, info));
   }
 
+  /** Disposes the managed ticker, if one is attached. */
+  function stopTicker(): void {
+    if (ticker !== null) {
+      ticker.dispose();
+      ticker = null;
+    }
+  }
+
   /**
    * Starts or stops the managed ticker so it runs exactly while the
    * blink feature is enabled and in the `"auto"` state.
@@ -360,9 +288,8 @@ export function attachETFSkinFeatures(
       decoded.blink !== null;
     if (needed && ticker === null) {
       ticker = startTicker(viewer, update);
-    } else if (!needed && ticker !== null) {
-      ticker.dispose();
-      ticker = null;
+    } else if (!needed) {
+      stopTicker();
     }
   }
 
@@ -415,7 +342,7 @@ export function attachETFSkinFeatures(
     if (detached || !settings.features.nose || nose === null) {
       return;
     }
-    const head = headMaterial();
+    const head = headLayerMaterial(viewer.playerObject.skin);
     if (nose.villager && nose.villagerSkinTextured) {
       noseMesh = createVillagerNoseMesh(
         head,
@@ -478,7 +405,7 @@ export function attachETFSkinFeatures(
       syncTicker();
       return;
     }
-    const materials = collectLayerMaterials(viewer.playerObject.skin);
+    const resolved = resolveTargets();
     restoreTransparent(materialOriginals);
 
     const transparencyActive =
@@ -507,7 +434,7 @@ export function attachETFSkinFeatures(
     }
 
     if (transparencyActive) {
-      setTransparent(materials, materialOriginals, true);
+      setTransparent(resolved.materials, materialOriginals, true);
     }
     rebuildNose();
     const emissive = decoded.emissive;
@@ -523,10 +450,7 @@ export function attachETFSkinFeatures(
   /** Removes every render artifact and restores the baselines. */
   function unapply(): void {
     teardownBlink();
-    if (ticker !== null) {
-      ticker.dispose();
-      ticker = null;
-    }
+    stopTicker();
     clearNose();
     clearEmissive();
     restoreTransparent(materialOriginals);
@@ -581,10 +505,7 @@ export function attachETFSkinFeatures(
     if (detached) {
       return;
     }
-    if (ticker !== null) {
-      ticker.dispose();
-      ticker = null;
-    }
+    stopTicker();
     apply();
   }
 

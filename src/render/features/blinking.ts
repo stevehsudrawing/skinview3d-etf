@@ -10,43 +10,19 @@
  * frame and suspends the schedule.
  */
 
-import { BLINK_EYE_STRIPS } from "../../decode/core/constants";
+import {
+  BLINK_EYE_STRIPS,
+  BLINK_FACE_RECT,
+  BLINK_HAT_RECT,
+} from "../../decode/core/constants";
 import type { BlinkInfo, PixelData, Rect } from "../../decode/core/types";
 import {
   paintCanvasPixels,
   paintCanvasRect,
   readCanvasPixels,
 } from "../core/canvas";
-import type { BlinkOptions, BlinkState } from "../core/types";
-
-/** Default blink interval in milliseconds. */
-export const DEFAULT_BLINK_PERIOD_MS = 6000;
-
-/** Default closed phase in milliseconds. */
-export const DEFAULT_CLOSED_MS = 250;
-
-/** Smallest accepted blink interval in milliseconds. */
-const MIN_PERIOD_MS = 100;
-
-/** The face front, the square the eye rows live in. */
-const FACE_RECT: Rect = { x1: 8, y1: 8, x2: 15, y2: 15 };
-
-/** The hat front; the lazy modes touch it as well. */
-const HAT_RECT: Rect = { x1: 40, y1: 8, x2: 47, y2: 15 };
-
-/** Fully resolved blink settings. */
-export interface NormalizedBlinkOptions {
-  /** The eye state. */
-  state: BlinkState;
-  /** Interval in ms, or `[minMs, maxMs]` for a per-cycle roll. */
-  interval: number | readonly [number, number];
-  /** Closed phase in ms. */
-  closedMs: number;
-  /** Half-closed lead phase in ms. */
-  halfClosedMs: number;
-  /** Half-closed trailing phase in ms; 0 skips it. */
-  reopenMs: number;
-}
+import type { NormalizedBlinkOptions } from "../core/options";
+import type { BlinkState } from "../core/types";
 
 /** One scheduled blink phase. */
 interface BlinkPhase {
@@ -94,83 +70,6 @@ export interface BlinkPainter {
   show(frame: number): void;
   /** Restores the pre-blink canvas pixels and glow. Idempotent. */
   restore(): void;
-}
-
-/**
- * Whether a duration is usable: a finite number >= 0.
- *
- * @param value - The candidate value.
- * @returns `true` for finite non-negative numbers.
- */
-function isDuration(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0;
-}
-
-/**
- * Sanitizes the raw interval option: invalid values fall back to the
- * default, reversed tuples are swapped and equal ends collapse to a
- * fixed value.
- *
- * @param raw - The raw `periodMs` value.
- * @returns A positive number or a normalized tuple.
- */
-function resolveInterval(
-  raw: number | readonly [number, number] | undefined,
-): number | readonly [number, number] {
-  if (raw === undefined) {
-    return DEFAULT_BLINK_PERIOD_MS;
-  }
-  if (typeof raw === "number") {
-    return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_BLINK_PERIOD_MS;
-  }
-  const [first, second] = raw;
-  if (!isDuration(first) || !isDuration(second)) {
-    return DEFAULT_BLINK_PERIOD_MS;
-  }
-  if (first === second) {
-    return first === 0 ? DEFAULT_BLINK_PERIOD_MS : first;
-  }
-  return first < second ? [first, second] : [second, first];
-}
-
-/**
- * Resolves the public blink options into fully normalized settings:
- * defaults applied, invalid values replaced, the interval sanitized
- * and clamped so consecutive blinks never overlap.
- *
- * @param options - The user options, if any.
- * @returns The resolved settings.
- */
-export function normalizeBlinkOptions(
-  options?: BlinkOptions,
-): NormalizedBlinkOptions {
-  const state = options?.state;
-  const resolvedState: BlinkState =
-    state === "open" || state === "halfClosed" || state === "closed"
-      ? state
-      : "auto";
-  const closedMs = isDuration(options?.closedMs)
-    ? options.closedMs
-    : DEFAULT_CLOSED_MS;
-  const halfClosedMs = isDuration(options?.halfClosedMs)
-    ? options.halfClosedMs
-    : Math.round(closedMs / 2);
-  const reopenMs = isDuration(options?.reopenMs)
-    ? options.reopenMs
-    : halfClosedMs;
-  const minInterval = Math.max(
-    MIN_PERIOD_MS,
-    closedMs + halfClosedMs + reopenMs,
-  );
-  let interval = resolveInterval(options?.periodMs);
-  if (typeof interval === "number") {
-    interval = Math.max(interval, minInterval);
-  } else {
-    const low = Math.max(interval[0], minInterval);
-    const high = Math.max(interval[1], minInterval);
-    interval = low === high ? low : [low, high];
-  }
-  return { state: resolvedState, interval, closedMs, halfClosedMs, reopenMs };
 }
 
 /**
@@ -256,12 +155,43 @@ function firstDelayMs(
  */
 export function blinkRects(info: BlinkInfo): Rect[] {
   if (info.mode === 1 || info.mode === 2) {
-    return [FACE_RECT, HAT_RECT];
+    return [BLINK_FACE_RECT, BLINK_HAT_RECT];
   }
   const strip = BLINK_EYE_STRIPS[info.mode][0];
   const height = strip.y2 - strip.y1 + 1;
-  const top = 8 + ((info.eyeHeight ?? 1) - 1);
-  return [{ x1: 8, y1: top, x2: 15, y2: top + height - 1 }];
+  const top = BLINK_FACE_RECT.y1 + ((info.eyeHeight ?? 1) - 1);
+  return [
+    {
+      x1: BLINK_FACE_RECT.x1,
+      y1: top,
+      x2: BLINK_FACE_RECT.x2,
+      y2: top + height - 1,
+    },
+  ];
+}
+
+/**
+ * Whether an emissive mask has any glowing pixel inside the
+ * rectangles a blink repaints.
+ *
+ * @param mask - The emissive mask, or `null` when nothing glows.
+ * @param info - The decoded blink data.
+ * @returns `true` when the glow content has to follow the blink.
+ */
+export function glowOverlaps(mask: PixelData | null, info: BlinkInfo): boolean {
+  if (mask === null) {
+    return false;
+  }
+  return blinkRects(info).some((rect) => {
+    for (let y = rect.y1; y <= rect.y2; y++) {
+      for (let x = rect.x1; x <= rect.x2; x++) {
+        if (mask.data[(y * mask.width + x) * 4 + 3] !== 0) {
+          return true;
+        }
+      }
+    }
+    return false;
+  });
 }
 
 /**

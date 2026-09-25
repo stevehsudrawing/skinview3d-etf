@@ -6,6 +6,7 @@
 import {
   BLINK_CORNERS,
   BLINK_EYE_STRIPS,
+  BLINK_FACE_RECT,
   BLINK_NOSE_CUT_RECTS,
 } from "../core/constants";
 import { cloneImage, copyRect } from "../core/pixels";
@@ -85,7 +86,13 @@ function buildOptimizedFrame(
 ): PixelData {
   const output = cloneImage(image);
   const strip = BLINK_EYE_STRIPS[mode][frameIndex];
-  copyRect(image, output, strip, 8, 8 + (eyeHeight - 1));
+  copyRect(
+    image,
+    output,
+    strip,
+    BLINK_FACE_RECT.x1,
+    BLINK_FACE_RECT.y1 + (eyeHeight - 1),
+  );
   return output;
 }
 

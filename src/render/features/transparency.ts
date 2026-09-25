@@ -4,13 +4,7 @@
  * they can be restored.
  */
 
-import type { SkinObject } from "skinview3d";
-import {
-  DoubleSide,
-  type Mesh,
-  type MeshStandardMaterial,
-  type Side,
-} from "three";
+import { DoubleSide, type MeshStandardMaterial, type Side } from "three";
 
 /** Original layer-1 material settings, saved before the first change. */
 export interface MaterialState {
@@ -18,39 +12,6 @@ export interface MaterialState {
   transparent: boolean;
   /** The original `side` value. */
   side: Side;
-}
-
-/**
- * Collects the unique layer-1 materials of the six body parts (the
- * plain variants plus the arms/legs "biased" polygon-offset clones).
- *
- * @param skin - The skin object to inspect.
- * @returns Every distinct layer-1 material.
- */
-export function collectLayerMaterials(
-  skin: SkinObject,
-): MeshStandardMaterial[] {
-  const parts = [
-    skin.head,
-    skin.body,
-    skin.leftArm,
-    skin.rightArm,
-    skin.leftLeg,
-    skin.rightLeg,
-  ];
-  const materials = new Set<MeshStandardMaterial>();
-  for (const part of parts) {
-    const mesh = part.innerLayer as Mesh;
-    const material = mesh.material;
-    if (Array.isArray(material)) {
-      for (const entry of material) {
-        materials.add(entry as MeshStandardMaterial);
-      }
-    } else {
-      materials.add(material as MeshStandardMaterial);
-    }
-  }
-  return [...materials];
 }
 
 /**

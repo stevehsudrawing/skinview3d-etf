@@ -19,7 +19,8 @@ import {
   type Texture,
 } from "three";
 import type { PixelData } from "../../decode/core/types";
-import { paintCanvasPixels } from "../core/canvas";
+import { paintCanvasPixels, pixelsToCanvas } from "../core/canvas";
+import { layersOf, partsOf } from "../core/parts";
 
 /**
  * Creates the shared glow texture from a decoded emissive mask. The
@@ -31,9 +32,7 @@ import { paintCanvasPixels } from "../core/canvas";
  * @returns The prepared texture, owned by the caller.
  */
 export function createGlowTexture(mask: PixelData): CanvasTexture {
-  const canvas = document.createElement("canvas");
-  paintCanvasPixels(canvas, mask);
-  const texture = new CanvasTexture(canvas);
+  const texture = new CanvasTexture(pixelsToCanvas(mask));
   texture.magFilter = NearestFilter;
   texture.minFilter = NearestFilter;
   return texture;
@@ -87,21 +86,12 @@ export function createEmissiveOverlays(
   skin: SkinObject,
   material: MeshBasicMaterial,
 ): Mesh[] {
-  const parts = [
-    skin.head,
-    skin.body,
-    skin.leftArm,
-    skin.rightArm,
-    skin.leftLeg,
-    skin.rightLeg,
-  ];
   const meshes: Mesh[] = [];
-  for (const part of parts) {
-    for (const layer of [part.innerLayer, part.outerLayer]) {
-      const source = layer as Mesh;
-      const overlay = new Mesh(source.geometry, material);
+  for (const part of partsOf(skin)) {
+    for (const layer of layersOf(part)) {
+      const overlay = new Mesh(layer.geometry, material);
       overlay.name = "etf-emissive";
-      source.add(overlay);
+      layer.add(overlay);
       meshes.push(overlay);
     }
   }

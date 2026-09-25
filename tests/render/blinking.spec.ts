@@ -6,14 +6,17 @@
 import { describe, expect, it } from "vitest";
 import { createImage } from "../../src/decode/core/pixels";
 import type { BlinkInfo, BlinkMode } from "../../src/decode/core/types";
+import {
+  normalizeBlinkOptions,
+  type NormalizedBlinkOptions,
+} from "../../src/render/core/options";
 import type { BlinkState } from "../../src/render/core/types";
 import {
   blinkRects,
   blinkSeed,
   blinkStateFrame,
   createBlinkScheduler,
-  normalizeBlinkOptions,
-  type NormalizedBlinkOptions,
+  glowOverlaps,
 } from "../../src/render/features/blinking";
 
 /**
@@ -129,6 +132,31 @@ describe("blinkRects", () => {
     expect(blinkRects(makeInfo(5, 2, 3))).toEqual([
       { x1: 8, y1: 10, x2: 15, y2: 13 },
     ]);
+  });
+});
+
+describe("glowOverlaps", () => {
+  it("detects glow pixels inside the eye strip", () => {
+    const info = makeInfo(3, 1, 5);
+    const mask = createImage(64, 64);
+    expect(glowOverlaps(mask, info)).toBe(false);
+    mask.data[(12 * 64 + 10) * 4 + 3] = 255;
+    expect(glowOverlaps(mask, info)).toBe(true);
+  });
+
+  it("ignores glow pixels outside the rectangles and a null mask", () => {
+    const info = makeInfo(3, 1, 5);
+    const mask = createImage(64, 64);
+    mask.data[(20 * 64 + 10) * 4 + 3] = 255;
+    expect(glowOverlaps(mask, info)).toBe(false);
+    expect(glowOverlaps(null, info)).toBe(false);
+  });
+
+  it("covers the hat square for the lazy modes", () => {
+    const info = makeInfo(1, 1);
+    const mask = createImage(64, 64);
+    mask.data[(8 * 64 + 40) * 4 + 3] = 255;
+    expect(glowOverlaps(mask, info)).toBe(true);
   });
 });
 

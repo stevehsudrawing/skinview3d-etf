@@ -7,6 +7,7 @@ import {
   COAT_STYLES,
   JACKET_COPY_TABLE,
   JACKET_MOVED_RECTS,
+  SKIN_SIZE,
 } from "../core/constants";
 import { copyRect, createImage } from "../core/pixels";
 import type { JacketInfo, PaletteId, PixelData, Rect } from "../core/types";
@@ -34,7 +35,7 @@ function buildCoatTexture(
   lengthOffset: number,
   keepTop: boolean,
 ): PixelData {
-  const coat = createImage(64, 64);
+  const coat = createImage(SKIN_SIZE, SKIN_SIZE);
   for (const copy of JACKET_COPY_TABLE) {
     if (copy.topOnly && !keepTop) {
       continue;

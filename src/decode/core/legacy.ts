@@ -11,6 +11,7 @@
  * opaque regions) belong to the host and are not part of the decoder.
  */
 
+import { SKIN_SIZE } from "./constants";
 import { createImage } from "./pixels";
 import type { PixelData } from "./types";
 
@@ -76,7 +77,7 @@ export function isLegacySkin(image: PixelData): boolean {
  * @returns A new 64x64 buffer in the 1.8 layout.
  */
 export function convertLegacySkin(image: PixelData): PixelData {
-  const converted = createImage(64, 64);
+  const converted = createImage(SKIN_SIZE, SKIN_SIZE);
   converted.data.set(image.data);
   for (const plate of PLATE_COPIES) {
     copyPlateMirrored(image, converted, plate);
