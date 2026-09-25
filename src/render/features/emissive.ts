@@ -18,8 +18,8 @@ import {
   NearestFilter,
   type Texture,
 } from "three";
-import type { PixelData } from "../decode/types";
-import { paintCanvasPixels } from "./canvas";
+import type { PixelData } from "../../decode/core/types";
+import { paintCanvasPixels } from "../core/canvas";
 
 /**
  * Creates the shared glow texture from a decoded emissive mask. The

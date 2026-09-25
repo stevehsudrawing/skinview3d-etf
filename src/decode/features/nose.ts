@@ -9,9 +9,9 @@ import {
   NOSE_COLOR,
   NOSE_TYPE9_PIXEL,
   SLOTS,
-} from "./constants";
-import { createImage, getPixel, sameColor, setPixel } from "./pixels";
-import type { NoseInfo, PaletteId, PixelData, Rect } from "./types";
+} from "../core/constants";
+import { createImage, getPixel, sameColor, setPixel } from "../core/pixels";
+import type { NoseInfo, PaletteId, PixelData, Rect } from "../core/types";
 
 /** The result of {@link decodeNose}. */
 export interface NoseDecodeResult {

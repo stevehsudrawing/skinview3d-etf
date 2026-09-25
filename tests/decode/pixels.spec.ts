@@ -9,8 +9,8 @@ import {
   getPixel,
   setPixel,
   stripAlphaRect,
-} from "../../src/decode/pixels";
-import type { PixelData, RGBA } from "../../src/decode/types";
+} from "../../src/decode/core/pixels";
+import type { PixelData, RGBA } from "../../src/decode/core/types";
 
 const RED: RGBA = [255, 0, 0, 255];
 const BLUE: RGBA = [0, 0, 255, 255];

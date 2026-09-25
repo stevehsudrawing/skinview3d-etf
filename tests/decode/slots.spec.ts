@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { setPixel } from "../../src/decode/pixels";
-import { readChoice, readSlots } from "../../src/decode/slots";
-import type { PaletteId } from "../../src/decode/types";
+import { setPixel } from "../../src/decode/core/pixels";
+import type { PaletteId } from "../../src/decode/core/types";
+import { readChoice, readSlots } from "../../src/decode/format/slots";
 import { createMarkedSkin, paintSlot } from "../fixtures/synthetic";
 
 const ALL_UNSET = {

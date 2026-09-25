@@ -10,9 +10,14 @@ import {
   PALETTE,
   paletteColor,
   SLOTS,
-} from "../../src/decode/constants";
-import { createImage, fillRect, setPixel } from "../../src/decode/pixels";
-import type { PaletteId, PixelData, Rect, RGBA } from "../../src/decode/types";
+} from "../../src/decode/core/constants";
+import { createImage, fillRect, setPixel } from "../../src/decode/core/pixels";
+import type {
+  PaletteId,
+  PixelData,
+  Rect,
+  RGBA,
+} from "../../src/decode/core/types";
 
 /** A slot key of the seven choice slots. */
 export type SlotName = keyof typeof SLOTS;

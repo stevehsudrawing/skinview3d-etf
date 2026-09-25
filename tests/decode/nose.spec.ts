@@ -3,10 +3,10 @@ import {
   DEPRECATED_NOSE_RECTS,
   NOSE_CAPE_REGIONS,
   NOSE_COLOR,
-} from "../../src/decode/constants";
+} from "../../src/decode/core/constants";
+import { getPixel, sameColor, setPixel } from "../../src/decode/core/pixels";
+import { decodeNose } from "../../src/decode/features/nose";
 import { decodeSkin } from "../../src/decode/index";
-import { decodeNose } from "../../src/decode/nose";
-import { getPixel, sameColor, setPixel } from "../../src/decode/pixels";
 import { fixturesAvailable, loadSkin } from "../fixtures/skins";
 import {
   createMarkedSkin,

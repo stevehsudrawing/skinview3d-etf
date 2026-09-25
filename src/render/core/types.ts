@@ -4,7 +4,7 @@
  */
 
 import type { Texture } from "three";
-import type { PixelData } from "../decode/types";
+import type { PixelData } from "../../decode/core/types";
 
 /** A DOM canvas accepted as a texture source. */
 export type TextureCanvas = HTMLCanvasElement | OffscreenCanvas;

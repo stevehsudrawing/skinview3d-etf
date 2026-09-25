@@ -3,9 +3,9 @@
  * `(52,16)` through `(53,18)`.
  */
 
-import { PALETTE, SLOTS } from "./constants";
-import { getPixel, sameColor } from "./pixels";
-import type { PaletteId, PixelData, SlotValues } from "./types";
+import { PALETTE, SLOTS } from "../core/constants";
+import { getPixel, sameColor } from "../core/pixels";
+import type { PaletteId, PixelData, SlotValues } from "../core/types";
 
 /**
  * Resolves a choice pixel to a palette id by exact RGBA match (alpha

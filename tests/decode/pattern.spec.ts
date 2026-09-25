@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { MARKER_BOXES } from "../../src/decode/constants";
+import { MARKER_BOXES } from "../../src/decode/core/constants";
+import { setPixel } from "../../src/decode/core/pixels";
+import type { PatternInfo, PixelData } from "../../src/decode/core/types";
+import { selectBox } from "../../src/decode/features/pattern";
 import { decodeSkin } from "../../src/decode/index";
-import { selectBox } from "../../src/decode/pattern";
-import { setPixel } from "../../src/decode/pixels";
-import type { PatternInfo, PixelData } from "../../src/decode/types";
 import { fixturesAvailable, loadSkin } from "../fixtures/skins";
 import { createMarkedSkin, paintCell } from "../fixtures/synthetic";
 

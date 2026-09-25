@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { createImage, setPixel } from "../../src/decode/core/pixels";
+import { checkSignature, readCells } from "../../src/decode/format/marker";
 import { decodeSkin } from "../../src/decode/index";
-import { checkSignature, readCells } from "../../src/decode/marker";
-import { createImage, setPixel } from "../../src/decode/pixels";
 import {
   createBlankSkin,
   createMarkedSkin,

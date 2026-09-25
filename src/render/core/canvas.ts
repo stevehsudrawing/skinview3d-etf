@@ -3,7 +3,7 @@
  * comparing pixel buffers.
  */
 
-import type { PixelData } from "../decode/types";
+import type { PixelData } from "../../decode/core/types";
 
 /**
  * Reads the full pixel content of a canvas.

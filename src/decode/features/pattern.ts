@@ -3,9 +3,9 @@
  * collection and matching-mask preparation.
  */
 
-import { MARKER_BOXES } from "./constants";
-import { buildMask, collectKeys } from "./pixels";
-import type { PaletteId, PatternInfo, PixelData, Rect } from "./types";
+import { MARKER_BOXES } from "../core/constants";
+import { buildMask, collectKeys } from "../core/pixels";
+import type { PaletteId, PatternInfo, PixelData, Rect } from "../core/types";
 
 /**
  * Selects the pattern box chosen by the marker cells. The first cell

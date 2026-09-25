@@ -8,7 +8,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PNG } from "pngjs";
-import type { PixelData } from "../../src/decode/types";
+import type { PixelData } from "../../src/decode/core/types";
 
 /** Folder holding the local-only example skins. */
 export const FIXTURE_DIR = "examples/images/example-skins";

@@ -4,14 +4,8 @@
  * returns plain data plus the prepared overlay images.
  */
 
-import { blinkNoseCuts, decodeBlink, decodeBlinkMode } from "./blink";
-import { FORCED_SOLID_RECTS } from "./constants";
-import { decodeJacket } from "./jacket";
-import { checkSignature, readCells } from "./marker";
-import { decodeNose } from "./nose";
-import { decodePattern, selectBox } from "./pattern";
-import { clearRect, cloneImage, stripAlphaRect } from "./pixels";
-import { readSlots } from "./slots";
+import { FORCED_SOLID_RECTS } from "./core/constants";
+import { clearRect, cloneImage, stripAlphaRect } from "./core/pixels";
 import type {
   BlinkInfo,
   DecodeResult,
@@ -21,7 +15,13 @@ import type {
   PatternInfo,
   PixelData,
   SlotValues,
-} from "./types";
+} from "./core/types";
+import { blinkNoseCuts, decodeBlink, decodeBlinkMode } from "./features/blink";
+import { decodeJacket } from "./features/jacket";
+import { decodeNose } from "./features/nose";
+import { decodePattern, selectBox } from "./features/pattern";
+import { checkSignature, readCells } from "./format/marker";
+import { readSlots } from "./format/slots";
 
 /**
  * Creates an all-unset slot record.

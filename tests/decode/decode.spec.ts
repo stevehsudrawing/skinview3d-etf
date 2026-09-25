@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { createImage, getPixel } from "../../src/decode/core/pixels";
+import type { BlinkMode, PaletteId } from "../../src/decode/core/types";
 import { decodeSkin } from "../../src/decode/index";
-import { createImage, getPixel } from "../../src/decode/pixels";
 import { fixturesAvailable, loadSkin } from "../fixtures/skins";
 import { createBlankSkin } from "../fixtures/synthetic";
-import type { BlinkMode, PaletteId } from "../../src/decode/types";
 
 /** Expected jacket values for one fixture. */
 interface JacketExpectation {

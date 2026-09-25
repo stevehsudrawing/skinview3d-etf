@@ -13,42 +13,46 @@ import type {
   MeshStandardMaterial,
   Texture,
 } from "three";
+import { cloneImage } from "../decode/core/pixels";
+import type {
+  DecodeResult,
+  PatternInfo,
+  PixelData,
+} from "../decode/core/types";
 import { decodeSkin } from "../decode/index";
-import { cloneImage } from "../decode/pixels";
-import type { DecodeResult, PatternInfo, PixelData } from "../decode/types";
 import {
   paintCanvasPixels,
   pixelsEqual,
   pixelsToCanvas,
   readCanvasPixels,
-} from "./canvas";
-import { DEFAULT_VILLAGER_NOSE_DATA_URL } from "./default-textures";
+} from "./core/canvas";
+import { DEFAULT_VILLAGER_NOSE_DATA_URL } from "./core/default-textures";
+import { createSkinSpaceTexture, resolveTextureInput } from "./core/textures";
+import type {
+  ETFController,
+  ETFSkinFeaturesOptions,
+  ETFTextureInput,
+  SkinFeatureToggles,
+} from "./core/types";
 import {
   createEmissiveMaterial,
   createEmissiveOverlays,
   createGlowTexture,
   disposeEmissiveOverlays,
   repaintGlowTexture,
-} from "./emissive";
+} from "./features/emissive";
 import {
   createTexturedNoseMesh,
   createVillagerNoseMesh,
   disposeNose,
   type NoseMesh,
-} from "./nose";
-import { createSkinSpaceTexture, resolveTextureInput } from "./textures";
+} from "./features/nose";
 import {
   collectLayerMaterials,
   restoreTransparent,
   setTransparent,
   type MaterialState,
-} from "./transparency";
-import type {
-  ETFController,
-  ETFSkinFeaturesOptions,
-  ETFTextureInput,
-  SkinFeatureToggles,
-} from "./types";
+} from "./features/transparency";
 
 /** Internal, fully normalized options. */
 interface NormalizedOptions {

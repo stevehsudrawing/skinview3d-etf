@@ -7,9 +7,9 @@ import {
   COAT_STYLES,
   JACKET_COPY_TABLE,
   JACKET_MOVED_RECTS,
-} from "./constants";
-import { copyRect, createImage } from "./pixels";
-import type { JacketInfo, PaletteId, PixelData, Rect } from "./types";
+} from "../core/constants";
+import { copyRect, createImage } from "../core/pixels";
+import type { JacketInfo, PaletteId, PixelData, Rect } from "../core/types";
 
 /** The result of {@link decodeJacket}. */
 export interface JacketDecodeResult {

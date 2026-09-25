@@ -3,10 +3,10 @@
  * choice cells.
  */
 
-import { MARKER_CELLS, MARKER_SIGNATURE } from "./constants";
-import { getPixel } from "./pixels";
+import { MARKER_CELLS, MARKER_SIGNATURE } from "../core/constants";
+import { getPixel } from "../core/pixels";
+import type { PaletteId, PixelData } from "../core/types";
 import { readChoice } from "./slots";
-import type { PaletteId, PixelData } from "./types";
 
 /**
  * Checks the eleven marker signature pixels with exact RGBA equality.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { getPixel, setPixel } from "../../src/decode/core/pixels";
+import { decodeJacket } from "../../src/decode/features/jacket";
 import { decodeSkin } from "../../src/decode/index";
-import { decodeJacket } from "../../src/decode/jacket";
-import { getPixel, setPixel } from "../../src/decode/pixels";
 import { fixturesAvailable, loadSkin } from "../fixtures/skins";
 import { createMarkedSkin, paintSlot } from "../fixtures/synthetic";
 

@@ -7,9 +7,15 @@ import {
   BLINK_CORNERS,
   BLINK_EYE_STRIPS,
   BLINK_NOSE_CUT_RECTS,
-} from "./constants";
-import { cloneImage, copyRect } from "./pixels";
-import type { BlinkInfo, BlinkMode, PaletteId, PixelData, Rect } from "./types";
+} from "../core/constants";
+import { cloneImage, copyRect } from "../core/pixels";
+import type {
+  BlinkInfo,
+  BlinkMode,
+  PaletteId,
+  PixelData,
+  Rect,
+} from "../core/types";
 
 /**
  * Resolves the blink mode from the blink slot.

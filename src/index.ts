@@ -8,7 +8,6 @@
  * whose `refresh()` must be called after every `viewer.loadSkin()`.
  */
 
-export { decodeSkin } from "./decode/index";
 export type {
   BlinkInfo,
   BlinkMode,
@@ -21,7 +20,8 @@ export type {
   Rect,
   RGBA,
   SlotValues,
-} from "./decode/types";
+} from "./decode/core/types";
+export { decodeSkin } from "./decode/index";
 export { attachETFSkinFeatures } from "./render/controller";
 export type {
   BlinkTiming,
@@ -32,4 +32,4 @@ export type {
   SkinFeatureToggles,
   TextureCanvas,
   TextureSource,
-} from "./render/types";
+} from "./render/core/types";

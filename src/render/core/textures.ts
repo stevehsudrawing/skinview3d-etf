@@ -10,7 +10,7 @@ import {
   NearestFilter,
   type Texture,
 } from "three";
-import type { PixelData } from "../decode/types";
+import type { PixelData } from "../../decode/core/types";
 import { pixelsToCanvas } from "./canvas";
 import type { ETFTextureInput, RemoteImage, TextureSource } from "./types";
 

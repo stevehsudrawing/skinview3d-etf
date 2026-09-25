@@ -1,15 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { blinkNoseCuts, decodeBlinkMode } from "../../src/decode/blink";
-import { DEPRECATED_NOSE_RECTS } from "../../src/decode/constants";
+import { DEPRECATED_NOSE_RECTS } from "../../src/decode/core/constants";
+import { getPixel, setPixel } from "../../src/decode/core/pixels";
+import type { BlinkInfo, PixelData } from "../../src/decode/core/types";
+import {
+  blinkNoseCuts,
+  decodeBlinkMode,
+} from "../../src/decode/features/blink";
 import { decodeSkin } from "../../src/decode/index";
-import { getPixel, setPixel } from "../../src/decode/pixels";
 import { fixturesAvailable, loadSkin } from "../fixtures/skins";
 import {
   createMarkedSkin,
   paintRectWithPalette,
   paintSlot,
 } from "../fixtures/synthetic";
-import type { BlinkInfo, PixelData } from "../../src/decode/types";
 
 /**
  * Requires a prepared frame from decoded blink data.
