@@ -166,7 +166,7 @@ describe("createBlinkPainter", () => {
     const painter = createBlinkPainter(
       canvas as unknown as HTMLCanvasElement,
       makeInfo(4, 2, 4),
-      glow,
+      [glow],
       markDirty,
     );
 
@@ -189,7 +189,7 @@ describe("createBlinkPainter", () => {
     const painter = createBlinkPainter(
       canvas as unknown as HTMLCanvasElement,
       makeInfo(4, 2, 4),
-      null,
+      [],
       markDirty,
     );
 
@@ -214,7 +214,7 @@ describe("createBlinkPainter", () => {
     const painter = createBlinkPainter(
       canvas as unknown as HTMLCanvasElement,
       makeInfo(5, 2, 3),
-      glow,
+      [glow],
       markDirty,
     );
 
@@ -233,7 +233,7 @@ describe("createBlinkPainter", () => {
     const painter = createBlinkPainter(
       canvas as unknown as HTMLCanvasElement,
       makeInfo(1, 1),
-      null,
+      [],
       markDirty,
     );
 
@@ -246,20 +246,28 @@ describe("createBlinkPainter", () => {
     expect(markDirty).toHaveBeenCalledTimes(2);
   });
 
-  it("switches the per-frame glow masks, including the null frame", () => {
+  it("switches the per-frame glow masks of every overlay", () => {
     const canvas = new FakeCanvas();
     canvas.pixels.fill(0x11);
-    const repaints: (PixelData | null)[] = [];
+    const repaintsA: (PixelData | null)[] = [];
+    const repaintsB: (PixelData | null)[] = [];
     const maskA = makeMask(0x01);
-    const glow: BlinkGlow = {
+    const glowA: BlinkGlow = {
       openMask: makeMask(0x02),
       frameMasks: [maskA, null],
-      repaint: (mask) => repaints.push(mask),
+      repaint: (mask) => repaintsA.push(mask),
+    };
+    const openB = makeMask(0x03);
+    const maskB = makeMask(0x04);
+    const glowB: BlinkGlow = {
+      openMask: openB,
+      frameMasks: [null, maskB],
+      repaint: (mask) => repaintsB.push(mask),
     };
     const painter = createBlinkPainter(
       canvas as unknown as HTMLCanvasElement,
       makeInfo(4, 2, 4),
-      glow,
+      [glowA, glowB],
       vi.fn(),
     );
 
@@ -267,6 +275,7 @@ describe("createBlinkPainter", () => {
     painter.show(0);
     painter.show(-1);
 
-    expect(repaints).toEqual([null, maskA, glow.openMask]);
+    expect(repaintsA).toEqual([null, maskA, glowA.openMask]);
+    expect(repaintsB).toEqual([maskB, null, openB]);
   });
 });

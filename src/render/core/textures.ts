@@ -11,7 +11,7 @@ import {
   type Texture,
 } from "three";
 import type { PixelData } from "../../decode/core/types";
-import { pixelsToCanvas } from "./canvas";
+import { paintCanvasPixels, pixelsToCanvas } from "./canvas";
 import type { ETFTextureInput, RemoteImage, TextureSource } from "./types";
 
 /**
@@ -237,4 +237,35 @@ export function createSkinSpaceTexture(
   texture.wrapS = ClampToEdgeWrapping;
   texture.wrapT = ClampToEdgeWrapping;
   return texture;
+}
+
+/**
+ * Wraps a decoded overlay mask as a texture. The sampler
+ * configuration mirrors the host's skin texture (a plain canvas
+ * texture with nearest filtering and the default `flipY`), because
+ * the overlays that sample it reuse the host geometry and UVs.
+ *
+ * @param mask - The skin-sized RGBA mask pixels.
+ * @returns The prepared texture, owned by the caller.
+ */
+export function createMaskTexture(mask: PixelData): CanvasTexture {
+  const texture = new CanvasTexture(pixelsToCanvas(mask));
+  texture.magFilter = NearestFilter;
+  texture.minFilter = NearestFilter;
+  return texture;
+}
+
+/**
+ * Repaints an existing mask texture with new mask pixels.
+ *
+ * @param texture - A texture created by {@link createMaskTexture}.
+ * @param mask - The skin-sized RGBA mask pixels.
+ */
+export function repaintMaskTexture(
+  texture: CanvasTexture,
+  mask: PixelData,
+): void {
+  const canvas = texture.image as HTMLCanvasElement;
+  paintCanvasPixels(canvas, mask);
+  texture.needsUpdate = true;
 }

@@ -33,7 +33,7 @@ export type RemoteImage =
 
 /**
  * Every source accepted by the texture options
- * (`villagerNoseTexture` and `glintTexture`).
+ * (`villagerNose.texture` and `glint.texture`).
  */
 export type ETFTextureInput = TextureSource | RemoteImage | PixelData | Texture;
 
@@ -52,7 +52,7 @@ export interface SkinFeatureToggles {
   nose?: boolean;
   /** Reserved - jacket rendering lands after v0.0.1. */
   jacket?: boolean;
-  /** Reserved - glint rendering lands after v0.0.1. */
+  /** Enables the enchanted (glint) overlay. */
   enchanted?: boolean;
 }
 
@@ -97,6 +97,44 @@ export interface BlinkOptions {
   reopenMs?: number;
 }
 
+/** Villager nose options. */
+export interface VillagerNoseOptions {
+  /**
+   * Texture of the flat villager nose. Defaults to the built-in
+   * self-drawn texture; `null` disables villager noses.
+   */
+  texture?: ETFTextureInput | null;
+}
+
+/** Enchanted (glint) overlay options. */
+export interface GlintOptions {
+  /**
+   * Glint pattern texture. Defaults to the built-in self-drawn
+   * texture; `null` renders no glint.
+   */
+  texture?: ETFTextureInput | null;
+  /**
+   * Diagonal scroll speed in UV units per second (default 0.1).
+   * `0` freezes the pattern; negative values reverse the direction.
+   */
+  speed?: number;
+  /**
+   * Additive brightness factor in 0..1 (default 1); values outside
+   * the range are clamped.
+   */
+  opacity?: number;
+  /**
+   * How many times the pattern tiles across the UVs (default 1).
+   * Values `<= 0` fall back to the default.
+   */
+  scale?: number;
+  /**
+   * Bilinear filtering for the pattern texture (default `true`, the
+   * smoothed in-game glint look); `false` keeps crisp pixels.
+   */
+  smooth?: boolean;
+}
+
 /** Options accepted by `attachETFSkinFeatures()`. */
 export interface ETFSkinFeaturesOptions {
   /** Per-feature switches; every feature defaults to enabled. */
@@ -118,13 +156,10 @@ export interface ETFSkinFeaturesOptions {
    * `controller.rebind()` to re-attach it.
    */
   manageTicker?: boolean;
-  /**
-   * Texture used by the flat villager nose. Defaults to the built-in
-   * self-drawn texture; `null` disables villager noses.
-   */
-  villagerNoseTexture?: ETFTextureInput | null;
-  /** Glint overlay texture; reserved for the glint renderer. */
-  glintTexture?: ETFTextureInput | null;
+  /** Villager nose options (the texture override). */
+  villagerNose?: VillagerNoseOptions;
+  /** Enchanted (glint) overlay options (texture and motion). */
+  glint?: GlintOptions;
   /**
    * Receives warning messages (unsupported skins, texture failures).
    * Falls back to `console.warn`, deduplicated once per message.
@@ -157,10 +192,18 @@ export interface ETFController {
   /** Switches features on or off at runtime. */
   setFeatures(features: SkinFeatureToggles): void;
   /**
-   * Replaces the villager nose texture at runtime; `null` disables
-   * villager noses.
+   * Merges villager nose options at runtime: `undefined` keeps the
+   * current texture, `null` disables villager noses and any other
+   * value replaces the texture.
    */
-  setVillagerNoseTexture(source: ETFTextureInput | null): void;
+  setVillagerNoseOptions(options: VillagerNoseOptions): void;
+  /**
+   * Merges glint options (texture and / or motion parameters) at
+   * runtime: `undefined` keeps the current value, `texture: null`
+   * disables the glint and any other value replaces it. Invalid
+   * numbers fall back to the documented defaults.
+   */
+  setGlintOptions(options: GlintOptions): void;
   /**
    * Merges blink options (eye state and/or timing) at runtime and
    * restarts the blink schedule.

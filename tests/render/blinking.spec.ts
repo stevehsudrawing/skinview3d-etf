@@ -1,11 +1,17 @@
 /**
  * Blinking core specs: option normalization, the seeded schedule, the
- * repaint rectangles and the fixed eye-state resolution.
+ * repaint rectangles, the pattern-glow bridge and the fixed eye-state
+ * resolution.
  */
 
 import { describe, expect, it } from "vitest";
 import { createImage } from "../../src/decode/core/pixels";
-import type { BlinkInfo, BlinkMode } from "../../src/decode/core/types";
+import type {
+  BlinkInfo,
+  BlinkMode,
+  PatternInfo,
+  PixelData,
+} from "../../src/decode/core/types";
 import {
   normalizeBlinkOptions,
   type NormalizedBlinkOptions,
@@ -16,6 +22,7 @@ import {
   blinkSeed,
   blinkStateFrame,
   createBlinkScheduler,
+  createPatternGlow,
   glowOverlaps,
 } from "../../src/render/features/blinking";
 
@@ -38,6 +45,19 @@ function makeInfo(
     eyeHeight,
     frames: Array.from({ length: frameCount }, () => createImage(64, 64)),
   };
+}
+
+/**
+ * Builds a synthetic pattern whose mask carries one glowing pixel.
+ *
+ * @param x - The pixel column (64x64 layout).
+ * @param y - The pixel row.
+ * @returns The fabricated pattern.
+ */
+function makePattern(x: number, y: number): PatternInfo {
+  const mask = createImage(64, 64);
+  mask.data[(y * 64 + x) * 4 + 3] = 255;
+  return { box: { x1: 0, y1: 0, x2: 0, y2: 0 }, keys: [], mask };
 }
 
 /**
@@ -157,6 +177,33 @@ describe("glowOverlaps", () => {
     const mask = createImage(64, 64);
     mask.data[(8 * 64 + 40) * 4 + 3] = 255;
     expect(glowOverlaps(mask, info)).toBe(true);
+  });
+});
+
+describe("createPatternGlow", () => {
+  it("returns null without a pattern or without overlap", () => {
+    const info = makeInfo(3, 1, 5);
+    expect(createPatternGlow(info, null, () => undefined)).toBeNull();
+    expect(
+      createPatternGlow(info, makePattern(0, 0), () => undefined),
+    ).toBeNull();
+  });
+
+  it("prepares the open mask, the frame masks and the repaint hook", () => {
+    const info = makeInfo(3, 1, 5);
+    const pattern = makePattern(10, 12);
+    const repaints: (PixelData | null)[] = [];
+    const glow = createPatternGlow(info, pattern, (mask) => {
+      repaints.push(mask);
+    });
+    expect(glow).not.toBeNull();
+    if (glow === null) {
+      return;
+    }
+    expect(glow.openMask).toBe(pattern.mask);
+    expect(glow.frameMasks).toEqual([null]);
+    glow.repaint(glow.openMask);
+    expect(repaints).toEqual([pattern.mask]);
   });
 });
 

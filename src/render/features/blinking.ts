@@ -1,7 +1,7 @@
 /**
  * Blinking feature: the blink schedule, the canvas rectangles a blink
  * touches and a rectangle-scoped painter for the host skin canvas and
- * the emissive glow.
+ * the overlay glow textures (the emissive glow and the glint mask).
  *
  * Frame semantics follow the official ETF skin guide: `frames[0]` is
  * the fully closed copy and `frames[1]` the half-closed copy (present
@@ -15,7 +15,13 @@ import {
   BLINK_FACE_RECT,
   BLINK_HAT_RECT,
 } from "../../decode/core/constants";
-import type { BlinkInfo, PixelData, Rect } from "../../decode/core/types";
+import { buildMask } from "../../decode/core/pixels";
+import type {
+  BlinkInfo,
+  PatternInfo,
+  PixelData,
+  Rect,
+} from "../../decode/core/types";
 import {
   paintCanvasPixels,
   paintCanvasRect,
@@ -195,6 +201,34 @@ export function glowOverlaps(mask: PixelData | null, info: BlinkInfo): boolean {
 }
 
 /**
+ * Builds the blink glow integration for a decoded pattern (emissive
+ * or enchanted): the open mask and the per-frame masks are prepared
+ * here, so a frame switch only repaints the caller's texture.
+ *
+ * @param info - The decoded blink data.
+ * @param pattern - The decoded pattern, or `null` when the feature
+ *   is off.
+ * @param repaint - Applies one mask (or `null` for nothing at all)
+ *   to the feature's texture.
+ * @returns The glow hooks, or `null` when the pattern is off or no
+ *   glowing pixel sits inside the blink rectangles.
+ */
+export function createPatternGlow(
+  info: BlinkInfo,
+  pattern: PatternInfo | null,
+  repaint: (mask: PixelData | null) => void,
+): BlinkGlow | null {
+  if (pattern === null || !glowOverlaps(pattern.mask, info)) {
+    return null;
+  }
+  return {
+    openMask: pattern.mask,
+    frameMasks: info.frames.map((frame) => buildMask(frame, pattern.keys)),
+    repaint,
+  };
+}
+
+/**
  * Resolves the frame a fixed eye state shows, applying the
  * availability fallbacks: half-closed needs a second frame (1-frame
  * modes fall back to closed), and every fixed state falls back to
@@ -280,32 +314,34 @@ export function createBlinkScheduler(
 }
 
 /**
- * Creates the rectangle-scoped blink painter: the canvas is snapshotted
- * before the first patch, only the affected rectangles are painted from
- * the frames and `restore()` puts everything back.
+ * Creates the rectangle-scoped blink painter: the canvas is
+ * snapshotted before the first patch, only the affected rectangles
+ * are painted from the frames and `restore()` puts everything back.
+ * Every glow integration follows the shown frame.
  *
  * @param canvas - The host skin canvas.
  * @param info - The decoded blink data.
- * @param glow - Glow-mask integration, or `null` when the emissive
- *   feature is inactive or nothing glows inside the blink rects.
+ * @param glows - The glow integrations (empty when no overlay
+ *   feature glows inside the blink rectangles).
  * @param markDirty - Marks the host skin maps for re-upload.
  * @returns The painter.
  */
 export function createBlinkPainter(
   canvas: HTMLCanvasElement,
   info: BlinkInfo,
-  glow: BlinkGlow | null,
+  glows: readonly BlinkGlow[],
   markDirty: () => void,
 ): BlinkPainter {
   const rects = blinkRects(info);
   let snapshot: PixelData | null = null;
   let visible = -1;
 
-  const paintGlow = (frame: number): void => {
-    if (glow === null) {
-      return;
+  const paintGlows = (frame: number): void => {
+    for (const glow of glows) {
+      glow.repaint(
+        frame < 0 ? glow.openMask : (glow.frameMasks[frame] ?? null),
+      );
     }
-    glow.repaint(frame < 0 ? glow.openMask : (glow.frameMasks[frame] ?? null));
   };
 
   const restore = (): void => {
@@ -316,7 +352,7 @@ export function createBlinkPainter(
     snapshot = null;
     visible = -1;
     markDirty();
-    paintGlow(-1);
+    paintGlows(-1);
   };
 
   const show = (frame: number): void => {
@@ -335,7 +371,7 @@ export function createBlinkPainter(
     }
     visible = frame;
     markDirty();
-    paintGlow(frame);
+    paintGlows(frame);
   };
 
   return { show, restore };

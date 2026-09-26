@@ -10,6 +10,7 @@ import type {
   BlinkState,
   ETFSkinFeaturesOptions,
   ETFTextureInput,
+  GlintOptions,
   SkinFeatureToggles,
 } from "./types";
 
@@ -55,6 +56,48 @@ export interface NormalizedBlinkOptions {
   reopenMs: number;
 }
 
+/** Default glint scroll speed in UV units per second. */
+const DEFAULT_GLINT_SPEED = 0.1;
+
+/** Default glint additive brightness factor. */
+const DEFAULT_GLINT_OPACITY = 1;
+
+/** Default glint tiling across the UVs. */
+const DEFAULT_GLINT_SCALE = 1;
+
+/** Default glint smoothing: bilinear pattern filtering on. */
+const DEFAULT_GLINT_SMOOTH = true;
+
+/**
+ * The documented glint defaults, exported for consumers that quote
+ * or reset them. The resolver derives the same numbers when options
+ * are omitted; the option specs assert both stay in sync.
+ */
+export const DEFAULT_GLINT_OPTIONS = {
+  /** Diagonal scroll speed, in UV units per second. */
+  speed: DEFAULT_GLINT_SPEED,
+  /** Additive brightness factor in 0..1. */
+  opacity: DEFAULT_GLINT_OPACITY,
+  /** Pattern tiling across the UVs. */
+  scale: DEFAULT_GLINT_SCALE,
+  /** Bilinear pattern filtering (the in-game look). */
+  smooth: DEFAULT_GLINT_SMOOTH,
+} as const;
+
+/** Fully resolved glint settings. */
+export interface NormalizedGlintOptions {
+  /** Texture override: `undefined` = built-in, `null` = off. */
+  texture: ETFTextureInput | null | undefined;
+  /** Diagonal scroll speed in UV units per second. */
+  speed: number;
+  /** Additive brightness factor in 0..1. */
+  opacity: number;
+  /** Pattern tiling across the UVs. */
+  scale: number;
+  /** Bilinear pattern filtering. */
+  smooth: boolean;
+}
+
 /** Internal, fully normalized options. */
 export interface NormalizedOptions {
   /** Every feature switch with defaults applied. */
@@ -65,10 +108,10 @@ export interface NormalizedOptions {
   bloom: boolean;
   /** Whether the controller drives `update(dt)` from the viewer. */
   manageTicker: boolean;
-  /** Villager nose override: `undefined` = built-in, `null` = off. */
-  villagerNoseTexture: ETFTextureInput | null | undefined;
-  /** Glint texture; reserved for the glint renderer. */
-  glintTexture: ETFTextureInput | null | undefined;
+  /** Villager nose options: texture override only. */
+  villagerNose: { texture: ETFTextureInput | null | undefined };
+  /** Glint options: texture override and motion parameters. */
+  glint: NormalizedGlintOptions;
   /** Warning sink, or `null` for `console.warn`. */
   onWarning: ((message: string) => void) | null;
 }
@@ -151,6 +194,38 @@ export function normalizeBlinkOptions(
 }
 
 /**
+ * Resolves the public glint options into fully normalized settings:
+ * defaults applied, non-finite numbers replaced and `opacity`
+ * clamped to 0..1.
+ *
+ * @param options - The user options, if any.
+ * @returns The resolved settings.
+ */
+export function normalizeGlintOptions(
+  options?: GlintOptions,
+): NormalizedGlintOptions {
+  const speed =
+    typeof options?.speed === "number" && Number.isFinite(options.speed)
+      ? options.speed
+      : DEFAULT_GLINT_SPEED;
+  const opacity =
+    typeof options?.opacity === "number" && Number.isFinite(options.opacity)
+      ? Math.min(1, Math.max(0, options.opacity))
+      : DEFAULT_GLINT_OPACITY;
+  const scale =
+    typeof options?.scale === "number" &&
+    Number.isFinite(options.scale) &&
+    options.scale > 0
+      ? options.scale
+      : DEFAULT_GLINT_SCALE;
+  const smooth =
+    typeof options?.smooth === "boolean"
+      ? options.smooth
+      : DEFAULT_GLINT_SMOOTH;
+  return { texture: options?.texture, speed, opacity, scale, smooth };
+}
+
+/**
  * Applies defaults to the user options.
  *
  * @param options - The user options, if any.
@@ -172,8 +247,8 @@ export function normalizeOptions(
     blink: normalizeBlinkOptions(options.blink),
     bloom: options.bloom ?? false,
     manageTicker: options.manageTicker ?? true,
-    villagerNoseTexture: options.villagerNoseTexture,
-    glintTexture: options.glintTexture,
+    villagerNose: { texture: options.villagerNose?.texture },
+    glint: normalizeGlintOptions(options.glint),
     onWarning: options.onWarning ?? null,
   };
 }
