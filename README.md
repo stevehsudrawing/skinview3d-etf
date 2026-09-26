@@ -35,11 +35,13 @@ regions are reused as textured-nose sources.
 ## 1. Status
 
 Early development. The decoder (`decodeSkin()`) is complete and
-unit-tested against the ETF example skins. The renderer ships
-transparency, the nose (villager and textured), the emissive
-(glowing) pixels, blinking eyes and the enchanted (glint) overlay on
-a live viewer; jacket rendering is not implemented yet. Published on
-npm as `skinview3d-etf`; a live demo deploys from `main` (§4).
+unit-tested against the
+[ETF example skins](https://github.com/Traben-0/Entity_Texture_Features/tree/ETF-Main/.github/README-assets/mod-skins).
+The renderer ships transparency, the nose (villager and textured),
+the emissive (glowing) pixels, blinking eyes and the enchanted
+(glint) overlay on a live viewer; jacket rendering is not
+implemented yet. Published on npm as `skinview3d-etf`; a live demo
+deploys from `main` (§4).
 
 ## 2. Usage
 
@@ -182,9 +184,9 @@ v0.0.2 (current milestone):
 
 - [x] render the enchanted (glint) overlay with the reworked
       texture options (`smooth`, the texture-slot state machine);
-- [ ] rebuild the demo control tree and rewrite the README (in
+- [x] rebuild the demo control tree and rewrite the README (in
       progress);
-- [ ] sync the documentation pages and prepare the release record;
+- [x] sync the documentation pages and prepare the release record;
 - [ ] v0.0.2 release.
 
 History:
