@@ -184,10 +184,9 @@ v0.0.2 (current milestone):
 
 - [x] render the enchanted (glint) overlay with the reworked
       texture options (`smooth`, the texture-slot state machine);
-- [x] rebuild the demo control tree and rewrite the README (in
-      progress);
+- [x] rebuild the demo control tree and rewrite the README;
 - [x] sync the documentation pages and prepare the release record;
-- [ ] v0.0.2 release.
+- [x] v0.0.2 release.
 
 History:
 

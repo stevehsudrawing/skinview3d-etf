@@ -1,6 +1,6 @@
 {
   "name": "skinview3d-etf",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Unofficial skinview3d extension that renders ETF (Entity Texture Features) player skin features on the 3D player model.",
   "type": "module",
   "license": "MIT",
