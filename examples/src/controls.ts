@@ -2,8 +2,9 @@
  * Reusable control-table builders for the demo: API-path rows (the
  * label is the path's last segment, the depth indents it), the
  * per-package tables with hierarchical row ids, the row action
- * buttons aligned in one column, the `execute` buttons and the
- * per-row availability helpers.
+ * buttons aligned in one column, the `execute` buttons, the locked
+ * parameters, the number inputs and the per-row availability
+ * helpers.
  */
 
 /**
@@ -156,6 +157,43 @@ export function lockedInput(value: string, reason: string): HTMLInputElement {
   input.className = "locked";
   input.value = value;
   input.title = reason;
+  return input;
+}
+
+/**
+ * Builds one number input for a control row (blink timings, glint
+ * values, the blockbench playback speed).
+ *
+ * @param value - The initial value.
+ * @param step - The spinner step.
+ * @param apply - Receives every valid value (change events only).
+ * @param min - The `min` attribute, when the value has a floor.
+ * @param max - The `max` attribute, when the value has a ceiling.
+ * @returns The input element.
+ */
+export function numberInput(
+  value: number,
+  step: number,
+  apply: (value: number) => void,
+  min: number | null = null,
+  max: number | null = null,
+): HTMLInputElement {
+  const input = document.createElement("input");
+  input.type = "number";
+  if (min !== null) {
+    input.min = String(min);
+  }
+  if (max !== null) {
+    input.max = String(max);
+  }
+  input.step = String(step);
+  input.value = String(value);
+  input.addEventListener("change", () => {
+    const parsed = Number.parseFloat(input.value);
+    if (Number.isFinite(parsed)) {
+      apply(parsed);
+    }
+  });
   return input;
 }
 

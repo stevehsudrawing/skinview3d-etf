@@ -7,8 +7,8 @@
 import {
   MARKER_CELLS,
   MARKER_SIGNATURE,
-  PALETTE,
   paletteColor,
+  SKIN_SIZE,
   SLOTS,
 } from "../../src/decode/core/constants";
 import { createImage, fillRect, setPixel } from "../../src/decode/core/pixels";
@@ -28,7 +28,7 @@ export type SlotName = keyof typeof SLOTS;
  * @returns A blank skin buffer.
  */
 export function createBlankSkin(): PixelData {
-  return createImage(64, 64);
+  return createImage(SKIN_SIZE, SKIN_SIZE);
 }
 
 /**
@@ -115,18 +115,4 @@ export function createMarkedSkin(): PixelData {
   const skin = createBlankSkin();
   paintMarker(skin);
   return skin;
-}
-
-/**
- * Looks up a palette entry's RGBA for the specs.
- *
- * @param id - The palette id.
- * @returns The exact RGBA of the entry.
- */
-export function colorOf(id: PaletteId): RGBA {
-  const entry = PALETTE.find((candidate) => candidate.id === id);
-  if (entry === undefined) {
-    throw new Error(`unknown palette id ${id}`);
-  }
-  return entry.rgba;
 }

@@ -73,6 +73,8 @@ import {
   createGlintMaterial,
   createGlintTexture,
   setGlintPhase,
+  setGlintTuning,
+  updateGlintTexture,
 } from "./features/glint";
 import {
   createTexturedNoseMesh,
@@ -98,10 +100,10 @@ interface SkinTargets {
  * Attaches the ETF skin features to a live skinview3d viewer.
  *
  * Decodes the viewer's current skin immediately and renders the
- * supported features (transparency, the nose, the emissive pixels
- * and blinking eyes). Call `controller.refresh()` after every
- * `viewer.loadSkin()`; call `controller.detach()` to restore the
- * viewer exactly as it was.
+ * supported features (transparency, the nose, the emissive pixels,
+ * blinking eyes and the enchanted glint). Call
+ * `controller.refresh()` after every `viewer.loadSkin()`; call
+ * `controller.detach()` to restore the viewer exactly as it was.
  *
  * @param viewer - The skinview3d viewer to extend.
  * @param options - Feature switches and texture overrides.
@@ -208,7 +210,12 @@ export function attachETFSkinFeatures(
     }
   }
 
-  /** Removes and disposes the glint overlays, material and textures. */
+  /**
+   * Removes and disposes the glint overlays, material and textures;
+   * the full-dispose route for the feature-off, `unapply()` and
+   * `detach()` paths - a plain re-apply updates the assets in place
+   * instead.
+   */
   function clearGlint(): void {
     disposeOverlays(glintMeshes);
     glintMeshes = [];
@@ -421,14 +428,15 @@ export function attachETFSkinFeatures(
 
   /**
    * (Re)builds the glint overlays for the current decode: the mask
-   * and pattern textures and the shared material are created per
-   * build, and the overlay meshes (render order 1, on top of the
-   * emissive glow) go through the shared builder. The pattern
-   * texture resolves asynchronously through the slot; the build
-   * waits for it.
+   * texture, the pattern texture and the shared material are created
+   * once and updated in place afterwards, and the overlay meshes
+   * (render order 1, on top of the emissive glow) go through the
+   * shared builder. The pattern texture resolves asynchronously
+   * through the slot; the build waits for it.
    */
   function rebuildGlint(): void {
-    clearGlint();
+    disposeOverlays(glintMeshes);
+    glintMeshes = [];
     const pattern = decoded?.enchanted ?? null;
     if (detached || !settings.features.enchanted || pattern === null) {
       return;
@@ -446,18 +454,38 @@ export function attachETFSkinFeatures(
       );
       return;
     }
-    glintMaskTexture = createMaskTexture(pattern.mask);
-    glintPatternTexture = createGlintTexture(
-      glintSlot.canvas,
-      settings.glint.smooth,
-    );
-    glintMaterial = createGlintMaterial(
-      glintMaskTexture,
-      glintPatternTexture,
-      settings.glint.scale,
-      settings.glint.opacity,
-      glintPhase,
-    );
+    if (glintMaskTexture === null) {
+      glintMaskTexture = createMaskTexture(pattern.mask);
+    } else {
+      repaintMaskTexture(glintMaskTexture, pattern.mask);
+    }
+    if (glintPatternTexture === null) {
+      glintPatternTexture = createGlintTexture(
+        glintSlot.canvas,
+        settings.glint.smooth,
+      );
+    } else {
+      updateGlintTexture(
+        glintPatternTexture,
+        glintSlot.canvas,
+        settings.glint.smooth,
+      );
+    }
+    if (glintMaterial === null) {
+      glintMaterial = createGlintMaterial(
+        glintMaskTexture,
+        glintPatternTexture,
+        settings.glint.scale,
+        settings.glint.opacity,
+        glintPhase,
+      );
+    } else {
+      setGlintTuning(
+        glintMaterial,
+        settings.glint.scale,
+        settings.glint.opacity,
+      );
+    }
     glintMeshes = createPartOverlays(
       viewer.playerObject.skin,
       glintMaterial,

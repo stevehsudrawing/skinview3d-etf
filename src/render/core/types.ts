@@ -50,7 +50,7 @@ export interface SkinFeatureToggles {
   blink?: boolean;
   /** Enables the villager and textured nose. */
   nose?: boolean;
-  /** Reserved - jacket rendering lands after v0.0.1. */
+  /** Deferred - accepted and ignored until the jacket renderer lands. */
   jacket?: boolean;
   /** Enables the enchanted (glint) overlay. */
   enchanted?: boolean;

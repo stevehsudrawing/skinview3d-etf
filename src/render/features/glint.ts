@@ -103,6 +103,34 @@ export function createGlintTexture(
 }
 
 /**
+ * Updates a repeating pattern texture in place: swaps in a new source
+ * canvas and / or refreshes the filtering pair. Both changes need
+ * `needsUpdate` because three applies the sampler parameters when
+ * the texture uploads; an unchanged call leaves the texture
+ * untouched.
+ *
+ * @param texture - A texture created by {@link createGlintTexture}.
+ * @param canvas - The resolved pattern canvas (the new source).
+ * @param smooth - Bilinear filtering when `true`, nearest otherwise.
+ */
+export function updateGlintTexture(
+  texture: CanvasTexture,
+  canvas: HTMLCanvasElement,
+  smooth: boolean,
+): void {
+  if (texture.image !== canvas) {
+    texture.image = canvas;
+    texture.needsUpdate = true;
+  }
+  const filter = smooth ? LinearFilter : NearestFilter;
+  if (texture.magFilter !== filter) {
+    texture.magFilter = filter;
+    texture.minFilter = filter;
+    texture.needsUpdate = true;
+  }
+}
+
+/**
  * Creates the shared glint material: the decoded mask x the scrolling
  * pattern, additively blended.
  *
@@ -147,4 +175,22 @@ export function createGlintMaterial(
  */
 export function setGlintPhase(material: ShaderMaterial, phase: number): void {
   (material.uniforms.uOffset.value as Vector2).set(phase, phase);
+}
+
+/**
+ * Updates the live tuning uniforms (tiling scale and additive
+ * brightness) in place; the scroll offset stays with
+ * {@link setGlintPhase}.
+ *
+ * @param material - A material created by {@link createGlintMaterial}.
+ * @param scale - The pattern tiling across the UVs.
+ * @param opacity - The additive brightness factor, 0..1.
+ */
+export function setGlintTuning(
+  material: ShaderMaterial,
+  scale: number,
+  opacity: number,
+): void {
+  material.uniforms.uScale.value = scale;
+  material.uniforms.uOpacity.value = opacity;
 }

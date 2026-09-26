@@ -15,6 +15,7 @@ import {
   controlTable,
   executeButton,
   lockedInput,
+  numberInput,
   optionRow,
 } from "./controls";
 import { createAnimationUploadControl } from "./upload";
@@ -70,21 +71,20 @@ export function createBlockbenchGroup(
     }
   });
 
-  const speedInput = document.createElement("input");
-  speedInput.type = "number";
-  speedInput.min = "0";
-  speedInput.step = "0.25";
-  speedInput.value = "1";
-  speedInput.addEventListener("change", () => {
-    const parsed = Number.parseFloat(speedInput.value);
-    if (!Number.isFinite(parsed) || parsed < 0) {
-      return;
-    }
-    const provider = currentProvider();
-    if (provider !== null) {
-      provider.speed = parsed;
-    }
-  });
+  const speedInput = numberInput(
+    1,
+    0.25,
+    (value) => {
+      if (value < 0) {
+        return;
+      }
+      const provider = currentProvider();
+      if (provider !== null) {
+        provider.speed = value;
+      }
+    },
+    0,
+  );
 
   /** The bundled provider, built lazily on first use. */
   let blockbench: SkinViewBlockbench | null = null;

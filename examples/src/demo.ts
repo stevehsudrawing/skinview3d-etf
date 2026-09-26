@@ -45,6 +45,7 @@ import {
   controlTable,
   executeButton,
   lockedInput,
+  numberInput,
   optionRow,
   setRowDisabled,
   setRowInapplicable,
@@ -83,7 +84,7 @@ const ANIMATIONS: ReadonlyArray<{
   { id: "fly", create: () => new FlyingAnimation() },
 ];
 
-/** Model picker entries: the label shown and the `loadSkin()` value. */
+/** Model picker entries: the raw `loadSkin()` model values. */
 const MODEL_OPTIONS: ReadonlyArray<{
   /** Value passed to `loadSkin()`. */
   model: NonNullable<SkinLoadOptions["model"]>;
@@ -294,42 +295,6 @@ export function initDemo(container: HTMLElement): DemoHandle {
       return;
     }
     controller?.setBlinkOptions({ periodMs: min === max ? min : [min, max] });
-  }
-
-  /**
-   * Builds one number input (blink timings, glint values).
-   *
-   * @param value - The initial value.
-   * @param step - The spinner step.
-   * @param apply - Receives every valid value (change events only).
-   * @param min - The `min` attribute, when the value has a floor.
-   * @param max - The `max` attribute, when the value has a ceiling.
-   * @returns The input element.
-   */
-  function numberInput(
-    value: number,
-    step: number,
-    apply: (value: number) => void,
-    min: number | null = null,
-    max: number | null = null,
-  ): HTMLInputElement {
-    const input = document.createElement("input");
-    input.type = "number";
-    if (min !== null) {
-      input.min = String(min);
-    }
-    if (max !== null) {
-      input.max = String(max);
-    }
-    input.step = String(step);
-    input.value = String(value);
-    input.addEventListener("change", () => {
-      const parsed = Number.parseFloat(input.value);
-      if (Number.isFinite(parsed)) {
-        apply(parsed);
-      }
-    });
-    return input;
   }
 
   const periodMin = numberInput(

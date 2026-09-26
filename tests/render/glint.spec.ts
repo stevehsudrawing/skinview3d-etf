@@ -3,12 +3,21 @@
  * material wiring.
  */
 
-import { AdditiveBlending, DoubleSide, Texture } from "three";
+import {
+  AdditiveBlending,
+  DoubleSide,
+  LinearFilter,
+  NearestFilter,
+  Texture,
+} from "three";
 import { describe, expect, it } from "vitest";
 import {
   advanceGlintPhase,
   createGlintMaterial,
+  createGlintTexture,
   setGlintPhase,
+  setGlintTuning,
+  updateGlintTexture,
 } from "../../src/render/features/glint";
 
 describe("advanceGlintPhase", () => {
@@ -82,5 +91,49 @@ describe("createGlintMaterial", () => {
     expect(material.polygonOffset).toBe(true);
     expect(material.polygonOffsetFactor).toBe(-1);
     expect(material.polygonOffsetUnits).toBe(-1);
+  });
+});
+
+describe("updateGlintTexture", () => {
+  const canvasA = {} as HTMLCanvasElement;
+  const canvasB = {} as HTMLCanvasElement;
+
+  it("swaps the source canvas and re-uploads once", () => {
+    const texture = createGlintTexture(canvasA, true);
+    const version = texture.version;
+    updateGlintTexture(texture, canvasB, true);
+    expect(texture.image).toBe(canvasB);
+    expect(texture.version).toBe(version + 1);
+  });
+
+  it("leaves an unchanged texture untouched", () => {
+    const texture = createGlintTexture(canvasA, true);
+    const version = texture.version;
+    updateGlintTexture(texture, canvasA, true);
+    expect(texture.version).toBe(version);
+  });
+
+  it("refreshes the filter pair with the smooth flag", () => {
+    const texture = createGlintTexture(canvasA, true);
+    expect(texture.magFilter).toBe(LinearFilter);
+    const version = texture.version;
+    updateGlintTexture(texture, canvasA, false);
+    expect(texture.magFilter).toBe(NearestFilter);
+    expect(texture.minFilter).toBe(NearestFilter);
+    expect(texture.version).toBe(version + 1);
+  });
+});
+
+describe("setGlintTuning", () => {
+  const mask = new Texture();
+  const glint = new Texture();
+
+  it("updates scale and opacity in place", () => {
+    const material = createGlintMaterial(mask, glint, 1, 1, 0.5);
+    setGlintTuning(material, 2, 0.25);
+    expect(material.uniforms.uScale.value).toBe(2);
+    expect(material.uniforms.uOpacity.value).toBe(0.25);
+    const offset = material.uniforms.uOffset.value as { x: number; y: number };
+    expect(offset.x).toBe(0.5);
   });
 });

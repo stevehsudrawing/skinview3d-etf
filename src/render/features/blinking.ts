@@ -177,10 +177,10 @@ export function blinkRects(info: BlinkInfo): Rect[] {
 }
 
 /**
- * Whether an emissive mask has any glowing pixel inside the
- * rectangles a blink repaints.
+ * Whether a pattern mask (the emissive glow or the glint mask) has
+ * any glowing pixel inside the rectangles a blink repaints.
  *
- * @param mask - The emissive mask, or `null` when nothing glows.
+ * @param mask - The pattern mask, or `null` when nothing glows.
  * @param info - The decoded blink data.
  * @returns `true` when the glow content has to follow the blink.
  */
