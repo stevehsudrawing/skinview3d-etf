@@ -13,17 +13,12 @@ dist/
 # Vite: Lock files (choose one)
 pnpm-lock.yaml
 
-# Local-only files
-docs/
+# Local-only working trees
+local/
 .github/copilot-instructions.md
 .github/instructions/
-tools/
-temp/
 **/*.psd
 
 # Demo fixtures: only the self-drawn example.png is committed
 examples/src/assets/skins/*
 !examples/src/assets/skins/example.png
-
-# Upstream references: local clones, dev-only
-references/

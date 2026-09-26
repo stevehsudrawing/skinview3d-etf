@@ -8,14 +8,11 @@ dist/
 
 # Vendor / dev-only content
 node_modules/
-references/
 
-# Local-only dev tools and scratch space (never committed)
-tools/
-temp/
+# Local-only working trees
+local/
 
 # Manual-conventions documentation
-docs/
 .github/
 
 # Generated
