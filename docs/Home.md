@@ -24,8 +24,8 @@ endorsed by the ETF or skinview3d projects.
 The decoder (`decodeSkin()`) reads every ETF player skin feature -
 the jacket and enchanted data included - and is complete and
 unit-tested; the renderer covers everything except the jacket. See
-[Options](Options) for every knob and [Getting Started](Getting-Started)
-for the integration guide.
+[Options](Options.md) for every knob and
+[Getting Started](Getting-Started.md) for the integration guide.
 
 ## 2. Install and quick start
 
@@ -58,11 +58,11 @@ controller.detach();
 
 ## 3. Documentation
 
-- [Getting Started](Getting-Started) - install, attach, lifecycle
+- [Getting Started](Getting-Started.md) - install, attach, lifecycle
   and the standalone decoder;
-- [Options](Options) - the option groups, defaults, runtime setters
+- [Options](Options.md) - the option groups, defaults, runtime setters
   and the v0.0.1 migration;
-- [FAQ](FAQ) - common questions and answers.
+- [FAQ](FAQ.md) - common questions and answers.
 
 ## 4. Project links
 

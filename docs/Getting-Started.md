@@ -30,9 +30,9 @@ const controller = attachETFSkinFeatures(viewer, {
 });
 ```
 
-Every feature defaults to enabled; [Options](Options) documents the
-option groups (`features`, `blink`, `glint`, `villagerNose`) and the
-exported defaults. The controller never rebuilds the scene graph and
+Every feature defaults to enabled; [Options](Options.md) documents
+the option groups (`features`, `blink`, `glint`, `villagerNose`) and
+the exported defaults. The controller never rebuilds the scene graph and
 never seizes the viewer's animation slot: it adds artifacts under
 the existing meshes and cleans all of them up on `detach()`.
 

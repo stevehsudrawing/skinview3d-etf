@@ -1,6 +1,6 @@
 **skinview3d-etf**
 
-- [Home](Home)
-- [Getting Started](Getting-Started)
-- [Options](Options)
-- [FAQ](FAQ)
+- [Home](Home.md)
+- [Getting Started](Getting-Started.md)
+- [Options](Options.md)
+- [FAQ](FAQ.md)

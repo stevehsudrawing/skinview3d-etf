@@ -50,11 +50,11 @@ The documented defaults are exported as `DEFAULT_GLINT_OPTIONS`.
 
 ### 1.5 Other
 
-| Key            | Default        | Effect                                                                                                   |
-| -------------- | -------------- | -------------------------------------------------------------------------------------------------------- |
-| `bloom`        | `false`        | reserved - accepted and ignored;                                                                         |
-| `manageTicker` | `true`         | the controller drives `update(dt)` from the animation slot; see [Getting Started](Getting-Started) §3.3; |
-| `onWarning`    | `console.warn` | warning sink, deduplicated once per message.                                                             |
+| Key            | Default        | Effect                                                                                                      |
+| -------------- | -------------- | ----------------------------------------------------------------------------------------------------------- |
+| `bloom`        | `false`        | reserved - accepted and ignored;                                                                            |
+| `manageTicker` | `true`         | the controller drives `update(dt)` from the animation slot; see [Getting Started](Getting-Started.md) §3.3; |
+| `onWarning`    | `console.warn` | warning sink, deduplicated once per message.                                                                |
 
 ## 2. Runtime setters
 
