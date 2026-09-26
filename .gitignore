@@ -10,9 +10,6 @@
 node_modules/
 dist/
 
-# Vite: Lock files (choose one)
-pnpm-lock.yaml
-
 # Local-only working trees
 local/
 .github/copilot-instructions.md

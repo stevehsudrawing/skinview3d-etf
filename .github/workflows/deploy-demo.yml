@@ -1,7 +1,7 @@
 # Builds the Vite demo in `examples/` and deploys it to GitHub Pages
-# (`https://stevehsudrawing.github.io/skinview3d-etf/`). The lockfile
-# is gitignored, so the install runs without a frozen lockfile; the
-# `prepare` hook stays quiet through HUSKY=0.
+# (`https://stevehsudrawing.github.io/skinview3d-etf/`). The committed
+# lockfile pins the dependency set (pnpm installs in frozen mode on
+# CI); the `prepare` hook stays quiet through HUSKY=0.
 name: Deploy demo
 
 on:
@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install
         env:
           HUSKY: "0"
       - name: Build the demo
