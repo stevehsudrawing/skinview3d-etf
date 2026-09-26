@@ -192,16 +192,18 @@ export interface ETFController {
   /** Switches features on or off at runtime. */
   setFeatures(features: SkinFeatureToggles): void;
   /**
-   * Merges villager nose options at runtime: `undefined` keeps the
-   * current texture, `null` disables villager noses and any other
+   * Merges villager nose options at runtime: an omitted `texture`
+   * keeps the current one, `texture: undefined` restores the
+   * built-in default, `null` disables villager noses and any other
    * value replaces the texture.
    */
   setVillagerNoseOptions(options: VillagerNoseOptions): void;
   /**
    * Merges glint options (texture and / or motion parameters) at
-   * runtime: `undefined` keeps the current value, `texture: null`
-   * disables the glint and any other value replaces it. Invalid
-   * numbers fall back to the documented defaults.
+   * runtime: omitted properties keep their current values except
+   * `texture` - `texture: undefined` restores the built-in default
+   * and `texture: null` disables the glint. Invalid numbers fall
+   * back to the documented defaults.
    */
   setGlintOptions(options: GlintOptions): void;
   /**

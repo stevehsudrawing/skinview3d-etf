@@ -649,8 +649,9 @@ export function attachETFSkinFeatures(
   }
 
   /**
-   * Merges villager nose options at runtime; `undefined` keeps the
-   * current texture, `null` disables villager noses and any other
+   * Merges villager nose options at runtime; an omitted `texture`
+   * keeps the current one, `texture: undefined` restores the
+   * built-in default, `null` disables villager noses and any other
    * value replaces the texture (resetting pending or resolved
    * loads).
    *
@@ -660,7 +661,7 @@ export function attachETFSkinFeatures(
     if (detached) {
       return;
     }
-    if (options.texture !== undefined) {
+    if ("texture" in options) {
       settings.villagerNose.texture = options.texture;
       villagerSlot.reset();
     }
@@ -669,10 +670,11 @@ export function attachETFSkinFeatures(
 
   /**
    * Merges glint options (texture and / or motion parameters) at
-   * runtime; `undefined` keeps the current value, `texture: null`
-   * disables the glint and any other value replaces it. The merged
-   * values go through the full normalization, so invalid numbers
-   * fall back to the documented defaults.
+   * runtime; an omitted property keeps its current value except
+   * `texture`: an omitted `texture` keeps it, `texture: undefined`
+   * restores the built-in default and `texture: null` disables the
+   * glint. The merged values go through the full normalization, so
+   * invalid numbers fall back to the documented defaults.
    *
    * @param options - The partial glint options to apply.
    */
@@ -680,16 +682,15 @@ export function attachETFSkinFeatures(
     if (detached) {
       return;
     }
+    const hasTexture = "texture" in options;
     settings.glint = normalizeGlintOptions({
-      texture:
-        options.texture !== undefined
-          ? options.texture
-          : settings.glint.texture,
+      texture: hasTexture ? options.texture : settings.glint.texture,
       speed: options.speed ?? settings.glint.speed,
       opacity: options.opacity ?? settings.glint.opacity,
       scale: options.scale ?? settings.glint.scale,
+      smooth: options.smooth ?? settings.glint.smooth,
     });
-    if (options.texture !== undefined) {
+    if (hasTexture) {
       glintSlot.reset();
     }
     apply();

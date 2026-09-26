@@ -15,6 +15,7 @@ player skin features on the 3D player model:
 - emissive (glowing) pixels;
 - blinking eyes;
 - nose (villager and textured);
+- enchanted (glint) overlay;
 - jacket/dress extension.
 
 The v0.0.1 decoder is complete and available now: `decodeSkin()` reads
@@ -23,9 +24,9 @@ palette and the seven choice slots, transparency and forced-solid,
 blinking, nose, jacket (styles 1-8) and the emissive/enchanted pattern
 data - and prepares the overlay images the renderer consumes. The
 renderer ships transparency, the nose (villager and textured), the
-emissive (glowing) pixels and blinking eyes through
-`attachETFSkinFeatures()` on a live viewer; jacket and glint
-rendering are planned after v0.0.1.
+emissive (glowing) pixels, blinking eyes and the enchanted (glint)
+overlay through `attachETFSkinFeatures()` on a live viewer; jacket
+rendering is not implemented yet.
 
 The in-skin cape no longer exists upstream (all code paths are
 commented out), so it is out of scope; the five former cape texture
@@ -36,9 +37,9 @@ regions are reused as textured-nose sources.
 Early development. The decoder (`decodeSkin()`) is complete and
 unit-tested against the ETF example skins. The renderer ships
 transparency, the nose (villager and textured), the emissive
-(glowing) pixels and blinking eyes on a live viewer; jacket and glint
-rendering are planned after v0.0.1. Published on npm as
-`skinview3d-etf`; a live demo deploys from `main` (§4).
+(glowing) pixels, blinking eyes and the enchanted (glint) overlay on
+a live viewer; jacket rendering is not implemented yet. Published on
+npm as `skinview3d-etf`; a live demo deploys from `main` (§4).
 
 ## 2. Usage
 
@@ -81,6 +82,16 @@ call `controller.update(dt)` yourself in a custom render loop, and use
 state or change the timing at runtime. The documented defaults are
 exported as `DEFAULT_BLINK_OPTIONS`.
 
+The options form four groups: `features` (the five toggles -
+including `enchanted`), `blink`, `glint` (`texture`, `speed`,
+`opacity`, `scale`, `smooth`) and `villagerNose` (`texture`).
+`DEFAULT_GLINT_OPTIONS` exports the glint defaults, and the runtime
+setters (`setFeatures()`, `setBlinkOptions()`, `setGlintOptions()`,
+`setVillagerNoseOptions()`) merge partial updates: an omitted
+property keeps its current value, while for the two texture options
+an explicit `texture: undefined` restores the built-in default and
+`null` turns the feature off.
+
 The extension never rebuilds the scene graph and never seizes the
 viewer's animation slot; it adds artifacts under the existing meshes
 and cleans all of them up on `detach()`.
@@ -95,6 +106,16 @@ import { decodeSkin } from "skinview3d-etf";
 const result = decodeSkin(imageData);
 // result.skin, result.emissive?.mask, result.blink?.frames, ...
 ```
+
+Note the migration from v0.0.1 (breaking, expected before 1.0): the
+flat `villagerNoseTexture` option moved to `villagerNose.texture`,
+and the reserved `glintTexture` option is now `glint.texture` (the
+`glint` group adds `speed`, `opacity`, `scale` and `smooth`).
+
+**Browser support:** the build targets ES2022 and the runtime expects
+WebGL 2 (matching the `three` release's own browser target) - the
+current versions of Chrome, Edge, Opera, Firefox and Safari all
+qualify.
 
 ## 3. Building
 
@@ -124,41 +145,51 @@ pnpm dev    # serves the demo (default http://localhost:5173/)
 A live build is deployed from `main` to the
 [demo page](https://stevehsudrawing.github.io/skinview3d-etf/).
 
-The page attaches the extension to a live `skinview3d` viewer, offers
-the bundled sample skin (`examples/src/assets/skins/example.png`) and
-accepts a PNG upload of your own skin: 64x64, or a legacy 64x32 skin
-that is converted automatically (rejected files raise a browser
-alert). The 3D tab carries the feature toggles, built-in action
-presets, a model picker (auto / Steve / Alex), a solid background
-color and the light sliders; the tables group by owning package and
-a `skinview3d-blockbench:` group picks its input file (`animation`,
-the bundled self-made copy or a transient `[upload]` entry) and
-plays any of its animations (`animationName`) next to the ETF
-features, with the provider's `paused` / `speed` / `setAnimation`
-controls. Every
-control row is labeled with its API keyword and shows the option's
-description as a hover tooltip, the blink rows follow the feature
-switch (disabling `blink` disables the eye-state picker, and a fixed
-state disables the timing inputs), and a `reset` button in the
-stage's corner restores the camera pose. The footer links back to
-the source repository. Uploaded files are
-processed in the browser only and are never sent anywhere. The
-decoder preview tab draws every prepared `decodeSkin()` artifact next
-to the 3D view. The demo is not part of the npm package.
+- The page mounts a live `skinview3d` viewer in a square stage.
+- The fixture bar offers the bundled sample skin
+  (`examples/src/assets/skins/example.png`) and accepts a PNG upload
+  of your own skin: 64x64, or a legacy 64x32 skin that is converted
+  automatically (rejected files raise a browser alert).
+- The 3D tab shows three control trees grouped by owning package
+  (the extension, the blockbench provider, the host viewer): every
+  row carries one exact API keyword at its API-path depth, the
+  tooltip shows the dotted path plus a description, and after every
+  load the demo decodes the skin and grays the rows the skin has no
+  data for (a skin without the ETF marker grays almost everything).
+- Function rows (`attachETFSkinFeatures`, `detach`, `loadSkin`,
+  `setAnimation`) carry an `execute` button with their parameters
+  as child rows; values the demo derives itself (the fixture
+  source, the animation name) are locked read-only inputs that
+  explain the derivation in their tooltip.
+- The `skinview3d-etf:` tree gates everything on its
+  `attachETFSkinFeatures` / `detach` execute rows; the `blink` rows
+  couple to the feature switch, the `glint` rows to `enchanted` and
+  the `villagerNose.texture` row to the villager nose; a `reset`
+  button in the stage's corner restores the camera pose.
+- The `skinview3d-blockbench:` tree picks its input file
+  (`animation`, the bundled self-made copy or a transient `[upload]`
+  entry) and plays its animations (`animationName`, `setAnimation`,
+  `forceLoop`, `paused`, `speed`) next to the ETF features.
+- The footer links back to the source repository; uploaded files are
+  processed in the browser only and are never sent anywhere.
+- The decoder preview tab draws every prepared `decodeSkin()` artifact
+  next to the 3D view.
+- The demo is not part of the npm package.
 
 ## 5. Roadmap
 
-- [x] package scaffold and tooling (build, test, lint, git hooks);
-- [x] decoder for the ETF player skin format (complete: marker, slots,
-      transparency, blinking, nose, jacket, emissive, enchanted);
-- [x] renderer entry point (`attachETFSkinFeatures()`) with
-      transparency and nose rendering;
-- [x] emissive (glowing) pixels rendering;
-- [x] blinking rendering;
-- [x] public demo (`examples/`: sample skin, PNG upload, per-feature
-      toggles);
-- [x] blockbench coexistence check and the release checklist;
-- [ ] v0.0.1 release on npm.
+v0.0.2 (current milestone):
+
+- [x] render the enchanted (glint) overlay with the reworked
+      texture options (`smooth`, the texture-slot state machine);
+- [ ] rebuild the demo control tree and rewrite the README (in
+      progress);
+- [ ] sync the documentation pages and prepare the release record;
+- [ ] v0.0.2 release.
+
+History:
+
+- [x] v0.0.1 release.
 
 ## 6. Credits and disclaimer
 

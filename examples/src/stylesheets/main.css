@@ -116,7 +116,6 @@ body {
 
 /* The upload input drops to its own line under the file select. */
 .control-group input[type="file"] {
-  flex-basis: 100%;
   width: 72px;
 }
 
@@ -134,8 +133,31 @@ body {
   font: inherit;
 }
 
+/* Per-row actions align in one right-hand column; `execute` buttons
+   stay left in the control column next to their inputs. */
 .control-group button.row-action {
   margin-left: auto;
+}
+
+/* Tree depth: `optionRow` sets the API-path depth as `--depth` on
+   the label, which indents the keyword by whole steps while the
+   control column stays aligned. */
+.control-group th code {
+  padding-inline-start: calc(var(--depth, 0) * 1em);
+}
+
+/* Rows the current skin has no decode data for: the label grays out
+   (the demo disables the controls of the same rows). */
+.control-group tr.inapplicable th code {
+  color: #999999;
+}
+
+/* Locked parameters: the demo derives the value from elsewhere; the
+   input stays focusable / selectable (readonly, not disabled) so its
+   tooltip keeps working. */
+.control-group input.locked {
+  background-color: #f5f5f5;
+  color: #999999;
 }
 
 .upload {

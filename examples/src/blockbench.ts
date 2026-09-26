@@ -11,7 +11,12 @@
 import type { SkinViewer } from "skinview3d";
 import { SkinViewBlockbench } from "skinview3d-blockbench";
 import exampleAnimation from "./assets/animations/example.animation.json";
-import { actionButton, controlTable, optionRow } from "./controls";
+import {
+  controlTable,
+  executeButton,
+  lockedInput,
+  optionRow,
+} from "./controls";
 import { createAnimationUploadControl } from "./upload";
 
 /** Animation names inside the bundled blockbench fixture. */
@@ -207,12 +212,23 @@ export function createBlockbenchGroup(
     syncBlockbenchAvailability();
   });
 
-  const restartButton = actionButton("setAnimation", "setAnimation", () => {
-    if (animationNameSelect.value !== "none") {
-      play();
-    }
-  });
-  restartButton.title = "restart the selected animation from the start";
+  const setAnimationButton = executeButton(
+    "execute SkinViewBlockbench.setAnimation",
+    () => {
+      if (animationNameSelect.value !== "none") {
+        play();
+      }
+    },
+  );
+  setAnimationButton.title =
+    "SkinViewBlockbench.setAnimation(animation_name, options?): " +
+    "restart the selected animation from the start (the optional " +
+    "options parameter is unused here)";
+  const animationNameParam = lockedInput(
+    "",
+    "SkinViewBlockbench.setAnimation.animation_name: locked, the " +
+      "demo passes the animationName picker selection",
+  );
 
   const uploadInput = createAnimationUploadControl((name, provider) => {
     provider.onFinish = () => {
@@ -240,41 +256,61 @@ export function createBlockbenchGroup(
     const active = animationNameSelect.value !== "none";
     pausedBox.disabled = !active;
     speedInput.disabled = !active;
-    restartButton.disabled = !active;
+    setAnimationButton.disabled = !active;
+    animationNameParam.value = animationNameSelect.value;
   }
 
   const table = controlTable("skinview3d-blockbench:", [
     optionRow(
-      "animation",
-      "animation: the provider's input file; pick the bundled copy " +
-        "or an uploaded one - the animation list follows this file",
+      ["SkinViewBlockbench"],
+      "SkinViewBlockbench: the blockbench animation provider",
+      [],
+    ),
+    optionRow(
+      ["SkinViewBlockbench", "animation"],
+      "SkinViewBlockbench.animation: the provider's input file; pick " +
+        "the bundled copy or an uploaded one - the animation list " +
+        "follows this file",
       [animationFileSelect, uploadInput],
     ),
     optionRow(
-      "animationName",
+      ["SkinViewBlockbench", "animationName"],
       "SkinViewBlockbench.animationName: play a name from the selected " +
         "file; none removes viewer.animation (the torso grouping " +
         "persists once created)",
       [animationNameSelect],
-      restartButton,
     ),
     optionRow(
-      "forceLoop",
-      "forceLoop: keep looping; the fixture has no loop key, so " +
-        "unchecked plays once",
+      ["SkinViewBlockbench", "setAnimation"],
+      "SkinViewBlockbench.setAnimation(animation_name, options?): " +
+        "restart the selected animation from the start (the " +
+        "optional options parameter is unused here)",
+      [setAnimationButton],
+    ),
+    optionRow(
+      ["SkinViewBlockbench", "setAnimation", "animation_name"],
+      "SkinViewBlockbench.setAnimation.animation_name: locked, the " +
+        "demo passes the animationName picker selection",
+      [animationNameParam],
+    ),
+    optionRow(
+      ["SkinViewBlockbench", "forceLoop"],
+      "SkinViewBlockbench.forceLoop: keep looping; the fixture has " +
+        "no loop key, so unchecked plays once",
       [forceLoopBox],
     ),
     optionRow(
-      "paused",
-      "paused: freeze playback; resuming advances the provider's own " +
-        "clock (a jump) and a paused provider silences the hooked " +
-        "blink; a finished single play stays paused",
+      ["SkinViewBlockbench", "paused"],
+      "SkinViewBlockbench.paused: freeze playback; resuming advances " +
+        "the provider's own clock (a jump) and a paused provider " +
+        "silences the hooked blink; a finished single play stays " +
+        "paused",
       [pausedBox],
     ),
     optionRow(
-      "speed",
-      "speed: playback rate; 0 freezes without the clock jump (the " +
-        "blink timebase freezes with it)",
+      ["SkinViewBlockbench", "speed"],
+      "SkinViewBlockbench.speed: playback rate; 0 freezes without " +
+        "the clock jump (the blink timebase freezes with it)",
       [speedInput],
     ),
   ]);
