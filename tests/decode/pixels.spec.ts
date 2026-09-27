@@ -4,7 +4,6 @@ import {
   clearRect,
   collectKeys,
   copyRect,
-  countPixels,
   createImage,
   getPixel,
   setPixel,
@@ -115,15 +114,5 @@ describe("pixel helpers", () => {
     setPixel(image, 0, 0, RED);
     expect(buildMask(image, [BLUE])).toBeNull();
     expect(buildMask(image, [])).toBeNull();
-  });
-
-  it("counts exact pixel matches", () => {
-    const image = createImage(3, 1);
-    setPixel(image, 0, 0, RED);
-    setPixel(image, 1, 0, RED);
-    setPixel(image, 2, 0, BLUE);
-    expect(countPixels(image, RED)).toBe(2);
-    expect(countPixels(image, BLUE)).toBe(1);
-    expect(countPixels(image, CLEAR)).toBe(0);
   });
 });

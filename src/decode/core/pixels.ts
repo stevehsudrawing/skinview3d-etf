@@ -226,23 +226,3 @@ export function buildMask(
   }
   return matched ? mask : null;
 }
-
-/**
- * Counts the pixels of an image whose RGBA equals a color exactly.
- *
- * @param image - The source image.
- * @param rgba - The color to count.
- * @returns The number of matching pixels.
- */
-export function countPixels(image: PixelData, rgba: RGBA): number {
-  const wanted = colorKey(rgba);
-  let count = 0;
-  for (let y = 0; y < image.height; y++) {
-    for (let x = 0; x < image.width; x++) {
-      if (colorKey(getPixel(image, x, y)) === wanted) {
-        count++;
-      }
-    }
-  }
-  return count;
-}

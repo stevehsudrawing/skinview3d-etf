@@ -9,13 +9,15 @@
 
 /**
  * A point in pixel space: `x` is the pixel column, `y` the pixel
- * row. The one point type of the decoder tables and helpers.
+ * row. The one point type of the decoder tables and helpers; the
+ * fields are readonly because the frozen constant tables share
+ * their point objects.
  */
 export interface Coordinate {
-  /** Pixel column. */
-  x: number;
-  /** Pixel row. */
-  y: number;
+  /** Pixel column (readonly: shared by the constant tables). */
+  readonly x: number;
+  /** Pixel row (readonly: shared by the constant tables). */
+  readonly y: number;
 }
 
 /**
@@ -117,10 +119,10 @@ export interface JacketInfo {
   /** The jacket style id 1-8. */
   style: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   /**
-   * The clamped raw length slot value 1-8 (an unset or out-of-range
-   * slot decodes as 1).
+   * The length slot value 1-8; an unset or out-of-range slot
+   * decodes as 1.
    */
-  length: number;
+  length: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   /** Whether the style uses the wider jacket model (`wide`). */
   wide: boolean;
   /** Whether the style moved (and removed) the leg source pixels. */

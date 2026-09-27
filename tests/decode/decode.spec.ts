@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { createImage, getPixel } from "../../src/decode/core/pixels";
+import { FORCED_SOLID_RECTS } from "../../src/decode/core/constants";
+import { createImage, getPixel, setPixel } from "../../src/decode/core/pixels";
 import type { BlinkMode, PaletteId } from "../../src/decode/core/types";
 import { decodeSkin } from "../../src/decode/index";
 import { fixturesAvailable, loadSkin } from "../fixtures/skins";
-import { createBlankSkin } from "../fixtures/synthetic";
+import {
+  createBlankSkin,
+  createMarkedSkin,
+  paintSlot,
+} from "../fixtures/synthetic";
 
 /** Expected jacket values for one fixture. */
 interface JacketExpectation {
@@ -320,6 +325,25 @@ describe("decodeSkin", () => {
     expect(() =>
       decodeSkin({ width: 64.5, height: 64, data: image.data }),
     ).toThrow(TypeError);
+  });
+
+  it("strips the forced-solid alpha", () => {
+    const skin = createMarkedSkin();
+    paintSlot(skin, "forcedSolid", 1);
+    // One transparent pixel inside the first forced-solid rectangle
+    // and one outside every rectangle.
+    const inside = FORCED_SOLID_RECTS[0].topLeft;
+    const outside = { x: 30, y: 0 };
+    setPixel(skin, inside.x, inside.y, [10, 20, 30, 0]);
+    setPixel(skin, outside.x, outside.y, [10, 20, 30, 0]);
+    const result = decodeSkin(skin);
+    expect(result.transparency).toEqual({ enabled: true, forcedSolid: true });
+    expect(getPixel(result.skin, inside.x, inside.y)).toEqual([
+      10, 20, 30, 255,
+    ]);
+    expect(getPixel(result.skin, outside.x, outside.y)).toEqual([
+      10, 20, 30, 0,
+    ]);
   });
 });
 

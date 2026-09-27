@@ -172,7 +172,7 @@ describe("createBlinkPainter", () => {
 
     painter.show(0);
 
-    // Mode 4 with eye height 4 paints the row pair (8,11)-(15,12).
+    // Mode 4 with eye position 4 paints the row pair (8,11)-(15,12).
     expect(canvas.pixels[(11 * 64 + 8) * 4]).toBe(0xa1);
     expect(canvas.pixels[(12 * 64 + 15) * 4]).toBe(0xa1);
     expect(canvas.pixels[(10 * 64 + 8) * 4]).toBe(0x11);

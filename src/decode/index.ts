@@ -4,7 +4,7 @@
  * returns plain data plus the prepared overlay images.
  */
 
-import { FORCED_SOLID_RECTS } from "./core/constants";
+import { FORCED_SOLID_RECTS, SKIN_SIZE } from "./core/constants";
 import { convertLegacySkin, isLegacySkin } from "./core/legacy";
 import {
   buildMask,
@@ -47,6 +47,15 @@ function emptySlots(): SlotValues {
 }
 
 /**
+ * Creates the all-unset marker-cells record.
+ *
+ * @returns A fresh four-entry record of `null`.
+ */
+function emptyCells(): (PaletteId | null)[] {
+  return [null, null, null, null];
+}
+
+/**
  * Builds the result for an unsupported-size skin.
  *
  * @param image - The skin image.
@@ -60,7 +69,7 @@ function unsupportedResult(image: PixelData): DecodeResult {
         "skin features require a 64x64 skin (or a legacy 64x32 skin).",
     ],
     hasMarker: false,
-    cells: [null, null, null, null],
+    cells: emptyCells(),
     slots: emptySlots(),
     transparency: { enabled: false, forcedSolid: false },
     blink: null,
@@ -81,10 +90,12 @@ function unsupportedResult(image: PixelData): DecodeResult {
  */
 function assertPixelData(image: PixelData): void {
   const { width, height, data } = image;
-  if (!Number.isInteger(width) || !Number.isInteger(height)) {
-    throw new TypeError(`invalid skin dimensions ${width}x${height}`);
-  }
-  if (width <= 0 || height <= 0) {
+  if (
+    !Number.isInteger(width) ||
+    !Number.isInteger(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
     throw new TypeError(`invalid skin dimensions ${width}x${height}`);
   }
   const expected = width * height * 4;
@@ -117,14 +128,14 @@ function assertPixelData(image: PixelData): void {
 export function decodeSkin(image: PixelData): DecodeResult {
   assertPixelData(image);
   const source = isLegacySkin(image) ? convertLegacySkin(image) : image;
-  if (source.width !== 64 || source.height !== 64) {
+  if (source.width !== SKIN_SIZE || source.height !== SKIN_SIZE) {
     return unsupportedResult(source);
   }
 
   const hasMarker = checkSignature(source);
   const cells: (PaletteId | null)[] = hasMarker
     ? readCells(source)
-    : [null, null, null, null];
+    : emptyCells();
   const slots = hasMarker ? readSlots(source) : emptySlots();
   const skin = cloneImage(source);
 

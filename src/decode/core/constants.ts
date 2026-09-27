@@ -94,6 +94,7 @@ export const PALETTE: readonly PaletteEntry[] = [
  *
  * @param id - The palette id to resolve.
  * @returns The exact RGBA of the entry.
+ * @throws {Error} When the id has no palette entry.
  */
 export function paletteColor(id: PaletteId): RGBA {
   const entry = PALETTE.find((candidate) => candidate.id === id);

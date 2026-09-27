@@ -3,7 +3,7 @@
  * choice cells.
  */
 
-import { MARKER_CELLS, MARKER_SIGNATURE } from "../core/constants";
+import { MARKER_CELLS, MARKER_SIGNATURE, SKIN_SIZE } from "../core/constants";
 import { getPixel } from "../core/pixels";
 import type { PaletteId, PixelData } from "../core/types";
 import { readChoice } from "./slots";
@@ -17,7 +17,7 @@ import { readChoice } from "./slots";
  * @returns True when the signature matches on a 64x64 image.
  */
 export function checkSignature(image: PixelData): boolean {
-  if (image.width !== 64 || image.height !== 64) {
+  if (image.width !== SKIN_SIZE || image.height !== SKIN_SIZE) {
     return false;
   }
   return MARKER_SIGNATURE.every(([at, rgb]) => {

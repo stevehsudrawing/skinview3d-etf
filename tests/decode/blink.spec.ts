@@ -110,7 +110,7 @@ describe("blink", () => {
     expect(getPixel(frameOf(mode5.blink, 1), 8, 10)).toEqual([32, 32, 32, 255]);
   });
 
-  it("clamps unset or out-of-range eye heights to row 1", () => {
+  it("clamps unset or out-of-range eye positions to row 1", () => {
     const skin = createMarkedSkin();
     setPixel(skin, 12, 16, [11, 11, 11, 255]);
     paintSlot(skin, "blink", 3);

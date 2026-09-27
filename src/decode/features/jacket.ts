@@ -80,8 +80,12 @@ export function decodeJacket(
     return { info: null, removals: [] };
   }
   const style = JACKET_STYLES[styleSlot - 1];
+  // The range check excludes every other palette value (666
+  // included).
   const length =
-    lengthSlot !== null && lengthSlot >= 1 && lengthSlot <= 8 ? lengthSlot : 1;
+    lengthSlot !== null && lengthSlot >= 1 && lengthSlot <= 8
+      ? (lengthSlot as JacketInfo["length"])
+      : 1;
   const lengthOffset = length - 1;
   const removals = style.moved
     ? JACKET_MOVED_RECTS.map((entry) =>
