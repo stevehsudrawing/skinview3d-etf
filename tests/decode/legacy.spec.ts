@@ -165,7 +165,11 @@ describe("decodeSkin on legacy skins", () => {
     const legacy = createLegacySkin();
     paintMarker(legacy);
     paintCell(legacy, 0, 1);
-    paintRectWithPalette(legacy, { x1: 56, y1: 16, x2: 63, y2: 23 }, 1);
+    paintRectWithPalette(
+      legacy,
+      { topLeft: { x: 56, y: 16 }, bottomRight: { x: 63, y: 23 } },
+      1,
+    );
     const result = decodeSkin(legacy);
     expect(result.supported).toBe(true);
     expect(result.warnings).toEqual([]);

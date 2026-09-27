@@ -27,8 +27,12 @@ import {
  * @returns `true` when a non-opaque pixel exists inside.
  */
 function rectHasTranslucentPixel(image: PixelData, rect: Rect): boolean {
-  for (let y = rect.y1; y <= rect.y2; y++) {
-    for (let x = rect.x1; x <= rect.x2; x++) {
+  const {
+    topLeft: { x: x1, y: y1 },
+    bottomRight: { x: x2, y: y2 },
+  } = rect;
+  for (let y = y1; y <= y2; y++) {
+    for (let x = x1; x <= x2; x++) {
       if (image.data[(y * image.width + x) * 4 + 3] < 255) {
         return true;
       }

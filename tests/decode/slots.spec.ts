@@ -49,7 +49,7 @@ describe("choice slots", () => {
   it("does not resolve the raw type-9 nose pixel as a palette color", () => {
     const skin = createMarkedSkin();
     setPixel(skin, 53, 17, [9, 0, 0, 0]);
-    expect(readChoice(skin, 53, 17)).toBeNull();
+    expect(readChoice(skin, { x: 53, y: 17 })).toBeNull();
     expect(readSlots(skin).nose).toBeNull();
   });
 

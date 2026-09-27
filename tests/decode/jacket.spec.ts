@@ -83,10 +83,10 @@ describe("jacket", () => {
   it("returns the moved-style removal rectangles", () => {
     const skin = createMarkedSkin();
     expect(decodeJacket(skin, 2, 3).removals).toEqual([
-      { x1: 4, y1: 32, x2: 7, y2: 35 },
-      { x1: 4, y1: 48, x2: 7, y2: 51 },
-      { x1: 0, y1: 36, x2: 15, y2: 38 },
-      { x1: 0, y1: 52, x2: 15, y2: 54 },
+      { topLeft: { x: 4, y: 32 }, bottomRight: { x: 7, y: 35 } },
+      { topLeft: { x: 4, y: 48 }, bottomRight: { x: 7, y: 51 } },
+      { topLeft: { x: 0, y: 36 }, bottomRight: { x: 15, y: 38 } },
+      { topLeft: { x: 0, y: 52 }, bottomRight: { x: 15, y: 54 } },
     ]);
     expect(decodeJacket(skin, 1, 3).removals).toEqual([]);
   });

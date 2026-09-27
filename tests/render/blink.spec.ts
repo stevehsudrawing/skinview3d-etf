@@ -57,7 +57,11 @@ function makeInfo(
 function makePattern(x: number, y: number): PatternInfo {
   const mask = createImage(64, 64);
   mask.data[(y * 64 + x) * 4 + 3] = 255;
-  return { box: { x1: 0, y1: 0, x2: 0, y2: 0 }, keys: [], mask };
+  return {
+    box: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 0, y: 0 } },
+    keys: [],
+    mask,
+  };
 }
 
 /**
@@ -132,8 +136,8 @@ describe("blinkSeed", () => {
 describe("blinkRects", () => {
   it("covers the face and floating-face squares for the entire-face modes", () => {
     const expected = [
-      { x1: 8, y1: 8, x2: 15, y2: 15 },
-      { x1: 40, y1: 8, x2: 47, y2: 15 },
+      { topLeft: { x: 8, y: 8 }, bottomRight: { x: 15, y: 15 } },
+      { topLeft: { x: 40, y: 8 }, bottomRight: { x: 47, y: 15 } },
     ];
     expect(blinkRects(makeInfo(1, 1))).toEqual(expected);
     expect(blinkRects(makeInfo(2, 2))).toEqual(expected);
@@ -141,16 +145,16 @@ describe("blinkRects", () => {
 
   it("stamps the eye row from the strip table for mode 3", () => {
     expect(blinkRects(makeInfo(3, 1, 5))).toEqual([
-      { x1: 8, y1: 12, x2: 15, y2: 12 },
+      { topLeft: { x: 8, y: 12 }, bottomRight: { x: 15, y: 12 } },
     ]);
   });
 
   it("derives the height from the strips for modes 4 and 5", () => {
     expect(blinkRects(makeInfo(4, 2, 4))).toEqual([
-      { x1: 8, y1: 11, x2: 15, y2: 12 },
+      { topLeft: { x: 8, y: 11 }, bottomRight: { x: 15, y: 12 } },
     ]);
     expect(blinkRects(makeInfo(5, 2, 3))).toEqual([
-      { x1: 8, y1: 10, x2: 15, y2: 13 },
+      { topLeft: { x: 8, y: 10 }, bottomRight: { x: 15, y: 13 } },
     ]);
   });
 });

@@ -8,6 +8,17 @@
  */
 
 /**
+ * A point in pixel space: `x` is the pixel column, `y` the pixel
+ * row. The one point type of the decoder tables and helpers.
+ */
+export interface Coordinate {
+  /** Pixel column. */
+  x: number;
+  /** Pixel row. */
+  y: number;
+}
+
+/**
  * Minimal pixel buffer compatible with the DOM `ImageData` class:
  * row-major RGBA bytes, `width * height * 4` entries long.
  */
@@ -21,22 +32,28 @@ export interface PixelData {
 }
 
 /**
- * Inclusive pixel rectangle: `(x1, y1)` is the top-left pixel and
- * `(x2, y2)` the bottom-right pixel.
+ * Inclusive pixel rectangle: `topLeft` is the top-left pixel and
+ * `bottomRight` the bottom-right pixel; both corners are inclusive.
  */
 export interface Rect {
-  /** Left edge (inclusive). */
-  x1: number;
-  /** Top edge (inclusive). */
-  y1: number;
-  /** Right edge (inclusive). */
-  x2: number;
-  /** Bottom edge (inclusive). */
-  y2: number;
+  /** The top-left pixel (inclusive). */
+  topLeft: Coordinate;
+  /** The bottom-right pixel (inclusive). */
+  bottomRight: Coordinate;
 }
 
-/** An 8-bit RGBA color tuple; every channel is 0-255. */
-export type RGBA = readonly [number, number, number, number];
+/** An 8-bit RGB color tuple; every channel is 0-255. */
+export type RGB = readonly [number, number, number];
+
+/** An 8-bit RGBA color tuple: {@link RGB} plus an alpha channel. */
+export type RGBA = readonly [...RGB, number];
+
+/**
+ * One marker signature pixel: a {@link Coordinate} and the
+ * {@link RGB} it is checked against (the alpha channel is always
+ * 255).
+ */
+export type SignaturePixel = readonly [Coordinate, RGB];
 
 /**
  * A color-guide id: 1-8 for the eight paint swatches, 666 for the

@@ -12,6 +12,7 @@
 export type {
   BlinkInfo,
   BlinkMode,
+  Coordinate,
   DecodeResult,
   JacketInfo,
   NoseInfo,
@@ -19,6 +20,7 @@ export type {
   PatternInfo,
   PixelData,
   Rect,
+  RGB,
   RGBA,
   SlotValues,
 } from "./decode/core/types";

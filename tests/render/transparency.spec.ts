@@ -69,16 +69,16 @@ function makeOpaqueImage(): {
 describe("layer1Rects", () => {
   it("pins the head and arm regions", () => {
     expect(layer1Rects("head", "default")).toEqual([
-      { x1: 8, y1: 0, x2: 23, y2: 7 },
-      { x1: 0, y1: 8, x2: 31, y2: 15 },
+      { topLeft: { x: 8, y: 0 }, bottomRight: { x: 23, y: 7 } },
+      { topLeft: { x: 0, y: 8 }, bottomRight: { x: 31, y: 15 } },
     ]);
     expect(layer1Rects("rightArm", "default")).toEqual([
-      { x1: 44, y1: 16, x2: 51, y2: 19 },
-      { x1: 40, y1: 20, x2: 55, y2: 31 },
+      { topLeft: { x: 44, y: 16 }, bottomRight: { x: 51, y: 19 } },
+      { topLeft: { x: 40, y: 20 }, bottomRight: { x: 55, y: 31 } },
     ]);
     expect(layer1Rects("rightArm", "slim")).toEqual([
-      { x1: 44, y1: 16, x2: 49, y2: 19 },
-      { x1: 40, y1: 20, x2: 53, y2: 31 },
+      { topLeft: { x: 44, y: 16 }, bottomRight: { x: 49, y: 19 } },
+      { topLeft: { x: 40, y: 20 }, bottomRight: { x: 53, y: 31 } },
     ]);
   });
 });

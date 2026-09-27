@@ -20,10 +20,13 @@ export function checkSignature(image: PixelData): boolean {
   if (image.width !== 64 || image.height !== 64) {
     return false;
   }
-  return MARKER_SIGNATURE.every(([x, y, r, g, b]) => {
-    const pixel = getPixel(image, x, y);
+  return MARKER_SIGNATURE.every(([at, rgb]) => {
+    const pixel = getPixel(image, at.x, at.y);
     return (
-      pixel[0] === r && pixel[1] === g && pixel[2] === b && pixel[3] === 255
+      pixel[0] === rgb[0] &&
+      pixel[1] === rgb[1] &&
+      pixel[2] === rgb[2] &&
+      pixel[3] === 255
     );
   });
 }
@@ -37,5 +40,5 @@ export function checkSignature(image: PixelData): boolean {
  * @returns The palette id of each cell, or `null` when unset.
  */
 export function readCells(image: PixelData): (PaletteId | null)[] {
-  return MARKER_CELLS.map((cell) => readChoice(image, cell.x, cell.y));
+  return MARKER_CELLS.map((cell) => readChoice(image, cell));
 }

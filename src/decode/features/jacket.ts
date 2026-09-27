@@ -21,10 +21,25 @@ export interface JacketDecodeResult {
 }
 
 /**
+ * Extends a rectangle's bottom edge by `offset` rows: the jacket
+ * length offset `L = length - 1` makes a longer jacket read one extra
+ * source row per length step.
+ *
+ * @param rect - The rectangle to extend.
+ * @param offset - The rows to add below the bottom edge.
+ * @returns A new rectangle (the top-left corner is shared).
+ */
+function extendBottom(rect: Rect, offset: number): Rect {
+  return {
+    topLeft: rect.topLeft,
+    bottomRight: { x: rect.bottomRight.x, y: rect.bottomRight.y + offset },
+  };
+}
+
+/**
  * Builds the 64x64 jacket texture. Sources are copied from the
- * original skin's leg outer layer; the source `y2` grows with the
- * jacket length offset so a longer jacket reads one extra row per
- * length step.
+ * original skin's leg outer layer; the source rectangle's bottom
+ * edge is extended by the length offset (see {@link extendBottom}).
  *
  * @param image - The original skin image.
  * @param lengthOffset - The jacket length offset `L = length - 1`.
@@ -41,8 +56,8 @@ function buildJacketTexture(
     if (copy.topOnly && !keepTop) {
       continue;
     }
-    const source = { ...copy.source, y2: copy.source.y2 + lengthOffset };
-    copyRect(image, jacket, source, copy.targetX, copy.targetY);
+    const source = extendBottom(copy.source, lengthOffset);
+    copyRect(image, jacket, source, copy.target);
   }
   return jacket;
 }
@@ -71,7 +86,7 @@ export function decodeJacket(
   const removals = style.moved
     ? JACKET_MOVED_RECTS.map((entry) =>
         entry.extendY2
-          ? { ...entry.rect, y2: entry.rect.y2 + lengthOffset }
+          ? extendBottom(entry.rect, lengthOffset)
           : { ...entry.rect },
       )
     : [];

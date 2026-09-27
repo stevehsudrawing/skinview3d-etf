@@ -62,7 +62,7 @@ function buildEntireFaceFrame(image: PixelData, frame: 1 | 2): PixelData {
   const output = cloneImage(image);
   for (const corner of BLINK_CORNERS) {
     if (corner.frame === frame) {
-      copyRect(image, output, corner.source, corner.targetX, corner.targetY);
+      copyRect(image, output, corner.source, corner.target);
     }
   }
   return output;
@@ -86,13 +86,10 @@ function buildEyeStripFrame(
 ): PixelData {
   const output = cloneImage(image);
   const strip = BLINK_EYE_STRIPS[mode][frameIndex];
-  copyRect(
-    image,
-    output,
-    strip,
-    BLINK_FACE_RECT.x1,
-    BLINK_FACE_RECT.y1 + (eyePosition - 1),
-  );
+  copyRect(image, output, strip, {
+    x: BLINK_FACE_RECT.topLeft.x,
+    y: BLINK_FACE_RECT.topLeft.y + (eyePosition - 1),
+  });
   return output;
 }
 

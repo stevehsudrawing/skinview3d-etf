@@ -12,12 +12,14 @@ import {
   type Texture,
 } from "three";
 
-/** A rectangle in skin space; edges, not pixels (64x64 layout). */
+import type { Coordinate } from "../../decode/core/types";
+
+/** A rectangle in skin space; edges in 64ths, not pixel indices. */
 interface FaceRect {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
+  /** The top-left edge pair. */
+  topLeft: Coordinate;
+  /** The bottom-right edge pair. */
+  bottomRight: Coordinate;
 }
 
 /**
@@ -26,12 +28,12 @@ interface FaceRect {
  * the vanilla box unwrap of the region `(24,0)-(32,6)`.
  */
 const FACE_RECTS: readonly FaceRect[] = [
-  { x1: 28, y1: 2, x2: 30, y2: 6 }, // +x side
-  { x1: 24, y1: 2, x2: 26, y2: 6 }, // -x side
-  { x1: 26, y1: 0, x2: 28, y2: 2 }, // +y top
-  { x1: 28, y1: 0, x2: 30, y2: 2 }, // -y bottom
-  { x1: 26, y1: 2, x2: 28, y2: 6 }, // +z front
-  { x1: 30, y1: 2, x2: 32, y2: 6 }, // -z back
+  { topLeft: { x: 28, y: 2 }, bottomRight: { x: 30, y: 6 } }, // +x side
+  { topLeft: { x: 24, y: 2 }, bottomRight: { x: 26, y: 6 } }, // -x side
+  { topLeft: { x: 26, y: 0 }, bottomRight: { x: 28, y: 2 } }, // +y top
+  { topLeft: { x: 28, y: 0 }, bottomRight: { x: 30, y: 2 } }, // -y bottom
+  { topLeft: { x: 26, y: 2 }, bottomRight: { x: 28, y: 6 } }, // +z front
+  { topLeft: { x: 30, y: 2 }, bottomRight: { x: 32, y: 6 } }, // -z back
 ];
 
 /** The nose mesh type used across the renderer. */
@@ -47,16 +49,15 @@ export function buildNoseGeometry(): BoxGeometry {
   const geometry = new BoxGeometry(2, 4, 2);
   const uv = geometry.attributes.uv;
   for (let face = 0; face < FACE_RECTS.length; face++) {
-    const rect = FACE_RECTS[face];
+    const {
+      topLeft: { x: x1, y: y1 },
+      bottomRight: { x: x2, y: y2 },
+    } = FACE_RECTS[face];
     for (let corner = 0; corner < 4; corner++) {
       const index = face * 4 + corner;
       const fu = uv.getX(index);
       const fv = 1 - uv.getY(index);
-      uv.setXY(
-        index,
-        (rect.x1 + fu * (rect.x2 - rect.x1)) / 64,
-        (rect.y2 - fv * (rect.y2 - rect.y1)) / 64,
-      );
+      uv.setXY(index, (x1 + fu * (x2 - x1)) / 64, (y2 - fv * (y2 - y1)) / 64);
     }
   }
   uv.needsUpdate = true;

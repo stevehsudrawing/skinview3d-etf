@@ -7,7 +7,7 @@
  * `skinview3d`.
  */
 
-import type { PixelData, Rect, RGBA } from "./types";
+import type { Coordinate, PixelData, Rect, RGBA } from "./types";
 
 /**
  * Creates a fully transparent image.
@@ -89,8 +89,12 @@ export function sameColor(a: RGBA, b: RGBA): boolean {
  * @param rgba - The fill color.
  */
 export function fillRect(image: PixelData, rect: Rect, rgba: RGBA): void {
-  for (let y = rect.y1; y <= rect.y2; y++) {
-    for (let x = rect.x1; x <= rect.x2; x++) {
+  const {
+    topLeft: { x: x1, y: y1 },
+    bottomRight: { x: x2, y: y2 },
+  } = rect;
+  for (let y = y1; y <= y2; y++) {
+    for (let x = x1; x <= x2; x++) {
       setPixel(image, x, y, rgba);
     }
   }
@@ -98,25 +102,27 @@ export function fillRect(image: PixelData, rect: Rect, rgba: RGBA): void {
 
 /**
  * Copies an inclusive source rectangle into a target image. The
- * source's top-left pixel lands on `(targetX, targetY)`.
+ * source's top-left pixel lands on `at`.
  *
  * @param source - The image to read from.
  * @param target - The image to write to (mutated).
  * @param rect - The source rectangle.
- * @param targetX - Target column of the rectangle's top-left pixel.
- * @param targetY - Target row of the rectangle's top-left pixel.
+ * @param at - The target point of the rectangle's top-left pixel.
  */
 export function copyRect(
   source: PixelData,
   target: PixelData,
   rect: Rect,
-  targetX: number,
-  targetY: number,
+  at: Coordinate,
 ): void {
-  for (let y = rect.y1; y <= rect.y2; y++) {
-    for (let x = rect.x1; x <= rect.x2; x++) {
+  const {
+    topLeft: { x: x1, y: y1 },
+    bottomRight: { x: x2, y: y2 },
+  } = rect;
+  for (let y = y1; y <= y2; y++) {
+    for (let x = x1; x <= x2; x++) {
       const rgba = getPixel(source, x, y);
-      setPixel(target, targetX + (x - rect.x1), targetY + (y - rect.y1), rgba);
+      setPixel(target, at.x + (x - x1), at.y + (y - y1), rgba);
     }
   }
 }
@@ -140,8 +146,12 @@ export function clearRect(image: PixelData, rect: Rect): void {
  * @param rect - The rectangle to strip.
  */
 export function stripAlphaRect(image: PixelData, rect: Rect): void {
-  for (let y = rect.y1; y <= rect.y2; y++) {
-    for (let x = rect.x1; x <= rect.x2; x++) {
+  const {
+    topLeft: { x: x1, y: y1 },
+    bottomRight: { x: x2, y: y2 },
+  } = rect;
+  for (let y = y1; y <= y2; y++) {
+    for (let x = x1; x <= x2; x++) {
       image.data[(image.width * y + x) * 4 + 3] = 255;
     }
   }
@@ -167,10 +177,14 @@ function colorKey(rgba: RGBA): string {
  * @returns The distinct colors in row-major first-seen order.
  */
 export function collectKeys(image: PixelData, rect: Rect): RGBA[] {
+  const {
+    topLeft: { x: x1, y: y1 },
+    bottomRight: { x: x2, y: y2 },
+  } = rect;
   const seen = new Set<string>();
   const keys: RGBA[] = [];
-  for (let y = rect.y1; y <= rect.y2; y++) {
-    for (let x = rect.x1; x <= rect.x2; x++) {
+  for (let y = y1; y <= y2; y++) {
+    for (let x = x1; x <= x2; x++) {
       const rgba = getPixel(image, x, y);
       if (rgba[3] === 0) {
         continue;

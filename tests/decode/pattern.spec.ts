@@ -47,9 +47,9 @@ describe("pattern", () => {
     const skin = createMarkedSkin();
     paintCell(skin, 0, 1);
     const box = MARKER_BOXES[0];
-    setPixel(skin, box.x1, box.y1, [12, 34, 56, 255]);
-    setPixel(skin, box.x1 + 1, box.y1, [12, 34, 56, 255]);
-    setPixel(skin, box.x1 + 2, box.y1, [0, 0, 0, 0]);
+    setPixel(skin, box.topLeft.x, box.topLeft.y, [12, 34, 56, 255]);
+    setPixel(skin, box.topLeft.x + 1, box.topLeft.y, [12, 34, 56, 255]);
+    setPixel(skin, box.topLeft.x + 2, box.topLeft.y, [0, 0, 0, 0]);
     setPixel(skin, 20, 20, [12, 34, 56, 255]);
     setPixel(skin, 21, 20, [12, 34, 56, 254]);
     const result = decodeSkin(skin);

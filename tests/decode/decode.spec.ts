@@ -383,16 +383,19 @@ describe.skipIf(!fixturesAvailable)("fixture matrix", () => {
     });
 
     const removals = [
-      { x1: 4, y1: 32, x2: 7, y2: 35 },
-      { x1: 4, y1: 48, x2: 7, y2: 51 },
-      { x1: 0, y1: 36, x2: 15, y2: 38 },
-      { x1: 0, y1: 52, x2: 15, y2: 54 },
+      { topLeft: { x: 4, y: 32 }, bottomRight: { x: 7, y: 35 } },
+      { topLeft: { x: 4, y: 48 }, bottomRight: { x: 7, y: 51 } },
+      { topLeft: { x: 0, y: 36 }, bottomRight: { x: 15, y: 38 } },
+      { topLeft: { x: 0, y: 52 }, bottomRight: { x: 15, y: 54 } },
     ];
     for (let y = 0; y < 64; y++) {
       for (let x = 0; x < 64; x++) {
         const inside = removals.some(
           (rect) =>
-            x >= rect.x1 && x <= rect.x2 && y >= rect.y1 && y <= rect.y2,
+            x >= rect.topLeft.x &&
+            x <= rect.bottomRight.x &&
+            y >= rect.topLeft.y &&
+            y <= rect.bottomRight.y,
         );
         if (inside) {
           expect(getPixel(result.skin, x, y)).toEqual([0, 0, 0, 0]);
@@ -407,17 +410,20 @@ describe.skipIf(!fixturesAvailable)("fixture matrix", () => {
     const original = loadSkin("steve-villager.png");
     const result = decodeSkin(original);
     const removals = [
-      { x1: 43, y1: 13, x2: 44, y2: 15 },
-      { x1: 4, y1: 32, x2: 7, y2: 35 },
-      { x1: 4, y1: 48, x2: 7, y2: 51 },
-      { x1: 0, y1: 36, x2: 15, y2: 43 },
-      { x1: 0, y1: 52, x2: 15, y2: 59 },
+      { topLeft: { x: 43, y: 13 }, bottomRight: { x: 44, y: 15 } },
+      { topLeft: { x: 4, y: 32 }, bottomRight: { x: 7, y: 35 } },
+      { topLeft: { x: 4, y: 48 }, bottomRight: { x: 7, y: 51 } },
+      { topLeft: { x: 0, y: 36 }, bottomRight: { x: 15, y: 43 } },
+      { topLeft: { x: 0, y: 52 }, bottomRight: { x: 15, y: 59 } },
     ];
     for (let y = 0; y < 64; y++) {
       for (let x = 0; x < 64; x++) {
         const inside = removals.some(
           (rect) =>
-            x >= rect.x1 && x <= rect.x2 && y >= rect.y1 && y <= rect.y2,
+            x >= rect.topLeft.x &&
+            x <= rect.bottomRight.x &&
+            y >= rect.topLeft.y &&
+            y <= rect.bottomRight.y,
         );
         if (inside) {
           expect(getPixel(result.skin, x, y)).toEqual([0, 0, 0, 0]);

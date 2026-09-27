@@ -43,7 +43,12 @@ describe("pixel helpers", () => {
     setPixel(source, 1, 1, RED);
     setPixel(source, 2, 2, BLUE);
     const target = createImage(8, 8);
-    copyRect(source, target, { x1: 1, y1: 1, x2: 2, y2: 2 }, 5, 5);
+    copyRect(
+      source,
+      target,
+      { topLeft: { x: 1, y: 1 }, bottomRight: { x: 2, y: 2 } },
+      { x: 5, y: 5 },
+    );
     expect(getPixel(target, 5, 5)).toEqual(RED);
     expect(getPixel(target, 6, 6)).toEqual(BLUE);
     expect(getPixel(target, 4, 4)).toEqual(CLEAR);
@@ -52,14 +57,20 @@ describe("pixel helpers", () => {
   it("clears rectangles", () => {
     const image = createImage(4, 4);
     setPixel(image, 1, 1, RED);
-    clearRect(image, { x1: 0, y1: 0, x2: 3, y2: 3 });
+    clearRect(image, {
+      topLeft: { x: 0, y: 0 },
+      bottomRight: { x: 3, y: 3 },
+    });
     expect(getPixel(image, 1, 1)).toEqual(CLEAR);
   });
 
   it("strips alpha while keeping rgb", () => {
     const image = createImage(2, 2);
     setPixel(image, 0, 0, HALF);
-    stripAlphaRect(image, { x1: 0, y1: 0, x2: 1, y2: 1 });
+    stripAlphaRect(image, {
+      topLeft: { x: 0, y: 0 },
+      bottomRight: { x: 1, y: 1 },
+    });
     expect(getPixel(image, 0, 0)).toEqual([10, 20, 30, 255]);
   });
 
@@ -69,16 +80,22 @@ describe("pixel helpers", () => {
     setPixel(image, 1, 0, RED);
     setPixel(image, 2, 0, BLUE);
     setPixel(image, 3, 0, HALF);
-    expect(collectKeys(image, { x1: 0, y1: 0, x2: 3, y2: 0 })).toEqual([
-      RED,
-      BLUE,
-      HALF,
-    ]);
+    expect(
+      collectKeys(image, {
+        topLeft: { x: 0, y: 0 },
+        bottomRight: { x: 3, y: 0 },
+      }),
+    ).toEqual([RED, BLUE, HALF]);
   });
 
   it("skips fully transparent pixels when collecting keys", () => {
     const image = createImage(2, 1);
-    expect(collectKeys(image, { x1: 0, y1: 0, x2: 1, y2: 0 })).toEqual([]);
+    expect(
+      collectKeys(image, {
+        topLeft: { x: 0, y: 0 },
+        bottomRight: { x: 1, y: 0 },
+      }),
+    ).toEqual([]);
   });
 
   it("builds masks that keep exact matches only", () => {

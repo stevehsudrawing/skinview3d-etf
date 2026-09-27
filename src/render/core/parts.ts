@@ -104,16 +104,15 @@ export function layer1Rects(
       : box.w;
   return [
     {
-      x1: box.u + box.d,
-      y1: box.v,
-      x2: box.u + box.d + 2 * w - 1,
-      y2: box.v + box.d - 1,
+      topLeft: { x: box.u + box.d, y: box.v },
+      bottomRight: { x: box.u + box.d + 2 * w - 1, y: box.v + box.d - 1 },
     },
     {
-      x1: box.u,
-      y1: box.v + box.d,
-      x2: box.u + 2 * (w + box.d) - 1,
-      y2: box.v + box.d + box.h - 1,
+      topLeft: { x: box.u, y: box.v + box.d },
+      bottomRight: {
+        x: box.u + 2 * (w + box.d) - 1,
+        y: box.v + box.d + box.h - 1,
+      },
     },
   ];
 }

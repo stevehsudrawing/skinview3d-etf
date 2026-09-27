@@ -69,8 +69,8 @@ export function paintRectWithPalette(
  * @param skin - The skin to mutate.
  */
 export function paintMarker(skin: PixelData): void {
-  for (const [x, y, r, g, b] of MARKER_SIGNATURE) {
-    setPixel(skin, x, y, [r, g, b, 255]);
+  for (const [at, rgb] of MARKER_SIGNATURE) {
+    setPixel(skin, at.x, at.y, [...rgb, 255]);
   }
 }
 

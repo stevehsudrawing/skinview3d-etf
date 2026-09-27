@@ -94,12 +94,12 @@ describe("nose", () => {
   it("builds textured noses 1-5 from the former cape regions", () => {
     for (const choice of [2, 3, 4, 5, 6] as const) {
       const variant = (choice - 1) as 1 | 2 | 3 | 4 | 5;
-      const region = NOSE_CAPE_REGIONS[variant - 1];
+      const { topLeft, bottomRight } = NOSE_CAPE_REGIONS[variant - 1];
       const skin = createMarkedSkin();
       paintSlot(skin, "nose", choice);
-      for (let x = region.x1; x <= region.x2; x++) {
-        for (let y = region.y1; y <= region.y2; y++) {
-          setPixel(skin, x, y, [x * 10, (y - region.y1) * 50, variant, 255]);
+      for (let x = topLeft.x; x <= bottomRight.x; x++) {
+        for (let y = topLeft.y; y <= bottomRight.y; y++) {
+          setPixel(skin, x, y, [x * 10, (y - topLeft.y) * 50, variant, 255]);
         }
       }
       const result = decodeSkin(skin);
@@ -121,12 +121,12 @@ describe("nose", () => {
   });
 
   it("transposes, mirrors and swaps the 8x4 source deterministically", () => {
-    const region = NOSE_CAPE_REGIONS[0];
+    const { topLeft, bottomRight } = NOSE_CAPE_REGIONS[0];
     const skin = createMarkedSkin();
     paintSlot(skin, "nose", 2);
-    for (let x = region.x1; x <= region.x2; x++) {
-      for (let y = region.y1; y <= region.y2; y++) {
-        setPixel(skin, x, y, [x * 10, (y - region.y1) * 50, 7, 255]);
+    for (let x = topLeft.x; x <= bottomRight.x; x++) {
+      for (let y = topLeft.y; y <= bottomRight.y; y++) {
+        setPixel(skin, x, y, [x * 10, (y - topLeft.y) * 50, 7, 255]);
       }
     }
     const texture = decodeSkin(skin).nose?.texture ?? null;

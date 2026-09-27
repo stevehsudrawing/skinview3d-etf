@@ -30,8 +30,12 @@ export interface NoseDecodeResult {
  * @returns True when all six pixels match.
  */
 function allNosePixels(image: PixelData, rect: Rect): boolean {
-  for (let y = rect.y1; y <= rect.y2; y++) {
-    for (let x = rect.x1; x <= rect.x2; x++) {
+  const {
+    topLeft: { x: x1, y: y1 },
+    bottomRight: { x: x2, y: y2 },
+  } = rect;
+  for (let y = y1; y <= y2; y++) {
+    for (let x = x1; x <= x2; x++) {
       if (!sameColor(getPixel(image, x, y), NOSE_COLOR)) {
         return false;
       }
@@ -73,16 +77,14 @@ function buildTexturedNose(
   image: PixelData,
   textured: 1 | 2 | 3 | 4 | 5,
 ): PixelData {
-  const bounds = NOSE_CAPE_REGIONS[textured - 1];
+  const {
+    topLeft: { x: x1, y: y1 },
+    bottomRight: { x: x2, y: y2 },
+  } = NOSE_CAPE_REGIONS[textured - 1];
   const texture = createImage(8, 8);
-  for (let sx = bounds.x1; sx <= bounds.x2; sx++) {
-    for (let sy = bounds.y1; sy <= bounds.y2; sy++) {
-      setPixel(
-        texture,
-        sy - bounds.y1,
-        sx - bounds.x1,
-        getPixel(image, sx, sy),
-      );
+  for (let sx = x1; sx <= x2; sx++) {
+    for (let sy = y1; sy <= y2; sy++) {
+      setPixel(texture, sy - y1, sx - x1, getPixel(image, sx, sy));
     }
   }
   for (let x = 4; x < 8; x++) {

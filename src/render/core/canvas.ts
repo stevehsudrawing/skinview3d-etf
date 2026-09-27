@@ -98,15 +98,11 @@ export function paintCanvasRect(
   if (context === null) {
     throw new Error("2d canvas context unavailable");
   }
+  const {
+    topLeft: { x: x1, y: y1 },
+    bottomRight: { x: x2, y: y2 },
+  } = rect;
   const image = context.createImageData(pixels.width, pixels.height);
   image.data.set(pixels.data);
-  context.putImageData(
-    image,
-    0,
-    0,
-    rect.x1,
-    rect.y1,
-    rect.x2 - rect.x1 + 1,
-    rect.y2 - rect.y1 + 1,
-  );
+  context.putImageData(image, 0, 0, x1, y1, x2 - x1 + 1, y2 - y1 + 1);
 }

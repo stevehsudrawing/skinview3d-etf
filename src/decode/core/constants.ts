@@ -7,7 +7,13 @@
  * all colors are opaque unless stated otherwise.
  */
 
-import type { PaletteId, Rect, RGBA } from "./types";
+import type {
+  Coordinate,
+  PaletteId,
+  Rect,
+  RGBA,
+  SignaturePixel,
+} from "./types";
 
 /**
  * The 64x64 skin layout side length every feature works in. Legacy
@@ -17,28 +23,23 @@ import type { PaletteId, Rect, RGBA } from "./types";
 export const SKIN_SIZE = 64;
 
 /**
- * One marker signature pixel: `[x, y, r, g, b]`. The alpha channel is
- * always 255.
- */
-export type SignaturePixel = readonly [number, number, number, number, number];
-
-/**
- * The eleven marker signature pixels. All must match with exact RGBA
- * equality; the template's twelfth icon pixel `(3,19)` is deliberately
- * not checked.
+ * The eleven marker signature pixels, each pairing a `Coordinate`
+ * with the `RGB` it must match. All must match with exact RGBA
+ * equality (alpha 255); the template's twelfth icon pixel `(3,19)`
+ * is deliberately not checked.
  */
 export const MARKER_SIGNATURE: readonly SignaturePixel[] = [
-  [0, 16, 127, 0, 0],
-  [1, 16, 255, 0, 0],
-  [2, 16, 0, 255, 0],
-  [3, 16, 0, 127, 0],
-  [0, 17, 255, 0, 0],
-  [3, 17, 0, 255, 0],
-  [0, 18, 0, 0, 255],
-  [0, 19, 0, 0, 127],
-  [1, 19, 0, 0, 255],
-  [2, 19, 255, 255, 255],
-  [3, 18, 255, 255, 255],
+  [{ x: 0, y: 16 }, [127, 0, 0]],
+  [{ x: 1, y: 16 }, [255, 0, 0]],
+  [{ x: 2, y: 16 }, [0, 255, 0]],
+  [{ x: 3, y: 16 }, [0, 127, 0]],
+  [{ x: 0, y: 17 }, [255, 0, 0]],
+  [{ x: 3, y: 17 }, [0, 255, 0]],
+  [{ x: 0, y: 18 }, [0, 0, 255]],
+  [{ x: 0, y: 19 }, [0, 0, 127]],
+  [{ x: 1, y: 19 }, [0, 0, 255]],
+  [{ x: 2, y: 19 }, [255, 255, 255]],
+  [{ x: 3, y: 18 }, [255, 255, 255]],
 ];
 
 /**
@@ -47,7 +48,7 @@ export const MARKER_SIGNATURE: readonly SignaturePixel[] = [
  * emissive pattern on that box, cyan (id 2) enables the enchanted
  * pattern.
  */
-export const MARKER_CELLS: readonly { x: number; y: number }[] = [
+export const MARKER_CELLS: readonly Coordinate[] = [
   { x: 1, y: 17 },
   { x: 1, y: 18 },
   { x: 2, y: 17 },
@@ -59,10 +60,10 @@ export const MARKER_CELLS: readonly { x: number; y: number }[] = [
  * {@link MARKER_CELLS}.
  */
 export const MARKER_BOXES: readonly Rect[] = [
-  { x1: 56, y1: 16, x2: 63, y2: 23 },
-  { x1: 56, y1: 24, x2: 63, y2: 31 },
-  { x1: 56, y1: 32, x2: 63, y2: 39 },
-  { x1: 56, y1: 40, x2: 63, y2: 47 },
+  { topLeft: { x: 56, y: 16 }, bottomRight: { x: 63, y: 23 } },
+  { topLeft: { x: 56, y: 24 }, bottomRight: { x: 63, y: 31 } },
+  { topLeft: { x: 56, y: 32 }, bottomRight: { x: 63, y: 39 } },
+  { topLeft: { x: 56, y: 40 }, bottomRight: { x: 63, y: 47 } },
 ];
 
 /** One color-guide entry. */
@@ -114,7 +115,7 @@ export const SLOTS = {
   cape: { x: 53, y: 16 },
   nose: { x: 53, y: 17 },
   forcedSolid: { x: 53, y: 18 },
-} as const;
+} as const satisfies Record<string, Coordinate>;
 
 /**
  * The raw pixel that encodes nose type 9 (the "Villager textured,
@@ -130,8 +131,11 @@ export const NOSE_TYPE9_PIXEL: RGBA = [9, 0, 0, 0];
  * the face variant is kept.
  */
 export const DEPRECATED_NOSE_RECTS: { floatingFace: Rect; face: Rect } = {
-  floatingFace: { x1: 43, y1: 13, x2: 44, y2: 15 },
-  face: { x1: 11, y1: 13, x2: 12, y2: 15 },
+  floatingFace: {
+    topLeft: { x: 43, y: 13 },
+    bottomRight: { x: 44, y: 15 },
+  },
+  face: { topLeft: { x: 11, y: 13 }, bottomRight: { x: 12, y: 15 } },
 };
 
 /**
@@ -140,21 +144,19 @@ export const DEPRECATED_NOSE_RECTS: { floatingFace: Rect; face: Rect } = {
  * region is 8 wide by 4 high.
  */
 export const NOSE_CAPE_REGIONS: readonly Rect[] = [
-  { x1: 12, y1: 32, x2: 19, y2: 35 },
-  { x1: 36, y1: 32, x2: 43, y2: 35 },
-  { x1: 12, y1: 48, x2: 19, y2: 51 },
-  { x1: 28, y1: 48, x2: 35, y2: 51 },
-  { x1: 44, y1: 48, x2: 51, y2: 51 },
+  { topLeft: { x: 12, y: 32 }, bottomRight: { x: 19, y: 35 } },
+  { topLeft: { x: 36, y: 32 }, bottomRight: { x: 43, y: 35 } },
+  { topLeft: { x: 12, y: 48 }, bottomRight: { x: 19, y: 51 } },
+  { topLeft: { x: 28, y: 48 }, bottomRight: { x: 35, y: 51 } },
+  { topLeft: { x: 44, y: 48 }, bottomRight: { x: 51, y: 51 } },
 ];
 
 /** One stored entire-face blink square and where it is copied to. */
 export interface BlinkCorner {
   /** The stored 8x8 source square (an unused head-texture corner). */
   source: Rect;
-  /** Target x of the square's top-left pixel. */
-  targetX: number;
-  /** Target y of the square's top-left pixel. */
-  targetY: number;
+  /** The target top-left pixel the square is copied to. */
+  target: Coordinate;
   /** The animation frame (1 or 2) this square belongs to. */
   frame: 1 | 2;
 }
@@ -163,10 +165,16 @@ export interface BlinkCorner {
  * The face-front square the entire-face blink frames copy into; its
  * top-left corner is also the base of the pixel-tall eye strip row.
  */
-export const BLINK_FACE_RECT: Rect = { x1: 8, y1: 8, x2: 15, y2: 15 };
+export const BLINK_FACE_RECT: Rect = {
+  topLeft: { x: 8, y: 8 },
+  bottomRight: { x: 15, y: 15 },
+};
 
 /** The floating-face square the entire-face blink frames copy into. */
-export const BLINK_FLOATING_FACE_RECT: Rect = { x1: 40, y1: 8, x2: 47, y2: 15 };
+export const BLINK_FLOATING_FACE_RECT: Rect = {
+  topLeft: { x: 40, y: 8 },
+  bottomRight: { x: 47, y: 15 },
+};
 
 /**
  * The four entire-face blink corner squares. Frame 1 copies into the
@@ -175,27 +183,23 @@ export const BLINK_FLOATING_FACE_RECT: Rect = { x1: 40, y1: 8, x2: 47, y2: 15 };
  */
 export const BLINK_CORNERS: readonly BlinkCorner[] = [
   {
-    source: { x1: 0, y1: 0, x2: 7, y2: 7 },
-    targetX: BLINK_FACE_RECT.x1,
-    targetY: BLINK_FACE_RECT.y1,
+    source: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 7, y: 7 } },
+    target: BLINK_FACE_RECT.topLeft,
     frame: 1,
   },
   {
-    source: { x1: 24, y1: 0, x2: 31, y2: 7 },
-    targetX: BLINK_FACE_RECT.x1,
-    targetY: BLINK_FACE_RECT.y1,
+    source: { topLeft: { x: 24, y: 0 }, bottomRight: { x: 31, y: 7 } },
+    target: BLINK_FACE_RECT.topLeft,
     frame: 2,
   },
   {
-    source: { x1: 32, y1: 0, x2: 39, y2: 7 },
-    targetX: BLINK_FLOATING_FACE_RECT.x1,
-    targetY: BLINK_FLOATING_FACE_RECT.y1,
+    source: { topLeft: { x: 32, y: 0 }, bottomRight: { x: 39, y: 7 } },
+    target: BLINK_FLOATING_FACE_RECT.topLeft,
     frame: 1,
   },
   {
-    source: { x1: 56, y1: 0, x2: 63, y2: 7 },
-    targetX: BLINK_FLOATING_FACE_RECT.x1,
-    targetY: BLINK_FLOATING_FACE_RECT.y1,
+    source: { topLeft: { x: 56, y: 0 }, bottomRight: { x: 63, y: 7 } },
+    target: BLINK_FLOATING_FACE_RECT.topLeft,
     frame: 2,
   },
 ];
@@ -206,14 +210,14 @@ export const BLINK_CORNERS: readonly BlinkCorner[] = [
  * `8 + (eyePosition - 1)`.
  */
 export const BLINK_EYE_STRIPS: Readonly<Record<3 | 4 | 5, readonly Rect[]>> = {
-  3: [{ x1: 12, y1: 16, x2: 19, y2: 16 }],
+  3: [{ topLeft: { x: 12, y: 16 }, bottomRight: { x: 19, y: 16 } }],
   4: [
-    { x1: 12, y1: 16, x2: 19, y2: 17 },
-    { x1: 12, y1: 18, x2: 19, y2: 19 },
+    { topLeft: { x: 12, y: 16 }, bottomRight: { x: 19, y: 17 } },
+    { topLeft: { x: 12, y: 18 }, bottomRight: { x: 19, y: 19 } },
   ],
   5: [
-    { x1: 12, y1: 16, x2: 19, y2: 19 },
-    { x1: 36, y1: 16, x2: 43, y2: 19 },
+    { topLeft: { x: 12, y: 16 }, bottomRight: { x: 19, y: 19 } },
+    { topLeft: { x: 36, y: 16 }, bottomRight: { x: 43, y: 19 } },
   ],
 };
 
@@ -223,8 +227,8 @@ export const BLINK_EYE_STRIPS: Readonly<Record<3 | 4 | 5, readonly Rect[]>> = {
  * belongs to frame 1 (modes 1-2), the second to frame 2 (mode 2 only).
  */
 export const BLINK_NOSE_CUT_RECTS: readonly Rect[] = [
-  { x1: 35, y1: 5, x2: 36, y2: 7 },
-  { x1: 59, y1: 5, x2: 60, y2: 7 },
+  { topLeft: { x: 35, y: 5 }, bottomRight: { x: 36, y: 7 } },
+  { topLeft: { x: 59, y: 5 }, bottomRight: { x: 60, y: 7 } },
 ];
 
 /** One jacket style definition. */
@@ -257,10 +261,8 @@ export const JACKET_STYLES: readonly JacketStyle[] = [
 export interface JacketCopy {
   /** The source rectangle in the leg outer layer. */
   source: Rect;
-  /** Target x of the copied area's top-left pixel. */
-  targetX: number;
-  /** Target y of the copied area's top-left pixel. */
-  targetY: number;
+  /** The target top-left pixel the area is copied to. */
+  target: Coordinate;
   /** When true the entry is skipped by the styles without tops (5-8). */
   topOnly: boolean;
 }
@@ -272,33 +274,28 @@ export interface JacketCopy {
  */
 export const JACKET_COPY_TABLE: readonly JacketCopy[] = [
   {
-    source: { x1: 4, y1: 32, x2: 7, y2: 35 },
-    targetX: 20,
-    targetY: 32,
+    source: { topLeft: { x: 4, y: 32 }, bottomRight: { x: 7, y: 35 } },
+    target: { x: 20, y: 32 },
     topOnly: true,
   },
   {
-    source: { x1: 4, y1: 48, x2: 7, y2: 51 },
-    targetX: 24,
-    targetY: 32,
+    source: { topLeft: { x: 4, y: 48 }, bottomRight: { x: 7, y: 51 } },
+    target: { x: 24, y: 32 },
     topOnly: true,
   },
   {
-    source: { x1: 0, y1: 36, x2: 7, y2: 36 },
-    targetX: 16,
-    targetY: 36,
+    source: { topLeft: { x: 0, y: 36 }, bottomRight: { x: 7, y: 36 } },
+    target: { x: 16, y: 36 },
     topOnly: false,
   },
   {
-    source: { x1: 12, y1: 36, x2: 15, y2: 36 },
-    targetX: 36,
-    targetY: 36,
+    source: { topLeft: { x: 12, y: 36 }, bottomRight: { x: 15, y: 36 } },
+    target: { x: 36, y: 36 },
     topOnly: false,
   },
   {
-    source: { x1: 4, y1: 52, x2: 15, y2: 52 },
-    targetX: 24,
-    targetY: 36,
+    source: { topLeft: { x: 4, y: 52 }, bottomRight: { x: 15, y: 52 } },
+    target: { x: 24, y: 36 },
     topOnly: false,
   },
 ];
@@ -317,10 +314,22 @@ export interface JacketSourceRemoval {
  * cover the leg side strips including the length extension.
  */
 export const JACKET_MOVED_RECTS: readonly JacketSourceRemoval[] = [
-  { rect: { x1: 4, y1: 32, x2: 7, y2: 35 }, extendY2: false },
-  { rect: { x1: 4, y1: 48, x2: 7, y2: 51 }, extendY2: false },
-  { rect: { x1: 0, y1: 36, x2: 15, y2: 36 }, extendY2: true },
-  { rect: { x1: 0, y1: 52, x2: 15, y2: 52 }, extendY2: true },
+  {
+    rect: { topLeft: { x: 4, y: 32 }, bottomRight: { x: 7, y: 35 } },
+    extendY2: false,
+  },
+  {
+    rect: { topLeft: { x: 4, y: 48 }, bottomRight: { x: 7, y: 51 } },
+    extendY2: false,
+  },
+  {
+    rect: { topLeft: { x: 0, y: 36 }, bottomRight: { x: 15, y: 36 } },
+    extendY2: true,
+  },
+  {
+    rect: { topLeft: { x: 0, y: 52 }, bottomRight: { x: 15, y: 52 } },
+    extendY2: true,
+  },
 ];
 
 /**
@@ -329,14 +338,14 @@ export const JACKET_MOVED_RECTS: readonly JacketSourceRemoval[] = [
  * regions the transparency feature would otherwise affect.
  */
 export const FORCED_SOLID_RECTS: readonly Rect[] = [
-  { x1: 8, y1: 0, x2: 23, y2: 15 },
-  { x1: 0, y1: 20, x2: 55, y2: 31 },
-  { x1: 0, y1: 8, x2: 7, y2: 15 },
-  { x1: 24, y1: 8, x2: 31, y2: 15 },
-  { x1: 0, y1: 16, x2: 11, y2: 19 },
-  { x1: 20, y1: 16, x2: 35, y2: 19 },
-  { x1: 44, y1: 16, x2: 51, y2: 19 },
-  { x1: 20, y1: 48, x2: 27, y2: 51 },
-  { x1: 36, y1: 48, x2: 43, y2: 51 },
-  { x1: 16, y1: 52, x2: 47, y2: 63 },
+  { topLeft: { x: 8, y: 0 }, bottomRight: { x: 23, y: 15 } },
+  { topLeft: { x: 0, y: 20 }, bottomRight: { x: 55, y: 31 } },
+  { topLeft: { x: 0, y: 8 }, bottomRight: { x: 7, y: 15 } },
+  { topLeft: { x: 24, y: 8 }, bottomRight: { x: 31, y: 15 } },
+  { topLeft: { x: 0, y: 16 }, bottomRight: { x: 11, y: 19 } },
+  { topLeft: { x: 20, y: 16 }, bottomRight: { x: 35, y: 19 } },
+  { topLeft: { x: 44, y: 16 }, bottomRight: { x: 51, y: 19 } },
+  { topLeft: { x: 20, y: 48 }, bottomRight: { x: 27, y: 51 } },
+  { topLeft: { x: 36, y: 48 }, bottomRight: { x: 43, y: 51 } },
+  { topLeft: { x: 16, y: 52 }, bottomRight: { x: 47, y: 63 } },
 ];

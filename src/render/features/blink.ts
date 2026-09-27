@@ -165,14 +165,12 @@ export function blinkRects(info: BlinkInfo): Rect[] {
     return [BLINK_FACE_RECT, BLINK_FLOATING_FACE_RECT];
   }
   const strip = BLINK_EYE_STRIPS[info.mode][0];
-  const height = strip.y2 - strip.y1 + 1;
-  const top = BLINK_FACE_RECT.y1 + ((info.eyePosition ?? 1) - 1);
+  const height = strip.bottomRight.y - strip.topLeft.y + 1;
+  const top = BLINK_FACE_RECT.topLeft.y + ((info.eyePosition ?? 1) - 1);
   return [
     {
-      x1: BLINK_FACE_RECT.x1,
-      y1: top,
-      x2: BLINK_FACE_RECT.x2,
-      y2: top + height - 1,
+      topLeft: { x: BLINK_FACE_RECT.topLeft.x, y: top },
+      bottomRight: { x: BLINK_FACE_RECT.bottomRight.x, y: top + height - 1 },
     },
   ];
 }
@@ -193,8 +191,12 @@ export function patternOverlapsBlink(
     return false;
   }
   return blinkRects(info).some((rect) => {
-    for (let y = rect.y1; y <= rect.y2; y++) {
-      for (let x = rect.x1; x <= rect.x2; x++) {
+    const {
+      topLeft: { x: x1, y: y1 },
+      bottomRight: { x: x2, y: y2 },
+    } = rect;
+    for (let y = y1; y <= y2; y++) {
+      for (let x = x1; x <= x2; x++) {
         if (mask.data[(y * mask.width + x) * 4 + 3] !== 0) {
           return true;
         }
