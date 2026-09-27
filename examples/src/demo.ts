@@ -323,14 +323,27 @@ export function initDemo(container: HTMLElement): DemoHandle {
     return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
   }
 
-  /** Sends the period pair; equal ends mean a fixed interval. */
-  function applyPeriod(): void {
+  /**
+   * Reads the period pair; equal ends mean a fixed interval.
+   *
+   * @returns The `periodMs` value, or `null` when either input is
+   *   unusable.
+   */
+  function readPeriod(): number | [number, number] | null {
     const min = readTiming(periodMin);
     const max = readTiming(periodMax);
     if (min === null || max === null) {
-      return;
+      return null;
     }
-    controller?.setBlinkOptions({ periodMs: min === max ? min : [min, max] });
+    return min === max ? min : [min, max];
+  }
+
+  /** Sends the period pair from the timing rows. */
+  function applyPeriod(): void {
+    const periodMs = readPeriod();
+    if (periodMs !== null) {
+      controller?.setBlinkOptions({ periodMs });
+    }
   }
 
   const periodMin = numberInput(
@@ -426,12 +439,9 @@ export function initDemo(container: HTMLElement): DemoHandle {
     if (controller === null) {
       return;
     }
-    const min = readTiming(periodMin);
-    const max = readTiming(periodMax);
-    if (min !== null && max !== null) {
-      controller.setBlinkOptions({
-        periodMs: min === max ? min : [min, max],
-      });
+    const periodMs = readPeriod();
+    if (periodMs !== null) {
+      controller.setBlinkOptions({ periodMs });
     }
     const closed = readTiming(closedInput);
     if (closed !== null) {
@@ -929,11 +939,11 @@ export function initDemo(container: HTMLElement): DemoHandle {
     }
   });
   loadSkinButton.disabled = true;
-  const loadSkinSource = lockedInput(
-    "",
-    "loadSkin.source: the texture to load - locked, the demo fills " +
-      "it from the fixture bar selection (fixture.url)",
-  );
+  /** The `loadSkin.source` description: lock reason and row share it. */
+  const loadSkinSourceDescription =
+    "loadSkin.source: the texture source - locked, the demo fills " +
+    "it from the fixture bar selection (fixture.url)";
+  const loadSkinSource = lockedInput("", loadSkinSourceDescription);
 
   /** The host rows' resets in row order; the title row runs them. */
   const hostResets: Array<() => void> = [];
@@ -1025,12 +1035,9 @@ export function initDemo(container: HTMLElement): DemoHandle {
           "the current fixture and model",
         [loadSkinButton],
       ),
-      optionRow(
-        ["loadSkin", "source"],
-        "loadSkin.source: the texture source - locked, the demo fills " +
-          "it from the fixture bar selection (fixture.url)",
-        [loadSkinSource],
-      ),
+      optionRow(["loadSkin", "source"], loadSkinSourceDescription, [
+        loadSkinSource,
+      ]),
       optionRow(
         ["loadSkin", "options"],
         "loadSkin.options: SkinLoadOptions",

@@ -65,14 +65,17 @@ export function getSelectedFixture(): Fixture | undefined {
 
 /**
  * Replaces the shared selection and notifies every listener. Selecting
- * the fixture that is already selected does nothing unless `force` is
- * set (uploads re-notify so the same file name reloads).
+ * the already-selected fixture object does nothing unless `force` is
+ * set; uploads pass `force`, and a bundled fixture that shares its
+ * name with the current upload is a different object and still
+ * notifies.
  *
  * @param fixture - The fixture to select.
- * @param force - Notify even when the fixture is already selected.
+ * @param force - Notify even when the same fixture is already
+ *   selected.
  */
 export function setSelectedFixture(fixture: Fixture, force = false): void {
-  if (!force && selected !== undefined && selected.name === fixture.name) {
+  if (!force && selected === fixture) {
     return;
   }
   selected = fixture;

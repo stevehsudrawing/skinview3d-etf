@@ -230,6 +230,15 @@ export function createBlockbenchGroup(
     syncBlockbenchAvailability();
   });
 
+  /** The `setAnimation` description: button tooltip and row share it. */
+  const setAnimationDescription =
+    "SkinViewBlockbench.setAnimation(animation_name, options?): " +
+    "restart the selected animation from the start (the optional " +
+    "options parameter is unused here)";
+  /** The `animation_name` description: lock reason and row share it. */
+  const animationNameDescription =
+    "SkinViewBlockbench.setAnimation.animation_name: locked, the " +
+    "demo passes the animationName picker selection";
   const setAnimationButton = executeButton(
     "execute SkinViewBlockbench.setAnimation",
     () => {
@@ -238,15 +247,8 @@ export function createBlockbenchGroup(
       }
     },
   );
-  setAnimationButton.title =
-    "SkinViewBlockbench.setAnimation(animation_name, options?): " +
-    "restart the selected animation from the start (the optional " +
-    "options parameter is unused here)";
-  const animationNameParam = lockedInput(
-    "",
-    "SkinViewBlockbench.setAnimation.animation_name: locked, the " +
-      "demo passes the animationName picker selection",
-  );
+  setAnimationButton.title = setAnimationDescription;
+  const animationNameParam = lockedInput("", animationNameDescription);
 
   const upload = createAnimationUploadControl((name, provider) => {
     provider.onFinish = () => {
@@ -315,17 +317,12 @@ export function createBlockbenchGroup(
         resets,
       ),
     ),
-    optionRow(
-      ["SkinViewBlockbench", "setAnimation"],
-      "SkinViewBlockbench.setAnimation(animation_name, options?): " +
-        "restart the selected animation from the start (the " +
-        "optional options parameter is unused here)",
-      [setAnimationButton],
-    ),
+    optionRow(["SkinViewBlockbench", "setAnimation"], setAnimationDescription, [
+      setAnimationButton,
+    ]),
     optionRow(
       ["SkinViewBlockbench", "setAnimation", "animation_name"],
-      "SkinViewBlockbench.setAnimation.animation_name: locked, the " +
-        "demo passes the animationName picker selection",
+      animationNameDescription,
       [animationNameParam],
     ),
     optionRow(

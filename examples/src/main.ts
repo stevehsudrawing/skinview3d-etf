@@ -11,20 +11,20 @@ import { createFixtureSelect, fixtures } from "./fixtures";
 import { createUploadControl } from "./upload";
 
 /**
- * Activates one tab: toggles the button/panel states, initializes the
- * panel on first use and pauses the 3D viewer while hidden.
+ * Builds the tab activator: it toggles the button/panel states,
+ * initializes each panel on first use and pauses the 3D viewer while
+ * hidden.
  *
  * @param demoPanel - The 3D demo panel.
  * @param previewPanel - The decoder preview panel.
- * @param id - The tab to activate.
+ * @param buttons - The tab buttons kept `aria-selected` in sync.
+ * @returns The activator for one tab id.
  */
 function makeActivator(
   demoPanel: HTMLElement,
   previewPanel: HTMLElement,
+  buttons: readonly HTMLButtonElement[],
 ): (id: string) => void {
-  const buttons = [
-    ...document.querySelectorAll<HTMLButtonElement>("[data-tab]"),
-  ];
   let demoHandle: DemoHandle | null = null;
   let previewReady = false;
   return (id: string): void => {
@@ -55,7 +55,10 @@ function main(): void {
   if (demoPanel === null || previewPanel === null) {
     throw new Error("demo shell markup is missing");
   }
-  const activate = makeActivator(demoPanel, previewPanel);
+  const buttons = [
+    ...document.querySelectorAll<HTMLButtonElement>("[data-tab]"),
+  ];
+  const activate = makeActivator(demoPanel, previewPanel, buttons);
   const fixtureBar = document.getElementById("fixture-bar");
   if (fixtureBar !== null) {
     if (fixtures.length > 0) {
@@ -68,9 +71,6 @@ function main(): void {
     });
     fixtureBar.append(uploadControl.button, uploadControl.input, uploadStatus);
   }
-  const buttons = [
-    ...document.querySelectorAll<HTMLButtonElement>("[data-tab]"),
-  ];
   for (const button of buttons) {
     button.addEventListener("click", () => {
       const id = button.dataset.tab;
