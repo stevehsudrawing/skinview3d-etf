@@ -64,7 +64,7 @@ ticker - call `controller.rebind()` afterwards.
 
 For custom render loops, pass `manageTicker: false` and call
 `controller.update(dt)` yourself with the elapsed seconds; negative
-deltas are ignored.
+and non-finite deltas are ignored.
 
 ### 3.4 Teardown: detach()
 

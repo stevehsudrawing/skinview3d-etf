@@ -9,14 +9,14 @@ to the documented defaults.
 
 ### 1.1 features
 
-| Key            | Default | Effect                                                           |
-| -------------- | ------- | ---------------------------------------------------------------- |
-| `transparency` | `true`  | honor the decoded base-layer alpha, per body part;               |
-| `emissive`     | `true`  | fullbright glow overlays for the decoded emissive pixels;        |
-| `blink`        | `true`  | automatic blinking and the fixed eye states;                     |
-| `nose`         | `true`  | villager and textured noses;                                     |
-| `enchanted`    | `true`  | the enchanted pixel overlay;                                     |
-| `jacket`       | `true`  | deferred - accepted and ignored until the jacket renderer lands. |
+| Key            | Default | Effect                                                         |
+| -------------- | ------- | -------------------------------------------------------------- |
+| `transparency` | `true`  | honor the decoded base-layer alpha, per body part;             |
+| `emissive`     | `true`  | fullbright overlays for the decoded emissive pixels;           |
+| `blink`        | `true`  | automatic blinking and the fixed eye states;                   |
+| `nose`         | `true`  | villager and textured noses;                                   |
+| `enchanted`    | `true`  | the enchanted pixel overlay;                                   |
+| `jacket`       | `true`  | the jacket/dress extension (thin / wide, top / no-top styles); |
 
 ### 1.2 blink
 
@@ -66,9 +66,10 @@ The documented defaults are exported as `DEFAULT_ENCHANTED_OPTIONS`.
 | `setVillagerNoseOptions(partial)` | `villagerNose`                  |
 
 Every setter merges partial updates: an omitted property keeps its
-current value. The two texture options add one nuance - an explicit
-`texture: undefined` restores the built-in default, while
-`texture: null` turns the feature off.
+current value, and an explicit `undefined` counts as omitted (it
+does not clear the setting). The two texture options keep their
+presence-based contract - an explicit `texture: undefined` restores
+the built-in default, while `texture: null` turns the feature off.
 
 ## 3. Texture inputs
 
@@ -86,15 +87,22 @@ Remote URLs load with `crossOrigin: "anonymous"` unless you supply
 the object form. Caller objects are only read, never mutated or
 disposed.
 
-## 4. Migration from v0.0.1
+## 4. Migration
 
 Breaking (expected before 1.0): the flat v0.0.1 keys moved into
-option groups.
+option groups in v0.0.2, and v0.0.3 renamed the glint group after
+its feature family and reworked the decode geometry. The release
+notes list every mapping.
 
-| v0.0.1                | v0.0.2                 |
-| --------------------- | ---------------------- |
-| `villagerNoseTexture` | `villagerNose.texture` |
-| `glintTexture`        | `glint.texture`        |
-
-`ETFController.setVillagerNoseTexture()` is replaced by
-`setVillagerNoseOptions()`, and `setEnchantedOptions()` is new.
+| Entry              | v0.0.1                                               | v0.0.2                     | current                                               |
+| ------------------ | ---------------------------------------------------- | -------------------------- | ----------------------------------------------------- |
+| nose texture       | `villagerNoseTexture`                                | `villagerNose.texture`     | (unchanged)                                           |
+| enchanted texture  | `glintTexture`                                       | `glint.texture`            | `enchanted.texture`                                   |
+| nose setter        | `setVillagerNoseTexture()`                           | `setVillagerNoseOptions()` | (unchanged)                                           |
+| enchanted setter   | (new)                                                | `setGlintOptions()`        | `setEnchantedOptions()`                               |
+| enchanted defaults | (new)                                                | `DEFAULT_GLINT_OPTIONS`    | `DEFAULT_ENCHANTED_OPTIONS`                           |
+| rect corners       | `x1` / `y1` / `x2` / `y2`                            | (unchanged)                | `topLeft` / `bottomRight` (readonly points)           |
+| blink eye row      | `eyeHeight`                                          | (unchanged)                | `eyePosition`                                         |
+| nose fields        | `villagerSkinTextured` / `variant` / `removesSource` | (unchanged)                | `villagerTextured` / `textured` / `removesFacePixels` |
+| jacket width flag  | `fat`                                                | (unchanged)                | `wide`                                                |
+| jacket length type | `number`                                             | (unchanged)                | `1`-`8` union                                         |

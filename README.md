@@ -18,15 +18,14 @@ player skin features on the 3D player model:
 - enchanted pixel overlay;
 - jacket/dress extension.
 
-The v0.0.1 decoder is complete and available now: `decodeSkin()` reads
+The decoder (`decodeSkin()`) is complete and available now: it reads
 every ETF player skin feature - the marker and its choice cells, the
 palette and the seven choice slots, transparency and forced-solid,
-blinking, nose, jacket (styles 1-8) and the emissive/enchanted pattern
-data - and prepares the overlay images the renderer consumes. The
-renderer ships transparency, the nose (villager and textured), the
-emissive pixels, blinking eyes and the enchanted pixel overlay
-through `attachETFSkinFeatures()` on a live viewer; jacket rendering
-is not implemented yet.
+blinking, nose, jacket (styles 1-8) and the emissive/enchanted
+pattern data - and prepares the overlay images the renderer
+consumes. The renderer ships all six features - including the
+jacket/dress extension - through `attachETFSkinFeatures()` on a
+live viewer.
 
 The in-skin cape no longer exists upstream (all code paths are
 commented out), so it is out of scope; the five former cape texture
@@ -37,11 +36,11 @@ regions are reused as textured-nose sources.
 Early development. The decoder (`decodeSkin()`) is complete and
 unit-tested against the
 [ETF example skins](https://github.com/Traben-0/Entity_Texture_Features/tree/ETF-Main/.github/README-assets/mod-skins).
-The renderer ships transparency, the nose (villager and textured),
-the emissive pixels, blinking eyes and the enchanted pixel overlay
-on a live viewer; jacket rendering is not implemented yet. Published
-on npm as `skinview3d-etf`; a live demo
-deploys from `main` (§4).
+The renderer ships all six features - transparency, the nose
+(villager and textured), the emissive pixels, blinking eyes, the
+enchanted pixel overlay and the jacket/dress extension - on a live
+viewer. Published on npm as `skinview3d-etf`; a live demo deploys
+from `main` (§4).
 
 ## 2. Usage
 
@@ -84,9 +83,10 @@ call `controller.update(dt)` yourself in a custom render loop, and use
 state or change the timing at runtime. The documented defaults are
 exported as `DEFAULT_BLINK_OPTIONS`.
 
-The options form four groups: `features` (the five toggles -
-including `enchanted`), `blink`, `enchanted` (`texture`, `speed`,
-`opacity`, `scale`, `smooth`) and `villagerNose` (`texture`).
+The options form four groups: `features` (the six toggles -
+`transparency`, `emissive`, `blink`, `nose`, `enchanted` and
+`jacket`), `blink`, `enchanted` (`texture`, `speed`, `opacity`,
+`scale`, `smooth`) and `villagerNose` (`texture`).
 `DEFAULT_ENCHANTED_OPTIONS` exports the enchanted defaults, and the
 runtime setters (`setFeatures()`, `setBlinkOptions()`,
 `setEnchantedOptions()`, `setVillagerNoseOptions()`) merge partial
@@ -109,10 +109,13 @@ const result = decodeSkin(imageData);
 // result.skin, result.emissive?.mask, result.blink?.frames, ...
 ```
 
-Note the migration from v0.0.1 (breaking, expected before 1.0): the
-flat `villagerNoseTexture` option moved to `villagerNose.texture`,
-and the reserved `glintTexture` option is now `enchanted.texture`
-(the group adds `speed`, `opacity`, `scale` and `smooth`).
+Note the migrations (breaking, expected before 1.0): the flat v0.0.1
+`villagerNoseTexture` option moved to `villagerNose.texture`, and
+the reserved v0.0.1 `glintTexture` option is now
+`enchanted.texture` (the group adds `speed`, `opacity`, `scale` and
+`smooth`). Upgrading from v0.0.2, the `glint` option group and its
+setter are renamed `enchanted` (`glint.texture` ->
+`enchanted.texture`, `setGlintOptions()` -> `setEnchantedOptions()`).
 
 **Browser support:** the build targets ES2022 and the runtime expects
 WebGL 2 (matching the `three` release's own browser target) - the
@@ -152,23 +155,32 @@ A live build is deployed from `main` to the
   (`examples/src/assets/skins/example.png`) and accepts a PNG upload
   of your own skin: 64x64, or a legacy 64x32 skin that is converted
   automatically (rejected files raise a browser alert).
-- The 3D tab shows three control trees grouped by owning package
-  (the extension, the blockbench provider, the host viewer): every
-  row carries one exact API keyword at its API-path depth, the
-  tooltip shows the dotted path plus a description, and after every
-  load the demo decodes the skin and grays the rows the skin has no
-  data for (a skin without the ETF marker grays almost everything).
+- The 3D tab shows three control trees grouped by owning package,
+  in order: `skinview3d-etf`, the host `skinview3d` and
+  `skinview3d-blockbench` (hidden until its `SkinViewBlockbench`
+  mode is picked in the `viewer.animation` row); every group title
+  carries its package version. Each row carries one exact API
+  keyword at its API-path depth and its tooltip shows the dotted
+  path plus a description; after every load the demo decodes the
+  skin and grays the rows the skin has no data for (a skin without
+  the ETF marker grays almost everything).
 - Function rows (`attachETFSkinFeatures`, `detach`, `loadSkin`,
   `setAnimation`) carry an `execute` button with their parameters
   as child rows; values the demo derives itself (the fixture
   source, the animation name) are locked read-only inputs that
   explain the derivation in their tooltip.
+- Every parameter row carries a `reset` in its own action column,
+  and every table title and parameter group (the container rows)
+  carries a group `reset` that restores every row in its group; the
+  texture rows pick between the built-in default, the off state and
+  a transient `[upload]` entry through one `(select) [choose]`
+  pair. The `reset` button in the stage's corner restores the
+  camera pose.
 - The `skinview3d-etf:` tree gates everything on its
   `attachETFSkinFeatures` / `detach` execute rows; the `blink` rows
   couple to the feature switch, the `enchanted` rows to
   `features.enchanted` and the `villagerNose.texture` row to the
-  villager nose; a `reset` button in the stage's corner restores
-  the camera pose.
+  villager nose.
 - The `skinview3d-blockbench:` tree picks its input file
   (`animation`, the bundled self-made copy or a transient `[upload]`
   entry) and plays its animations (`animationName`, `setAnimation`,
@@ -181,16 +193,21 @@ A live build is deployed from `main` to the
 
 ## 5. Roadmap
 
-v0.0.2 (current milestone):
+v0.0.3 (current milestone):
 
-- [x] render the enchanted pixel overlay with the reworked
-      texture options (`smooth`, the texture-slot state machine);
-- [x] rebuild the demo control tree and rewrite the README;
-- [x] sync the documentation pages and prepare the release record;
-- [x] v0.0.2 release.
+- [x] render the jacket/dress extension with its own emissive and
+      enchanted overlays;
+- [x] align the six feature families with the ETF labels
+      (breaking);
+- [x] unify the decode geometry types under `Coordinate`
+      (breaking);
+- [x] run the milestone audit (four slices) and land its fixes;
+- [x] refresh the demo and the documentation pages;
+- [ ] v0.0.3 release.
 
 History:
 
+- [x] v0.0.2 release.
 - [x] v0.0.1 release.
 
 ## 6. Credits and disclaimer

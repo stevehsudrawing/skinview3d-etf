@@ -19,12 +19,12 @@ endorsed by the ETF or skinview3d projects.
 - blinking eyes;
 - nose (villager and textured);
 - enchanted pixel overlay;
-- jacket/dress extension (the renderer is deferred).
+- jacket/dress extension.
 
 The decoder (`decodeSkin()`) reads every ETF player skin feature -
 the jacket and enchanted data included - and is complete and
-unit-tested; the renderer covers everything except the jacket. See
-[Options](Options.md) for every knob and
+unit-tested; the renderer draws all six families on a live viewer.
+See [Options](Options.md) for every knob and
 [Getting Started](Getting-Started.md) for the integration guide.
 
 ## 2. Install and quick start
@@ -61,7 +61,7 @@ controller.detach();
 - [Getting Started](Getting-Started.md) - install, attach, lifecycle
   and the standalone decoder;
 - [Options](Options.md) - the option groups, defaults, runtime setters
-  and the v0.0.1 migration;
+  and the migration notes;
 - [FAQ](FAQ.md) - common questions and answers.
 
 ## 4. Project links
