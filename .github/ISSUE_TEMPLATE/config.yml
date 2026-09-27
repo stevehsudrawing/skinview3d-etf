@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation and FAQ (Wiki)
+    url: https://github.com/stevehsudrawing/skinview3d-etf/wiki
+    about: Usage guides, option references and the FAQ live in the Wiki.
