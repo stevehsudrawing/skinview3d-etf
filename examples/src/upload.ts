@@ -1,8 +1,9 @@
 /**
- * File uploads for the demo shell: the PNG skin picker (validates the
- * file and publishes it as the shared fixture) and the Blockbench
- * animation picker (parses and trial-builds a provider). Rejections
- * surface through `alert()`; uploaded data never leaves the browser.
+ * File controls for the demo shell: one shared hidden-input +
+ * `choose`-button pair behind every picker (the PNG skin upload, the
+ * Blockbench animation upload and the texture rows), plus the PNG
+ * validation flow and the animation parser. Rejections surface
+ * through `alert()`; uploaded data never leaves the browser.
  */
 
 import {
@@ -11,19 +12,39 @@ import {
 } from "skinview3d-blockbench";
 import { loadImageData, setUploadedFixture, type Fixture } from "./fixtures";
 
+/** Options accepted by {@link createFileControl}. */
+export interface FileControlOptions {
+  /** The visible button text. */
+  label: string;
+  /** The `accept` attribute for the picker. */
+  accept: string;
+  /** The button tooltip, when the control needs one. */
+  title?: string;
+  /** Receives every picked file (thrown errors alert). */
+  handle: (file: File) => void | Promise<void>;
+}
+
+/** Handle over one file control. */
+export interface FileControl {
+  /** The hidden native input (in the DOM so the picker opens). */
+  input: HTMLInputElement;
+  /** The visible button that opens the file picker. */
+  button: HTMLButtonElement;
+}
+
 /**
- * Builds a file input that funnels every pick through one handler
- * with the shared rejection flow: the picker value is reset so the
- * same file can be picked again, and thrown errors alert.
+ * Builds the shared file-pick pair: a hidden native input and the
+ * visible button that opens it - one styled button instead of the
+ * browser's own control. Every pick funnels through `handle` with the
+ * shared rejection flow (the picker value resets so the same file can
+ * be picked again, and thrown errors alert).
  *
- * @param accept - The `accept` attribute for the picker.
- * @param handle - Receives every picked file.
- * @returns The file `<input>` element.
+ * @param options - The button text, the `accept` filter, the optional
+ *   tooltip and the pick handler.
+ * @returns The hidden input and the visible button.
  */
-function createFilePickedInput(
-  accept: string,
-  handle: (file: File) => Promise<void>,
-): HTMLInputElement {
+export function createFileControl(options: FileControlOptions): FileControl {
+  const { label, accept, title, handle } = options;
   const choose = async (file: File): Promise<void> => {
     try {
       await handle(file);
@@ -34,6 +55,7 @@ function createFilePickedInput(
   const input = document.createElement("input");
   input.type = "file";
   input.accept = accept;
+  input.hidden = true;
   input.addEventListener("change", () => {
     const file = input.files?.[0];
     // Reset the value so picking the same file again still fires.
@@ -42,7 +64,14 @@ function createFilePickedInput(
       void choose(file);
     }
   });
-  return input;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = label;
+  if (title !== undefined) {
+    button.title = title;
+  }
+  button.addEventListener("click", () => input.click());
+  return { input, button };
 }
 
 /** The PNG file signature (first eight bytes). */
@@ -74,16 +103,16 @@ async function hasPngSignature(file: File): Promise<boolean> {
 }
 
 /**
- * Builds the upload control: a labeled file input that validates the
- * picked PNG, alerts on rejections and publishes accepted skins as
- * the shared fixture.
+ * Builds the upload control: a button (with its hidden input) that
+ * validates the picked PNG, alerts on rejections and publishes
+ * accepted skins as the shared fixture.
  *
  * @param onUploaded - Receives the message for an accepted upload.
- * @returns The `<label>` element wrapping the file input.
+ * @returns The hidden input and the visible `upload PNG` button.
  */
 export function createUploadControl(
   onUploaded: (message: string) => void,
-): HTMLLabelElement {
+): FileControl {
   /**
    * Probes the image and publishes it when it passes validation.
    *
@@ -116,26 +145,26 @@ export function createUploadControl(
     onUploaded(`uploaded ${file.name}${note}`);
   };
 
-  const input = createFilePickedInput("image/png", addFixture);
-  const label = document.createElement("label");
-  label.className = "upload";
-  label.append("upload PNG ", input);
-  return label;
+  return createFileControl({
+    label: "upload PNG",
+    accept: "image/png",
+    handle: addFixture,
+  });
 }
 
 /**
  * Builds the animation-file upload control: reads the picked
  * `.animation.json`, validates it by trial-building the provider and
- * hands both to the demo. Rejections alert like the PNG upload; the
- * input carries no label text (its control row names it).
+ * hands both to the control row (the button's tooltip explains the
+ * picker).
  *
  * @param onLoaded - Receives the file name and the provider built
  * from the parsed file.
- * @returns The file `<input>` element.
+ * @returns The hidden input and the visible `choose` button.
  */
 export function createAnimationUploadControl(
   onLoaded: (name: string, provider: SkinViewBlockbench) => void,
-): HTMLInputElement {
+): FileControl {
   /**
    * Parses and builds the provider for one picked file.
    *
@@ -147,7 +176,10 @@ export function createAnimationUploadControl(
     onLoaded(file.name, provider);
   };
 
-  const input = createFilePickedInput(".json,application/json", addAnimation);
-  input.title = "upload your own Blockbench .animation.json";
-  return input;
+  return createFileControl({
+    label: "choose",
+    accept: ".json,application/json",
+    title: "upload your own Blockbench .animation.json",
+    handle: addAnimation,
+  });
 }

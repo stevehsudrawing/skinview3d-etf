@@ -2,9 +2,9 @@
  * Reusable control-table builders for the demo: API-path rows (the
  * label is the path's last segment, the depth indents it), the
  * per-package tables with hierarchical row ids, the row action
- * buttons aligned in one column, the `execute` buttons, the locked
- * parameters, the number inputs and the per-row availability
- * helpers.
+ * buttons (resets) aligned in their own column, the group resets,
+ * the `execute` buttons, the locked parameters, the value-reset
+ * helpers, the number inputs and the per-row availability helpers.
  */
 
 /**
@@ -18,8 +18,9 @@
  * @param path - The API path (display = last segment, depth =
  *   `path.length - 1`).
  * @param description - The plain-English tooltip text.
- * @param controls - The control elements (right column).
- * @param action - A per-row action button, when the row has one.
+ * @param controls - The control elements (the middle column).
+ * @param action - A per-row action button, when the row has one; it
+ *   renders in the row's action column (the third cell).
  * @returns The `<tr>` element.
  */
 export function optionRow(
@@ -39,10 +40,12 @@ export function optionRow(
   header.append(keyword);
   const cell = document.createElement("td");
   cell.append(...controls);
+  const actionCell = document.createElement("td");
+  actionCell.className = "row-action-cell";
   if (action !== undefined) {
-    cell.append(action);
+    actionCell.append(action);
   }
-  row.append(header, cell);
+  row.append(header, cell, actionCell);
   return row;
 }
 
@@ -51,25 +54,41 @@ export function optionRow(
  * as the id namespace and the ids encode the API path
  * (`demo-option-<slug>-<lowercased path segments>`), so equal leaf
  * keywords in different groups stay addressable, and every control
- * without its own label is tied to its row header.
+ * without its own label is tied to its row header. A parenthetical
+ * version suffix in the title (` (v0.0.3)`) is display-only and
+ * drops out of the slug, so version bumps never move the ids.
  *
  * @param title - The group title.
  * @param rows - The option rows.
+ * @param resets - The row resets collected in row order; when given,
+ *   the title row gains the group `reset` (it runs every callback
+ *   directly, so disabled rows reset too).
  * @returns The `<table>` element.
  */
 export function controlTable(
   title: string,
   rows: readonly HTMLTableRowElement[],
+  resets?: readonly (() => void)[],
 ): HTMLTableElement {
   const table = document.createElement("table");
   table.className = "control-group";
   const titleRow = document.createElement("tr");
   const header = document.createElement("th");
-  header.colSpan = 2;
+  header.colSpan = resets === undefined ? 3 : 2;
   header.className = "group-title";
   header.textContent = title;
   titleRow.append(header);
-  const slug = title.replace(/:$/, "").toLowerCase();
+  // The display-only version suffix stays out of the row ids.
+  const slug = title
+    .replace(/\s*\([^)]*\)/g, "")
+    .replace(/:$/, "")
+    .toLowerCase();
+  if (resets !== undefined) {
+    const actionCell = document.createElement("td");
+    actionCell.className = "row-action-cell";
+    actionCell.append(resetAllButton(`reset ${slug}`, resets));
+    titleRow.append(actionCell);
+  }
   for (const row of rows) {
     const rowHeader = row.querySelector("th");
     const path = row.dataset.optionPath?.split(".");
@@ -94,7 +113,8 @@ export function controlTable(
 
 /**
  * Builds a row action button; the `row-action` class lets every row
- * action align in one column. The visible text is the API keyword.
+ * action align in the action column. The visible text is the API
+ * keyword.
  *
  * @param text - The visible label (the API keyword).
  * @param label - The accessible label.
@@ -113,6 +133,80 @@ export function actionButton(
   button.setAttribute("aria-label", label);
   button.addEventListener("click", onClick);
   return button;
+}
+
+/**
+ * Builds one row's `reset` control and registers its callback with
+ * every given list (the table's and its parameter groups'). The
+ * group resets run the callbacks directly - a disabled row disables
+ * its button too, so clicks cannot be replayed.
+ *
+ * @param path - The row's API path (the accessible name reads
+ *   `reset <dotted path>`).
+ * @param reset - Restores the row's default.
+ * @param groups - The reset lists to append to (in row order per
+ *   list).
+ * @returns The reset button for the row's action cell.
+ */
+export function resetRow(
+  path: readonly string[],
+  reset: () => void,
+  ...groups: Array<Array<() => void>>
+): HTMLButtonElement {
+  for (const group of groups) {
+    group.push(reset);
+  }
+  return actionButton("reset", `reset ${path.join(".")}`, reset);
+}
+
+/**
+ * Builds a `reset` control that runs the given callbacks in order;
+ * the table titles and the parameter-group rows use it (registered
+ * row resets stay on the rows themselves).
+ *
+ * @param label - The accessible name (`reset <dotted path>`).
+ * @param steps - The callbacks to run.
+ * @returns The `<button>` element.
+ */
+export function resetAllButton(
+  label: string,
+  steps: readonly (() => void)[],
+): HTMLButtonElement {
+  return actionButton("reset", label, () => {
+    for (const step of steps) {
+      step();
+    }
+  });
+}
+
+/**
+ * Restores one checkbox to a value and replays its `change`
+ * listeners, so the row's own handler applies the default; the
+ * programmatic event reaches disabled controls, and the handlers
+ * guard their controller access. Controls wired to `input` events
+ * (the color and range rows) reset directly instead.
+ *
+ * @param box - The checkbox to restore.
+ * @param checked - The default checked state.
+ */
+export function resetCheckbox(box: HTMLInputElement, checked: boolean): void {
+  box.checked = checked;
+  box.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+/**
+ * Restores one select or change-driven input value and replays its
+ * `change` listeners.
+ *
+ * @param control - The control to restore.
+ * @param value - The default value.
+ */
+export function resetValue(
+  control: HTMLInputElement | HTMLSelectElement,
+  value: string,
+): void {
+  control.value = value;
+  control.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
 /**

@@ -1,11 +1,14 @@
 /**
- * The `skinview3d-blockbench:` control group: the file picker (the
+ * The `skinview3d-blockbench` control group: the file picker (the
  * bundled fixture plus one transient `[upload]` entry), the animation
  * list that follows the selected file, and the playback controls
  * (`forceLoop`, `paused`, `speed`, `setAnimation`). The group owns the
  * provider state and drives the shared `viewer.animation` slot; the
- * page stays in sync through the `onSlotChange` callback and calls
- * `release()` when its own animation picker takes the slot.
+ * demo reveals it through the `SkinViewBlockbench` mode of the
+ * viewer's animation picker and calls `release()` when the mode is
+ * left. Every parameter row and the provider row carry a `reset`;
+ * both group resets also restore the bundled provider's playback
+ * values.
  */
 
 import type { SkinViewer } from "skinview3d";
@@ -17,11 +20,21 @@ import {
   lockedInput,
   numberInput,
   optionRow,
+  resetAllButton,
+  resetCheckbox,
+  resetRow,
+  resetValue,
 } from "./controls";
 import { createAnimationUploadControl } from "./upload";
 
 /** Animation names inside the bundled blockbench fixture. */
 const BLOCKBENCH_NAMES = Object.keys(exampleAnimation.animations);
+
+/** The bundled animation file's picker value. */
+const BUNDLED_FILE = "example.animation.json";
+
+/** The playback speed the group starts from (and resets to). */
+const DEFAULT_SPEED = 1;
 
 /** Options accepted by {@link createBlockbenchGroup}. */
 export interface BlockbenchGroupOptions {
@@ -29,13 +42,15 @@ export interface BlockbenchGroupOptions {
   viewer: SkinViewer;
   /** Status-line sink for upload and finish messages. */
   report: (message: string) => void;
+  /** The group table's title (the demo keeps the version label). */
+  title: string;
   /** Called whenever the group takes or releases the slot. */
   onSlotChange: () => void;
 }
 
 /** Handle over the blockbench control group. */
 export interface BlockbenchGroup {
-  /** The `skinview3d-blockbench:` control table. */
+  /** The blockbench control table (the title comes from options). */
   table: HTMLTableElement;
   /** Clears the pickers; call when the host picker takes the slot. */
   release(): void;
@@ -50,7 +65,10 @@ export interface BlockbenchGroup {
 export function createBlockbenchGroup(
   options: BlockbenchGroupOptions,
 ): BlockbenchGroup {
-  const { viewer, report, onSlotChange } = options;
+  const { viewer, report, title, onSlotChange } = options;
+
+  /** The row resets in row order; the title row's `reset` runs them. */
+  const resets: Array<() => void> = [];
 
   const forceLoopBox = document.createElement("input");
   forceLoopBox.type = "checkbox";
@@ -72,7 +90,7 @@ export function createBlockbenchGroup(
   });
 
   const speedInput = numberInput(
-    1,
+    DEFAULT_SPEED,
     0.25,
     (value) => {
       if (value < 0) {
@@ -171,8 +189,8 @@ export function createBlockbenchGroup(
   const animationFileSelect = document.createElement("select");
   {
     const option = document.createElement("option");
-    option.value = "example.animation.json";
-    option.textContent = "example.animation.json";
+    option.value = BUNDLED_FILE;
+    option.textContent = BUNDLED_FILE;
     animationFileSelect.append(option);
   }
 
@@ -230,7 +248,7 @@ export function createBlockbenchGroup(
       "demo passes the animationName picker selection",
   );
 
-  const uploadInput = createAnimationUploadControl((name, provider) => {
+  const upload = createAnimationUploadControl((name, provider) => {
     provider.onFinish = () => {
       report("animation finished");
     };
@@ -260,18 +278,30 @@ export function createBlockbenchGroup(
     animationNameParam.value = animationNameSelect.value;
   }
 
-  const table = controlTable("skinview3d-blockbench:", [
+  const rows = [
     optionRow(
       ["SkinViewBlockbench"],
       "SkinViewBlockbench: the blockbench animation provider",
       [],
+      resetAllButton("reset SkinViewBlockbench", resets),
     ),
     optionRow(
       ["SkinViewBlockbench", "animation"],
       "SkinViewBlockbench.animation: the provider's input file; pick " +
         "the bundled copy or an uploaded one - the animation list " +
         "follows this file",
-      [animationFileSelect, uploadInput],
+      [animationFileSelect, upload.button, upload.input],
+      resetRow(
+        ["SkinViewBlockbench", "animation"],
+        () => {
+          // Back to the bundled file; the transient upload goes away.
+          animationUpload = null;
+          uploadOption?.remove();
+          uploadOption = null;
+          resetValue(animationFileSelect, BUNDLED_FILE);
+        },
+        resets,
+      ),
     ),
     optionRow(
       ["SkinViewBlockbench", "animationName"],
@@ -279,6 +309,11 @@ export function createBlockbenchGroup(
         "file; none removes viewer.animation (the torso grouping " +
         "persists once created)",
       [animationNameSelect],
+      resetRow(
+        ["SkinViewBlockbench", "animationName"],
+        () => resetValue(animationNameSelect, "none"),
+        resets,
+      ),
     ),
     optionRow(
       ["SkinViewBlockbench", "setAnimation"],
@@ -298,6 +333,11 @@ export function createBlockbenchGroup(
       "SkinViewBlockbench.forceLoop: keep looping; the fixture has " +
         "no loop key, so unchecked plays once",
       [forceLoopBox],
+      resetRow(
+        ["SkinViewBlockbench", "forceLoop"],
+        () => resetCheckbox(forceLoopBox, true),
+        resets,
+      ),
     ),
     optionRow(
       ["SkinViewBlockbench", "paused"],
@@ -306,18 +346,40 @@ export function createBlockbenchGroup(
         "silences the hooked blink; a finished single play stays " +
         "paused",
       [pausedBox],
+      resetRow(
+        ["SkinViewBlockbench", "paused"],
+        () => resetCheckbox(pausedBox, false),
+        resets,
+      ),
     ),
     optionRow(
       ["SkinViewBlockbench", "speed"],
       "SkinViewBlockbench.speed: playback rate; 0 freezes without " +
         "the clock jump (the blink timebase freezes with it)",
       [speedInput],
+      resetRow(
+        ["SkinViewBlockbench", "speed"],
+        () => resetValue(speedInput, String(DEFAULT_SPEED)),
+        resets,
+      ),
     ),
-  ]);
+  ];
+  // One trailing step: the row resets stop the playback first, so
+  // the controls no longer reach the bundled provider - but `play()`
+  // re-reads the provider's values, so the pristine state must reach
+  // it too (the upload provider is gone with its entry).
+  resets.push(() => {
+    if (blockbench !== null) {
+      blockbench.forceLoop = true;
+      blockbench.paused = false;
+      blockbench.speed = DEFAULT_SPEED;
+    }
+  });
+  const table = controlTable(title, rows, resets);
 
   /**
-   * Clears the pickers; the host picker calls this when it takes the
-   * slot.
+   * Clears the pickers; the demo calls this when the viewer's picker
+   * leaves the blockbench mode.
    */
   const release = (): void => {
     animationNameSelect.value = "none";

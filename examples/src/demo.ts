@@ -5,18 +5,24 @@
  * overlay that restores the camera pose), attaches the ETF features
  * through the public `attachETFSkinFeatures()` API and offers three
  * aligned control tables grouped by owning package (the extension,
- * the blockbench animation provider, the host viewer; the builders
- * live in `controls.ts`, the provider group in `blockbench.ts`).
+ * the host viewer and the blockbench animation provider, whose
+ * group is revealed by `viewer.animation`'s `SkinViewBlockbench`
+ * option and renders last; the builders live in `controls.ts`, the
+ * provider group in `blockbench.ts`).
  * Every row shows one API keyword at its API-path depth with the
  * dotted path and description in the tooltip; rows the current
  * skin has no decode data for gray out, the blink / enchanted rows
  * couple to their feature switches, and function rows carry
  * `execute` buttons with their parameters as children (values the
- * demo derives render as locked read-only inputs). The host picker
- * and the
- * blockbench pair share the single `viewer.animation` slot and call
- * `controller.rebind()` whenever the slot object changes; the skin
- * shown comes from the shared fixture bar above the tabs.
+ * demo derives render as locked read-only inputs). Every parameter
+ * row carries a `reset` in its own action column; every table title
+ * and parameter group (the container rows) carries a group `reset`;
+ * the texture rows pick between the built-in
+ * default, off and an uploaded image through one `(select) [choose]`
+ * pair. The host picker and the blockbench pair share the single
+ * `viewer.animation` slot and call `controller.rebind()` whenever
+ * the slot object changes; the skin shown comes from the shared
+ * fixture bar above the tabs.
  */
 
 import {
@@ -41,12 +47,15 @@ import {
 } from "../../src/index";
 import { createBlockbenchGroup } from "./blockbench";
 import {
-  actionButton,
   controlTable,
   executeButton,
   lockedInput,
   numberInput,
   optionRow,
+  resetAllButton,
+  resetCheckbox,
+  resetRow,
+  resetValue,
   setRowDisabled,
   setRowInapplicable,
 } from "./controls";
@@ -83,6 +92,24 @@ const ANIMATIONS: ReadonlyArray<{
   { id: "swim", create: () => new SwimAnimation() },
   { id: "fly", create: () => new FlyingAnimation() },
 ];
+
+/**
+ * Display versions of the three control groups. The extension label
+ * names the milestone release the demo ships with (the milestone's
+ * demo commit updates it; the release-prep bump meets it); the
+ * other two mirror the installed packages.
+ */
+const GROUP_VERSIONS = {
+  /** The extension's milestone version. */
+  etf: "v0.0.3",
+  /** The installed `skinview3d-blockbench`. */
+  blockbench: "v1.0.19",
+  /** The installed `skinview3d`. */
+  skinview3d: "v3.4.2",
+} as const;
+
+/** The `viewer.animation` option that reveals the blockbench group. */
+const BLOCKBENCH_MODE = "SkinViewBlockbench";
 
 /** Model picker entries: the raw `loadSkin()` model values. */
 const MODEL_OPTIONS: ReadonlyArray<{
@@ -169,6 +196,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
         emissive: emissiveBox.checked,
         blink: blinkBox.checked,
         enchanted: enchantedBox.checked,
+        jacket: jacketBox.checked,
       },
       onWarning: (message) => {
         report(`warning: ${message}`);
@@ -261,6 +289,14 @@ export function initDemo(container: HTMLElement): DemoHandle {
     syncControlAvailability();
   });
 
+  const jacketBox = document.createElement("input");
+  jacketBox.type = "checkbox";
+  jacketBox.checked = true;
+  jacketBox.disabled = true;
+  jacketBox.addEventListener("change", () => {
+    controller?.setFeatures({ jacket: jacketBox.checked });
+  });
+
   const blinkStateSelect = document.createElement("select");
   for (const state of ["auto", "open", "halfClosed", "closed"]) {
     const option = document.createElement("option");
@@ -327,29 +363,13 @@ export function initDemo(container: HTMLElement): DemoHandle {
     (value) => controller?.setBlinkOptions({ reopenMs: value }),
     0,
   );
-  const periodReset = actionButton("reset", "reset blink.periodMs", () => {
-    periodMin.value = String(DEFAULT_BLINK_OPTIONS.periodMs);
-    periodMax.value = String(DEFAULT_BLINK_OPTIONS.periodMs);
-    controller?.setBlinkOptions({ periodMs: DEFAULT_BLINK_OPTIONS.periodMs });
-  });
-  const closedReset = actionButton("reset", "reset blink.closedMs", () => {
-    closedInput.value = String(DEFAULT_BLINK_OPTIONS.closedMs);
-    controller?.setBlinkOptions({ closedMs: DEFAULT_BLINK_OPTIONS.closedMs });
-  });
-  const halfClosedReset = actionButton(
-    "reset",
-    "reset blink.halfClosedMs",
-    () => {
-      halfClosedInput.value = String(DEFAULT_BLINK_OPTIONS.halfClosedMs);
-      controller?.setBlinkOptions({
-        halfClosedMs: DEFAULT_BLINK_OPTIONS.halfClosedMs,
-      });
-    },
-  );
-  const reopenReset = actionButton("reset", "reset blink.reopenMs", () => {
-    reopenInput.value = String(DEFAULT_BLINK_OPTIONS.reopenMs);
-    controller?.setBlinkOptions({ reopenMs: DEFAULT_BLINK_OPTIONS.reopenMs });
-  });
+  /** The ETF rows' resets in row order; the title row runs them. */
+  const etfResets: Array<() => void> = [];
+  /** The ETF parameter groups; their container rows run them. */
+  const featuresResets: Array<() => void> = [];
+  const blinkResets: Array<() => void> = [];
+  const enchantedResets: Array<() => void> = [];
+  const villagerNoseResets: Array<() => void> = [];
 
   const enchantedSpeedInput = numberInput(
     DEFAULT_ENCHANTED_OPTIONS.speed,
@@ -369,37 +389,6 @@ export function initDemo(container: HTMLElement): DemoHandle {
     (value) => controller?.setEnchantedOptions({ scale: value }),
     0,
   );
-  const enchantedSpeedReset = actionButton(
-    "reset",
-    "reset enchanted.speed",
-    () => {
-      enchantedSpeedInput.value = String(DEFAULT_ENCHANTED_OPTIONS.speed);
-      controller?.setEnchantedOptions({
-        speed: DEFAULT_ENCHANTED_OPTIONS.speed,
-      });
-    },
-  );
-  const enchantedOpacityReset = actionButton(
-    "reset",
-    "reset enchanted.opacity",
-    () => {
-      enchantedOpacityInput.value = String(DEFAULT_ENCHANTED_OPTIONS.opacity);
-      controller?.setEnchantedOptions({
-        opacity: DEFAULT_ENCHANTED_OPTIONS.opacity,
-      });
-    },
-  );
-  const enchantedScaleReset = actionButton(
-    "reset",
-    "reset enchanted.scale",
-    () => {
-      enchantedScaleInput.value = String(DEFAULT_ENCHANTED_OPTIONS.scale);
-      controller?.setEnchantedOptions({
-        scale: DEFAULT_ENCHANTED_OPTIONS.scale,
-      });
-    },
-  );
-
   const enchantedSmoothBox = document.createElement("input");
   enchantedSmoothBox.type = "checkbox";
   enchantedSmoothBox.checked = DEFAULT_ENCHANTED_OPTIONS.smooth;
@@ -407,42 +396,26 @@ export function initDemo(container: HTMLElement): DemoHandle {
   enchantedSmoothBox.addEventListener("change", () => {
     controller?.setEnchantedOptions({ smooth: enchantedSmoothBox.checked });
   });
-  const enchantedSmoothReset = actionButton(
-    "reset",
-    "reset enchanted.smooth",
-    () => {
-      enchantedSmoothBox.checked = DEFAULT_ENCHANTED_OPTIONS.smooth;
-      controller?.setEnchantedOptions({
-        smooth: DEFAULT_ENCHANTED_OPTIONS.smooth,
-      });
-    },
-  );
   enchantedSpeedInput.disabled = true;
   enchantedOpacityInput.disabled = true;
   enchantedScaleInput.disabled = true;
 
-  /** The latest custom texture sources, replayed on re-attach. */
-  let enchantedTextureSource: string | undefined;
-  let noseTextureSource: string | undefined;
+  /** The latest texture choices, replayed on re-attach. */
+  let enchantedTextureSource: string | null | undefined;
+  let noseTextureSource: string | null | undefined;
 
-  const enchantedPicker = createTexturePicker({
-    path: "enchanted.texture",
-    apply: (source) => {
-      enchantedTextureSource = source;
-      controller?.setEnchantedOptions({ texture: source });
-    },
+  const enchantedPicker = createTexturePicker((source) => {
+    enchantedTextureSource = source;
+    controller?.setEnchantedOptions({ texture: source });
   });
-  const nosePicker = createTexturePicker({
-    path: "villagerNose.texture",
-    apply: (source) => {
-      noseTextureSource = source;
-      controller?.setVillagerNoseOptions({ texture: source });
-    },
+  const nosePicker = createTexturePicker((source) => {
+    noseTextureSource = source;
+    controller?.setVillagerNoseOptions({ texture: source });
   });
-  enchantedPicker.input.disabled = true;
-  enchantedPicker.reset.disabled = true;
-  nosePicker.input.disabled = true;
-  nosePicker.reset.disabled = true;
+  enchantedPicker.select.disabled = true;
+  enchantedPicker.choose.disabled = true;
+  nosePicker.select.disabled = true;
+  nosePicker.choose.disabled = true;
 
   /**
    * Pushes the current control values into the controller; a fresh
@@ -509,6 +482,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
       emissive: decoded !== null && decoded.emissive !== null,
       blink: decoded !== null && decoded.blink !== null,
       enchanted: decoded !== null && decoded.enchanted !== null,
+      jacket: decoded !== null && decoded.jacket !== null,
       villagerNose:
         decoded !== null &&
         decoded.nose !== null &&
@@ -532,6 +506,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
     updateRow(emissiveRow, uses.emissive, attached && uses.emissive);
     updateRow(blinkFeatureRow, uses.blink, attached && uses.blink);
     updateRow(enchantedRow, uses.enchanted, attached && uses.enchanted);
+    updateRow(jacketRow, uses.jacket, attached && uses.jacket);
     const eyesOn = attached && uses.blink && blinkBox.checked;
     const timingOn = eyesOn && blinkStateSelect.value === "auto";
     updateRow(stateRow, uses.blink, eyesOn);
@@ -550,30 +525,47 @@ export function initDemo(container: HTMLElement): DemoHandle {
   }
 
   const animationSelect = document.createElement("select");
-  for (const id of ["none", ...ANIMATIONS.map((preset) => preset.id)]) {
+  for (const id of [
+    "none",
+    BLOCKBENCH_MODE,
+    ...ANIMATIONS.map((preset) => preset.id),
+  ]) {
     const option = document.createElement("option");
     option.value = id;
     option.textContent = id;
     animationSelect.append(option);
   }
+  /**
+   * Shows the blockbench group only while its mode is selected, and
+   * resets the group's pickers whenever the mode is left.
+   */
+  function syncAnimationMode(): void {
+    const blockbenchMode = animationSelect.value === BLOCKBENCH_MODE;
+    blockbenchGroup.table.hidden = !blockbenchMode;
+    if (!blockbenchMode) {
+      blockbenchGroup.release();
+    }
+  }
+
   animationSelect.addEventListener("change", () => {
     const preset = ANIMATIONS.find(
       (entry) => entry.id === animationSelect.value,
     );
     // The viewer resets the pose whenever the animation slot changes.
     viewer.animation = preset === undefined ? null : preset.create();
-    blockbenchGroup.release();
+    syncAnimationMode();
     controller?.rebind();
   });
 
   const blockbenchGroup = createBlockbenchGroup({
     viewer,
     report,
+    title: `skinview3d-blockbench (${GROUP_VERSIONS.blockbench}):`,
     onSlotChange: () => {
-      animationSelect.value = "none";
       controller?.rebind();
     },
   });
+  syncAnimationMode();
 
   const modelSelect = document.createElement("select");
   for (const entry of MODEL_OPTIONS) {
@@ -601,9 +593,10 @@ export function initDemo(container: HTMLElement): DemoHandle {
     return match?.model ?? "auto-detect";
   };
 
+  const backgroundDefault = "#ffffff";
   const backgroundInput = document.createElement("input");
   backgroundInput.type = "color";
-  backgroundInput.value = "#ffffff";
+  backgroundInput.value = backgroundDefault;
   backgroundInput.addEventListener("input", () => {
     viewer.background = backgroundInput.value;
   });
@@ -630,14 +623,6 @@ export function initDemo(container: HTMLElement): DemoHandle {
 
   const globalLightDefault = viewer.globalLight.intensity;
   const cameraLightDefault = viewer.cameraLight.intensity;
-  const globalLightReset = actionButton("reset", "reset globalLight", () => {
-    globalLightInput.value = String(globalLightDefault);
-    viewer.globalLight.intensity = globalLightDefault;
-  });
-  const cameraLightReset = actionButton("reset", "reset cameraLight", () => {
-    cameraLightInput.value = String(cameraLightDefault);
-    viewer.cameraLight.intensity = cameraLightDefault;
-  });
 
   const attachButton = executeButton("execute attachETFSkinFeatures", () =>
     attach(),
@@ -664,146 +649,278 @@ export function initDemo(container: HTMLElement): DemoHandle {
     ["features"],
     "features: the per-feature switches",
     [],
+    resetAllButton("reset features", featuresResets),
   );
   const transparencyRow = optionRow(
     ["features", "transparency"],
     "features.transparency: honor the decoded base-layer alpha",
     [transparencyBox],
+    resetRow(
+      ["features", "transparency"],
+      () => resetCheckbox(transparencyBox, true),
+      etfResets,
+      featuresResets,
+    ),
   );
   const noseRow = optionRow(
     ["features", "nose"],
     "features.nose: villager and textured noses",
     [noseBox],
+    resetRow(
+      ["features", "nose"],
+      () => resetCheckbox(noseBox, true),
+      etfResets,
+      featuresResets,
+    ),
   );
   const emissiveRow = optionRow(
     ["features", "emissive"],
     "features.emissive: fullbright emissive overlays",
     [emissiveBox],
+    resetRow(
+      ["features", "emissive"],
+      () => resetCheckbox(emissiveBox, true),
+      etfResets,
+      featuresResets,
+    ),
   );
   const blinkFeatureRow = optionRow(
     ["features", "blink"],
     "features.blink: automatic blinking and the fixed eye states",
     [blinkBox],
+    resetRow(
+      ["features", "blink"],
+      () => resetCheckbox(blinkBox, true),
+      etfResets,
+      featuresResets,
+    ),
   );
   const enchantedRow = optionRow(
     ["features", "enchanted"],
     "features.enchanted: the enchanted pixel overlay",
     [enchantedBox],
+    resetRow(
+      ["features", "enchanted"],
+      () => resetCheckbox(enchantedBox, true),
+      etfResets,
+      featuresResets,
+    ),
+  );
+  const jacketRow = optionRow(
+    ["features", "jacket"],
+    "features.jacket: the jacket/dress extension (the decoded " +
+      "jacket texture)",
+    [jacketBox],
+    resetRow(
+      ["features", "jacket"],
+      () => resetCheckbox(jacketBox, true),
+      etfResets,
+      featuresResets,
+    ),
   );
   const blinkGroupRow = optionRow(
     ["blink"],
     "blink: the blink behavior options",
     [],
+    resetAllButton("reset blink", blinkResets),
   );
   const stateRow = optionRow(
     ["blink", "state"],
     "blink.state: auto blinks periodically; " +
       "open / halfClosed / closed hold that state",
     [blinkStateSelect],
+    resetRow(
+      ["blink", "state"],
+      () => resetValue(blinkStateSelect, "auto"),
+      etfResets,
+      blinkResets,
+    ),
   );
   const periodRow = optionRow(
     ["blink", "periodMs"],
     "blink.periodMs: ms between blinks; equal ends = a fixed interval",
     [periodMin, periodMax],
-    periodReset,
+    resetRow(
+      ["blink", "periodMs"],
+      () => {
+        periodMin.value = String(DEFAULT_BLINK_OPTIONS.periodMs);
+        periodMax.value = String(DEFAULT_BLINK_OPTIONS.periodMs);
+        controller?.setBlinkOptions({
+          periodMs: DEFAULT_BLINK_OPTIONS.periodMs,
+        });
+      },
+      etfResets,
+      blinkResets,
+    ),
   );
   const closedRow = optionRow(
     ["blink", "closedMs"],
     "blink.closedMs: fully closed phase in ms (default 250)",
     [closedInput],
-    closedReset,
+    resetRow(
+      ["blink", "closedMs"],
+      () => resetValue(closedInput, String(DEFAULT_BLINK_OPTIONS.closedMs)),
+      etfResets,
+      blinkResets,
+    ),
   );
   const halfClosedRow = optionRow(
     ["blink", "halfClosedMs"],
     "blink.halfClosedMs: half-closed lead phase, 2-frame modes " +
       "(default closedMs / 2)",
     [halfClosedInput],
-    halfClosedReset,
+    resetRow(
+      ["blink", "halfClosedMs"],
+      () =>
+        resetValue(halfClosedInput, String(DEFAULT_BLINK_OPTIONS.halfClosedMs)),
+      etfResets,
+      blinkResets,
+    ),
   );
   const reopenRow = optionRow(
     ["blink", "reopenMs"],
     "blink.reopenMs: half-closed tail phase, 2-frame modes; " +
       "0 = pop open (default halfClosedMs)",
     [reopenInput],
-    reopenReset,
+    resetRow(
+      ["blink", "reopenMs"],
+      () => resetValue(reopenInput, String(DEFAULT_BLINK_OPTIONS.reopenMs)),
+      etfResets,
+      blinkResets,
+    ),
   );
   const enchantedGroupRow = optionRow(
     ["enchanted"],
     "enchanted: the enchanted pixel overlay options",
     [],
+    resetAllButton("reset enchanted", enchantedResets),
   );
   const enchantedTextureRow = optionRow(
     ["enchanted", "texture"],
-    "enchanted.texture: the pattern image; defaults to the built-in " +
-      "self-drawn texture, null renders no enchanted pixels",
-    [enchantedPicker.input],
-    enchantedPicker.reset,
+    "enchanted.texture: the pattern image; undefined restores the " +
+      "built-in self-drawn texture, null renders no enchanted " +
+      "pixels, choose loads a custom image",
+    [enchantedPicker.select, enchantedPicker.choose, enchantedPicker.input],
+    resetRow(
+      ["enchanted", "texture"],
+      enchantedPicker.reset,
+      etfResets,
+      enchantedResets,
+    ),
   );
   const enchantedSpeedRow = optionRow(
     ["enchanted", "speed"],
     `enchanted.speed: diagonal scroll in UV units per second (default ` +
       `${DEFAULT_ENCHANTED_OPTIONS.speed}); 0 freezes, negative reverses`,
     [enchantedSpeedInput],
-    enchantedSpeedReset,
+    resetRow(
+      ["enchanted", "speed"],
+      () =>
+        resetValue(
+          enchantedSpeedInput,
+          String(DEFAULT_ENCHANTED_OPTIONS.speed),
+        ),
+      etfResets,
+      enchantedResets,
+    ),
   );
   const enchantedOpacityRow = optionRow(
     ["enchanted", "opacity"],
     `enchanted.opacity: additive brightness in 0..1 (default ` +
       `${DEFAULT_ENCHANTED_OPTIONS.opacity}); values outside are clamped`,
     [enchantedOpacityInput],
-    enchantedOpacityReset,
+    resetRow(
+      ["enchanted", "opacity"],
+      () =>
+        resetValue(
+          enchantedOpacityInput,
+          String(DEFAULT_ENCHANTED_OPTIONS.opacity),
+        ),
+      etfResets,
+      enchantedResets,
+    ),
   );
   const enchantedScaleRow = optionRow(
     ["enchanted", "scale"],
     `enchanted.scale: pattern tiling across the UVs (default ` +
       `${DEFAULT_ENCHANTED_OPTIONS.scale}); <= 0 falls back to the default`,
     [enchantedScaleInput],
-    enchantedScaleReset,
+    resetRow(
+      ["enchanted", "scale"],
+      () =>
+        resetValue(
+          enchantedScaleInput,
+          String(DEFAULT_ENCHANTED_OPTIONS.scale),
+        ),
+      etfResets,
+      enchantedResets,
+    ),
   );
   const enchantedSmoothRow = optionRow(
     ["enchanted", "smooth"],
     `enchanted.smooth: bilinear pattern filtering (default ` +
       `${DEFAULT_ENCHANTED_OPTIONS.smooth}); false keeps crisp pixels`,
     [enchantedSmoothBox],
-    enchantedSmoothReset,
+    resetRow(
+      ["enchanted", "smooth"],
+      () => resetCheckbox(enchantedSmoothBox, DEFAULT_ENCHANTED_OPTIONS.smooth),
+      etfResets,
+      enchantedResets,
+    ),
   );
   const villagerNoseGroupRow = optionRow(
     ["villagerNose"],
     "villagerNose: the flat villager nose options",
     [],
+    resetAllButton("reset villagerNose", villagerNoseResets),
   );
   const villagerNoseTextureRow = optionRow(
     ["villagerNose", "texture"],
-    "villagerNose.texture: the flat nose image; defaults to the " +
-      "built-in texture, null disables villager noses",
-    [nosePicker.input],
-    nosePicker.reset,
+    "villagerNose.texture: the flat nose image; undefined restores " +
+      "the built-in texture, null disables villager noses, choose " +
+      "loads a custom image",
+    [nosePicker.select, nosePicker.choose, nosePicker.input],
+    resetRow(
+      ["villagerNose", "texture"],
+      nosePicker.reset,
+      etfResets,
+      villagerNoseResets,
+    ),
   );
 
-  const etfTable = controlTable("skinview3d-etf:", [
-    attachRow,
-    detachRow,
-    featuresGroupRow,
-    transparencyRow,
-    noseRow,
-    emissiveRow,
-    blinkFeatureRow,
-    enchantedRow,
-    blinkGroupRow,
-    stateRow,
-    periodRow,
-    closedRow,
-    halfClosedRow,
-    reopenRow,
-    enchantedGroupRow,
-    enchantedTextureRow,
-    enchantedSpeedRow,
-    enchantedOpacityRow,
-    enchantedScaleRow,
-    enchantedSmoothRow,
-    villagerNoseGroupRow,
-    villagerNoseTextureRow,
-  ]);
+  // One final availability pass: the resets restore coupled subtrees
+  // (the timing rows follow the state picker, the enchanted and
+  // texture rows their feature switches).
+  etfResets.push(syncControlAvailability);
+  const etfTable = controlTable(
+    `skinview3d-etf (${GROUP_VERSIONS.etf}):`,
+    [
+      attachRow,
+      detachRow,
+      featuresGroupRow,
+      transparencyRow,
+      noseRow,
+      emissiveRow,
+      blinkFeatureRow,
+      enchantedRow,
+      jacketRow,
+      blinkGroupRow,
+      stateRow,
+      periodRow,
+      closedRow,
+      halfClosedRow,
+      reopenRow,
+      enchantedGroupRow,
+      enchantedTextureRow,
+      enchantedSpeedRow,
+      enchantedOpacityRow,
+      enchantedScaleRow,
+      enchantedSmoothRow,
+      villagerNoseGroupRow,
+      villagerNoseTextureRow,
+    ],
+    etfResets,
+  );
 
   const loadSkinButton = executeButton("execute loadSkin", () => {
     const current = getSelectedFixture();
@@ -818,59 +935,126 @@ export function initDemo(container: HTMLElement): DemoHandle {
       "it from the fixture bar selection (fixture.url)",
   );
 
-  const hostTable = controlTable("skinview3d:", [
-    optionRow(["viewer"], "viewer: the SkinViewer instance", []),
-    optionRow(
-      ["viewer", "animation"],
-      "viewer.animation: a built-in PlayerAnimation preset",
-      [animationSelect],
-    ),
-    optionRow(["viewer", "background"], "viewer.background: solid color", [
-      backgroundInput,
-    ]),
-    optionRow(
-      ["viewer", "globalLight"],
-      "viewer.globalLight: the viewer's global light",
-      [],
-    ),
-    optionRow(
-      ["viewer", "globalLight", "intensity"],
-      "viewer.globalLight.intensity: 0..4 (natural 0.6)",
-      [globalLightInput, globalLightReset],
-    ),
-    optionRow(
-      ["viewer", "cameraLight"],
-      "viewer.cameraLight: the viewer's camera-attached light",
-      [],
-    ),
-    optionRow(
-      ["viewer", "cameraLight", "intensity"],
-      "viewer.cameraLight.intensity: 0..2 (natural 0.6)",
-      [cameraLightInput, cameraLightReset],
-    ),
-    optionRow(
-      ["loadSkin"],
-      "loadSkin(source, options): load a skin texture; re-runs with " +
-        "the current fixture and model",
-      [loadSkinButton],
-    ),
-    optionRow(
-      ["loadSkin", "source"],
-      "loadSkin.source: the texture source - locked, the demo fills " +
-        "it from the fixture bar selection (fixture.url)",
-      [loadSkinSource],
-    ),
-    optionRow(["loadSkin", "options"], "loadSkin.options: SkinLoadOptions", []),
-    optionRow(
-      ["loadSkin", "options", "model"],
-      "loadSkin.options.model: auto-detect infers slim from the texture",
-      [modelSelect],
-    ),
-  ]);
+  /** The host rows' resets in row order; the title row runs them. */
+  const hostResets: Array<() => void> = [];
+  /** The host parameter groups; their container rows run them. */
+  const viewerResets: Array<() => void> = [];
+  const globalLightResets: Array<() => void> = [];
+  const cameraLightResets: Array<() => void> = [];
+  const loadSkinOptionsResets: Array<() => void> = [];
+  const hostTable = controlTable(
+    `skinview3d (${GROUP_VERSIONS.skinview3d}):`,
+    [
+      optionRow(
+        ["viewer"],
+        "viewer: the SkinViewer instance",
+        [],
+        resetAllButton("reset viewer", viewerResets),
+      ),
+      optionRow(
+        ["viewer", "animation"],
+        "viewer.animation: a built-in PlayerAnimation preset; " +
+          "SkinViewBlockbench reveals the blockbench group below",
+        [animationSelect],
+        resetRow(
+          ["viewer", "animation"],
+          () => resetValue(animationSelect, "none"),
+          hostResets,
+          viewerResets,
+        ),
+      ),
+      optionRow(
+        ["viewer", "background"],
+        "viewer.background: solid color",
+        [backgroundInput],
+        resetRow(
+          ["viewer", "background"],
+          () => {
+            backgroundInput.value = backgroundDefault;
+            viewer.background = backgroundDefault;
+          },
+          hostResets,
+          viewerResets,
+        ),
+      ),
+      optionRow(
+        ["viewer", "globalLight"],
+        "viewer.globalLight: the viewer's global light",
+        [],
+        resetAllButton("reset viewer.globalLight", globalLightResets),
+      ),
+      optionRow(
+        ["viewer", "globalLight", "intensity"],
+        "viewer.globalLight.intensity: 0..4 (natural 0.6)",
+        [globalLightInput],
+        resetRow(
+          ["viewer", "globalLight", "intensity"],
+          () => {
+            globalLightInput.value = String(globalLightDefault);
+            viewer.globalLight.intensity = globalLightDefault;
+          },
+          hostResets,
+          viewerResets,
+          globalLightResets,
+        ),
+      ),
+      optionRow(
+        ["viewer", "cameraLight"],
+        "viewer.cameraLight: the viewer's camera-attached light",
+        [],
+        resetAllButton("reset viewer.cameraLight", cameraLightResets),
+      ),
+      optionRow(
+        ["viewer", "cameraLight", "intensity"],
+        "viewer.cameraLight.intensity: 0..2 (natural 0.6)",
+        [cameraLightInput],
+        resetRow(
+          ["viewer", "cameraLight", "intensity"],
+          () => {
+            cameraLightInput.value = String(cameraLightDefault);
+            viewer.cameraLight.intensity = cameraLightDefault;
+          },
+          hostResets,
+          viewerResets,
+          cameraLightResets,
+        ),
+      ),
+      optionRow(
+        ["loadSkin"],
+        "loadSkin(source, options): load a skin texture; re-runs with " +
+          "the current fixture and model",
+        [loadSkinButton],
+      ),
+      optionRow(
+        ["loadSkin", "source"],
+        "loadSkin.source: the texture source - locked, the demo fills " +
+          "it from the fixture bar selection (fixture.url)",
+        [loadSkinSource],
+      ),
+      optionRow(
+        ["loadSkin", "options"],
+        "loadSkin.options: SkinLoadOptions",
+        [],
+        resetAllButton("reset loadSkin.options", loadSkinOptionsResets),
+      ),
+      optionRow(
+        ["loadSkin", "options", "model"],
+        "loadSkin.options.model: auto-detect infers slim from the texture",
+        [modelSelect],
+        resetRow(
+          ["loadSkin", "options", "model"],
+          () => resetValue(modelSelect, "auto-detect"),
+          hostResets,
+          loadSkinOptionsResets,
+        ),
+      ),
+    ],
+    hostResets,
+  );
 
   const controls = document.createElement("div");
   controls.className = "controls";
-  controls.append(etfTable, blockbenchGroup.table, hostTable);
+  controls.append(etfTable, hostTable, blockbenchGroup.table);
   container.append(controls, status);
 
   /**

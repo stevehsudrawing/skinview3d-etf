@@ -63,12 +63,10 @@ function main(): void {
     }
     const uploadStatus = document.createElement("span");
     uploadStatus.className = "status";
-    fixtureBar.append(
-      createUploadControl((message) => {
-        uploadStatus.textContent = message;
-      }),
-      uploadStatus,
-    );
+    const uploadControl = createUploadControl((message) => {
+      uploadStatus.textContent = message;
+    });
+    fixtureBar.append(uploadControl.button, uploadControl.input, uploadStatus);
   }
   const buttons = [
     ...document.querySelectorAll<HTMLButtonElement>("[data-tab]"),

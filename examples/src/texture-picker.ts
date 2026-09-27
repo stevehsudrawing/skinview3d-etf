@@ -1,67 +1,91 @@
 /**
  * The shared custom-image picker for the demo's texture rows
- * (`enchanted.texture` and `villagerNose.texture`): a file input that
- * feeds the picked image to a setter as an object URL (revoking the
- * previous one), plus a reset action restoring the built-in default.
- * Uploaded files are processed in the browser only.
+ * (`enchanted.texture` and `villagerNose.texture`): a select showing
+ * the current choice - `undefined` (the built-in default), `null`
+ * (the feature off) or a transient `[upload] <name>` entry - plus a
+ * `choose` button opening the file picker. Picked images live as
+ * object URLs; the row reset revokes the URL, drops the entry and
+ * restores `undefined`. Uploaded files are processed in the browser
+ * only.
  */
 
-import { actionButton } from "./controls";
+import { createFileControl } from "./upload";
 
-/** Options accepted by {@link createTexturePicker}. */
-export interface TexturePickerOptions {
-  /** The dotted API path for the accessible names. */
-  path: string;
-  /** Receives the picked object URL, or `undefined` on reset. */
-  apply: (source: string | undefined) => void;
-}
+/** The select value for the API's `undefined` (the built-in default). */
+const UNDEFINED = "undefined";
+
+/** The select value for the API's `null` (the feature off). */
+const NULL = "null";
 
 /** Handle over one texture picker. */
 export interface TexturePicker {
-  /** The file input for the row's control column. */
+  /** The choice select for the row's control column. */
+  select: HTMLSelectElement;
+  /** The visible button opening the file picker. */
+  choose: HTMLButtonElement;
+  /** The hidden native input behind the button (kept in the DOM). */
   input: HTMLInputElement;
-  /** The reset button for the row's action column. */
-  reset: HTMLButtonElement;
+  /** Restores the pristine state (revokes the upload URL). */
+  reset(): void;
 }
 
 /**
- * Builds the picker: picking a file replaces the current object URL
- * and applies it; resetting revokes it and restores the built-in
- * default.
+ * Builds the picker: the select switches between the API states and
+ * the uploaded file; choosing a file replaces the current object URL
+ * (revoking the previous one); the reset revokes the URL, drops the
+ * upload entry and restores the built-in default.
  *
- * @param options - The dotted path and the apply sink.
- * @returns The input and the reset button.
+ * @param apply - Receives every chosen source.
+ * @returns The select, the choose button (with its hidden input)
+ *   and the reset.
  */
 export function createTexturePicker(
-  options: TexturePickerOptions,
+  apply: (source: string | null | undefined) => void,
 ): TexturePicker {
-  const { path, apply } = options;
   let currentUrl: string | null = null;
+  let uploadOption: HTMLOptionElement | null = null;
 
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*";
-  input.addEventListener("change", () => {
-    const file = input.files?.[0];
-    // Reset the value so picking the same file again still fires.
-    input.value = "";
-    if (file === undefined) {
-      return;
-    }
-    if (currentUrl !== null) {
-      URL.revokeObjectURL(currentUrl);
-    }
-    currentUrl = URL.createObjectURL(file);
-    apply(currentUrl);
+  const select = document.createElement("select");
+  for (const value of [UNDEFINED, NULL]) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.append(option);
+  }
+  select.addEventListener("change", () => {
+    const choice = select.value;
+    apply(choice === UNDEFINED ? undefined : choice === NULL ? null : choice);
   });
 
-  const reset = actionButton("reset", `reset ${path}`, () => {
+  const { input, button } = createFileControl({
+    label: "choose",
+    accept: "image/*",
+    handle: (file) => {
+      if (currentUrl !== null) {
+        URL.revokeObjectURL(currentUrl);
+      }
+      currentUrl = URL.createObjectURL(file);
+      if (uploadOption === null) {
+        uploadOption = document.createElement("option");
+        select.append(uploadOption);
+      }
+      uploadOption.value = currentUrl;
+      uploadOption.textContent = `[upload] ${file.name}`;
+      select.value = currentUrl;
+      apply(currentUrl);
+    },
+  });
+
+  const reset = (): void => {
     if (currentUrl !== null) {
       URL.revokeObjectURL(currentUrl);
       currentUrl = null;
     }
+    uploadOption?.remove();
+    uploadOption = null;
+    select.value = UNDEFINED;
     apply(undefined);
-  });
+  };
 
-  return { input, reset };
+  return { select, choose: button, input, reset };
 }
