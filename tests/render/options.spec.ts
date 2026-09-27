@@ -1,14 +1,14 @@
 /**
  * Option normalization specs: the defaults, feature merging and the
- * blink / glint passthrough of `normalizeOptions()`, plus the
- * resolved blink and glint shapes.
+ * blink / enchanted passthrough of `normalizeOptions()`, plus the
+ * resolved blink and enchanted shapes.
  */
 
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_BLINK_OPTIONS,
-  DEFAULT_GLINT_OPTIONS,
-  normalizeGlintOptions,
+  DEFAULT_ENCHANTED_OPTIONS,
+  normalizeEnchantedOptions,
   normalizeOptions,
 } from "../../src/render/core/options";
 
@@ -33,7 +33,7 @@ describe("normalizeOptions", () => {
     expect(settings.bloom).toBe(false);
     expect(settings.manageTicker).toBe(true);
     expect(settings.villagerNose).toEqual({ texture: undefined });
-    expect(settings.glint).toEqual({
+    expect(settings.enchanted).toEqual({
       texture: undefined,
       speed: 0.1,
       opacity: 1,
@@ -68,13 +68,15 @@ describe("normalizeOptions", () => {
       bloom: true,
       manageTicker: false,
       villagerNose: { texture: null },
-      glint: { texture: "https://example.com/glint.png" },
+      enchanted: { texture: "https://example.com/enchanted.png" },
       onWarning,
     });
     expect(settings.bloom).toBe(true);
     expect(settings.manageTicker).toBe(false);
     expect(settings.villagerNose.texture).toBeNull();
-    expect(settings.glint.texture).toBe("https://example.com/glint.png");
+    expect(settings.enchanted.texture).toBe(
+      "https://example.com/enchanted.png",
+    );
     expect(settings.onWarning).toBe(onWarning);
   });
 
@@ -90,9 +92,9 @@ describe("normalizeOptions", () => {
   });
 });
 
-describe("normalizeGlintOptions", () => {
+describe("normalizeEnchantedOptions", () => {
   it("applies the documented defaults", () => {
-    expect(normalizeGlintOptions()).toEqual({
+    expect(normalizeEnchantedOptions()).toEqual({
       texture: undefined,
       speed: 0.1,
       opacity: 1,
@@ -101,40 +103,40 @@ describe("normalizeGlintOptions", () => {
     });
   });
 
-  it("keeps the exported glint defaults in sync with the resolver", () => {
-    const settings = normalizeGlintOptions({});
+  it("keeps the exported enchanted defaults in sync with the resolver", () => {
+    const settings = normalizeEnchantedOptions({});
     expect({
       speed: settings.speed,
       opacity: settings.opacity,
       scale: settings.scale,
       smooth: settings.smooth,
-    }).toEqual(DEFAULT_GLINT_OPTIONS);
+    }).toEqual(DEFAULT_ENCHANTED_OPTIONS);
   });
 
   it("replaces non-finite values with the defaults and clamps opacity", () => {
-    expect(normalizeGlintOptions({ speed: Number.NaN }).speed).toBe(0.1);
+    expect(normalizeEnchantedOptions({ speed: Number.NaN }).speed).toBe(0.1);
     expect(
-      normalizeGlintOptions({ speed: Number.POSITIVE_INFINITY }).speed,
+      normalizeEnchantedOptions({ speed: Number.POSITIVE_INFINITY }).speed,
     ).toBe(0.1);
-    expect(normalizeGlintOptions({ opacity: 2 }).opacity).toBe(1);
-    expect(normalizeGlintOptions({ opacity: -1 }).opacity).toBe(0);
-    expect(normalizeGlintOptions({ opacity: Number.NaN }).opacity).toBe(1);
-    expect(normalizeGlintOptions({ scale: 0 }).scale).toBe(1);
-    expect(normalizeGlintOptions({ scale: -3 }).scale).toBe(1);
-    expect(normalizeGlintOptions({ scale: Number.NaN }).scale).toBe(1);
+    expect(normalizeEnchantedOptions({ opacity: 2 }).opacity).toBe(1);
+    expect(normalizeEnchantedOptions({ opacity: -1 }).opacity).toBe(0);
+    expect(normalizeEnchantedOptions({ opacity: Number.NaN }).opacity).toBe(1);
+    expect(normalizeEnchantedOptions({ scale: 0 }).scale).toBe(1);
+    expect(normalizeEnchantedOptions({ scale: -3 }).scale).toBe(1);
+    expect(normalizeEnchantedOptions({ scale: Number.NaN }).scale).toBe(1);
   });
 
   it("accepts zero and negative speeds and positive scales", () => {
-    expect(normalizeGlintOptions({ speed: 0 }).speed).toBe(0);
-    expect(normalizeGlintOptions({ speed: -0.5 }).speed).toBe(-0.5);
-    expect(normalizeGlintOptions({ scale: 2.5 }).scale).toBe(2.5);
+    expect(normalizeEnchantedOptions({ speed: 0 }).speed).toBe(0);
+    expect(normalizeEnchantedOptions({ speed: -0.5 }).speed).toBe(-0.5);
+    expect(normalizeEnchantedOptions({ scale: 2.5 }).scale).toBe(2.5);
   });
 
   it("accepts explicit smoothing and falls back for non-booleans", () => {
-    expect(normalizeGlintOptions({ smooth: false }).smooth).toBe(false);
-    expect(normalizeGlintOptions({ smooth: true }).smooth).toBe(true);
+    expect(normalizeEnchantedOptions({ smooth: false }).smooth).toBe(false);
+    expect(normalizeEnchantedOptions({ smooth: true }).smooth).toBe(true);
     expect(
-      normalizeGlintOptions({ smooth: 1 as unknown as boolean }).smooth,
+      normalizeEnchantedOptions({ smooth: 1 as unknown as boolean }).smooth,
     ).toBe(true);
   });
 });

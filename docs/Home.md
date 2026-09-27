@@ -15,10 +15,10 @@ endorsed by the ETF or skinview3d projects.
 ## 1. What it renders
 
 - transparency on the base skin layer;
-- emissive (glowing) pixels;
+- emissive pixels;
 - blinking eyes;
 - nose (villager and textured);
-- enchanted (glint) overlay;
+- enchanted pixel overlay;
 - jacket/dress extension (the renderer is deferred).
 
 The decoder (`decodeSkin()`) reads every ETF player skin feature -

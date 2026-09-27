@@ -93,7 +93,7 @@ function summaryText(result: DecodeResult): string {
         ? null
         : {
             mode: result.blink.mode,
-            eyeHeight: result.blink.eyeHeight,
+            eyePosition: result.blink.eyePosition,
             frames: result.blink.frames.length,
           },
     nose:
@@ -101,9 +101,9 @@ function summaryText(result: DecodeResult): string {
         ? null
         : {
             villager: result.nose.villager,
-            villagerSkinTextured: result.nose.villagerSkinTextured,
-            variant: result.nose.variant,
-            removesSource: result.nose.removesSource,
+            villagerTextured: result.nose.villagerTextured,
+            textured: result.nose.textured,
+            removesFacePixels: result.nose.removesFacePixels,
           },
     jacket:
       result.jacket === null

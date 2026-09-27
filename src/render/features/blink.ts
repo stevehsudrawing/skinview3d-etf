@@ -1,7 +1,7 @@
 /**
  * Blinking feature: the blink schedule, the canvas rectangles a blink
  * touches and a rectangle-scoped painter for the host skin canvas and
- * the overlay glow textures (the emissive glow and the glint mask).
+ * the overlay mask textures (the emissive and enchanted masks).
  *
  * Frame semantics follow the official ETF skin guide: `frames[0]` is
  * the fully closed copy and `frames[1]` the half-closed copy (present
@@ -13,7 +13,7 @@
 import {
   BLINK_EYE_STRIPS,
   BLINK_FACE_RECT,
-  BLINK_HAT_RECT,
+  BLINK_FLOATING_FACE_RECT,
 } from "../../decode/core/constants";
 import { buildMask } from "../../decode/core/pixels";
 import type {
@@ -51,14 +51,14 @@ export interface BlinkScheduler {
   reset(): void;
 }
 
-/** Glow-mask integration for the painter. */
-export interface BlinkGlow {
-  /** The open emissive mask, or `null` when nothing glows. */
+/** Overlay-mask integration for the painter. */
+export interface BlinkOverlay {
+  /** The open pattern mask, or `null` when the pattern is off. */
   openMask: PixelData | null;
-  /** Per-frame masks; `null` when a frame has no glowing pixels. */
+  /** Per-frame masks; `null` when a frame carries no overlay pixels. */
   frameMasks: readonly (PixelData | null)[];
   /**
-   * Applies one mask (or `null` for nothing at all) to the glow
+   * Applies one mask (or `null` for nothing at all) to the overlay
    * texture.
    *
    * @param mask - The mask to upload.
@@ -74,7 +74,7 @@ export interface BlinkPainter {
    * @param frame - The frame index, or -1 for open.
    */
   show(frame: number): void;
-  /** Restores the pre-blink canvas pixels and glow. Idempotent. */
+  /** Restores the pre-blink canvas pixels and overlay. Idempotent. */
   restore(): void;
 }
 
@@ -152,20 +152,21 @@ function firstDelayMs(
 
 /**
  * Returns the canvas rectangles a blink repaint touches: the face and
- * hat squares for the lazy modes, the eye strip row(s) for the
- * optimized modes. The strip height derives from the decoder's
- * `BLINK_EYE_STRIPS` table so the fact lives in one place.
+ * floating-face squares for the entire-face modes, the eye strip
+ * row(s) for the pixel-tall eye modes. The strip height derives from
+ * the decoder's `BLINK_EYE_STRIPS` table so the fact lives in one
+ * place.
  *
  * @param info - The decoded blink data.
  * @returns The affected rectangles.
  */
 export function blinkRects(info: BlinkInfo): Rect[] {
   if (info.mode === 1 || info.mode === 2) {
-    return [BLINK_FACE_RECT, BLINK_HAT_RECT];
+    return [BLINK_FACE_RECT, BLINK_FLOATING_FACE_RECT];
   }
   const strip = BLINK_EYE_STRIPS[info.mode][0];
   const height = strip.y2 - strip.y1 + 1;
-  const top = BLINK_FACE_RECT.y1 + ((info.eyeHeight ?? 1) - 1);
+  const top = BLINK_FACE_RECT.y1 + ((info.eyePosition ?? 1) - 1);
   return [
     {
       x1: BLINK_FACE_RECT.x1,
@@ -177,14 +178,17 @@ export function blinkRects(info: BlinkInfo): Rect[] {
 }
 
 /**
- * Whether a pattern mask (the emissive glow or the glint mask) has
- * any glowing pixel inside the rectangles a blink repaints.
+ * Whether a pattern mask (emissive or enchanted) has any overlay
+ * pixel inside the rectangles a blink repaints.
  *
- * @param mask - The pattern mask, or `null` when nothing glows.
+ * @param mask - The pattern mask, or `null` when the pattern is off.
  * @param info - The decoded blink data.
- * @returns `true` when the glow content has to follow the blink.
+ * @returns `true` when the mask content has to follow the blink.
  */
-export function glowOverlaps(mask: PixelData | null, info: BlinkInfo): boolean {
+export function patternOverlapsBlink(
+  mask: PixelData | null,
+  info: BlinkInfo,
+): boolean {
   if (mask === null) {
     return false;
   }
@@ -201,24 +205,25 @@ export function glowOverlaps(mask: PixelData | null, info: BlinkInfo): boolean {
 }
 
 /**
- * Builds the blink glow integration for a decoded pattern (emissive
- * or enchanted): the open mask and the per-frame masks are prepared
- * here, so a frame switch only repaints the caller's texture.
+ * Builds the blink overlay integration for a decoded pattern
+ * (emissive or enchanted): the open mask and the per-frame masks are
+ * prepared here, so a frame switch only repaints the caller's
+ * texture.
  *
  * @param info - The decoded blink data.
  * @param pattern - The decoded pattern, or `null` when the feature
  *   is off.
  * @param repaint - Applies one mask (or `null` for nothing at all)
  *   to the feature's texture.
- * @returns The glow hooks, or `null` when the pattern is off or no
- *   glowing pixel sits inside the blink rectangles.
+ * @returns The overlay hooks, or `null` when the pattern is off or
+ *   no overlay pixel sits inside the blink rectangles.
  */
-export function createPatternGlow(
+export function createBlinkOverlay(
   info: BlinkInfo,
   pattern: PatternInfo | null,
   repaint: (mask: PixelData | null) => void,
-): BlinkGlow | null {
-  if (pattern === null || !glowOverlaps(pattern.mask, info)) {
+): BlinkOverlay | null {
+  if (pattern === null || !patternOverlapsBlink(pattern.mask, info)) {
     return null;
   }
   return {
@@ -317,29 +322,29 @@ export function createBlinkScheduler(
  * Creates the rectangle-scoped blink painter: the canvas is
  * snapshotted before the first patch, only the affected rectangles
  * are painted from the frames and `restore()` puts everything back.
- * Every glow integration follows the shown frame.
+ * Every overlay integration follows the shown frame.
  *
  * @param canvas - The host skin canvas.
  * @param info - The decoded blink data.
- * @param glows - The glow integrations (empty when no overlay
- *   feature glows inside the blink rectangles).
+ * @param overlays - The overlay integrations (empty when no overlay
+ *   feature sits inside the blink rectangles).
  * @param markDirty - Marks the host skin maps for re-upload.
  * @returns The painter.
  */
 export function createBlinkPainter(
   canvas: HTMLCanvasElement,
   info: BlinkInfo,
-  glows: readonly BlinkGlow[],
+  overlays: readonly BlinkOverlay[],
   markDirty: () => void,
 ): BlinkPainter {
   const rects = blinkRects(info);
   let snapshot: PixelData | null = null;
   let visible = -1;
 
-  const paintGlows = (frame: number): void => {
-    for (const glow of glows) {
-      glow.repaint(
-        frame < 0 ? glow.openMask : (glow.frameMasks[frame] ?? null),
+  const paintOverlays = (frame: number): void => {
+    for (const overlay of overlays) {
+      overlay.repaint(
+        frame < 0 ? overlay.openMask : (overlay.frameMasks[frame] ?? null),
       );
     }
   };
@@ -352,7 +357,7 @@ export function createBlinkPainter(
     snapshot = null;
     visible = -1;
     markDirty();
-    paintGlows(-1);
+    paintOverlays(-1);
   };
 
   const show = (frame: number): void => {
@@ -371,7 +376,7 @@ export function createBlinkPainter(
     }
     visible = frame;
     markDirty();
-    paintGlows(frame);
+    paintOverlays(frame);
   };
 
   return { show, restore };

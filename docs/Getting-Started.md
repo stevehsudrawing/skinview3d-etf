@@ -31,7 +31,7 @@ const controller = attachETFSkinFeatures(viewer, {
 ```
 
 Every feature defaults to enabled; [Options](Options.md) documents
-the option groups (`features`, `blink`, `glint`, `villagerNose`) and
+the option groups (`features`, `blink`, `enchanted`, `villagerNose`) and
 the exported defaults. The controller never rebuilds the scene graph and
 never seizes the viewer's animation slot: it adds artifacts under
 the existing meshes and cleans all of them up on `detach()`.
@@ -54,8 +54,8 @@ replaced slot object disconnects the ticker hook.
 
 ### 3.3 Timed features: the managed ticker and update(dt)
 
-Blinking (in the `"auto"` state) and the scrolling glint need a
-clock. By default the controller manages one: it hooks the viewer's
+Blinking (in the `"auto"` state) and the scrolling enchanted
+pattern need a clock. By default the controller manages one: it hooks the viewer's
 animation slot through `addAnimation()` while an animation is
 assigned, and installs a private `FunctionAnimation` while the slot
 is empty. Assigning `viewer.animation` resets the player's pose once

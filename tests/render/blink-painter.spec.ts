@@ -15,8 +15,8 @@ import type {
 } from "../../src/decode/core/types";
 import {
   createBlinkPainter,
-  type BlinkGlow,
-} from "../../src/render/features/blinking";
+  type BlinkOverlay,
+} from "../../src/render/features/blink";
 
 /** The fake `ImageData` handed out by the stub context. */
 interface FakeImageData {
@@ -123,24 +123,24 @@ class FakeCanvas {
  *
  * @param mode - The blink mode.
  * @param frameCount - The number of prepared frames.
- * @param eyeHeight - The eye height for the optimized modes.
+ * @param eyePosition - The eye position for the pixel-tall eye modes.
  * @returns The fabricated blink data.
  */
 function makeInfo(
   mode: BlinkMode,
   frameCount: number,
-  eyeHeight: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | null = null,
+  eyePosition: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | null = null,
 ): BlinkInfo {
   const frames = Array.from({ length: frameCount }, (_, index) => {
     const image = createImage(64, 64);
     image.data.fill(index === 0 ? 0xa1 : 0xb2);
     return image;
   });
-  return { mode, eyeHeight, frames };
+  return { mode, eyePosition, frames };
 }
 
 /**
- * Builds a synthetic glow mask.
+ * Builds a synthetic overlay mask.
  *
  * @param value - The byte to fill.
  * @returns The mask.
@@ -158,7 +158,7 @@ describe("createBlinkPainter", () => {
     const markDirty = vi.fn();
     const repaints: (PixelData | null)[] = [];
     const maskA = makeMask(0x01);
-    const glow: BlinkGlow = {
+    const overlay: BlinkOverlay = {
       openMask: makeMask(0x02),
       frameMasks: [maskA, null],
       repaint: (mask) => repaints.push(mask),
@@ -166,7 +166,7 @@ describe("createBlinkPainter", () => {
     const painter = createBlinkPainter(
       canvas as unknown as HTMLCanvasElement,
       makeInfo(4, 2, 4),
-      [glow],
+      [overlay],
       markDirty,
     );
 
@@ -206,7 +206,7 @@ describe("createBlinkPainter", () => {
     const markDirty = vi.fn();
     const repaints: (PixelData | null)[] = [];
     const openMask = makeMask(0x02);
-    const glow: BlinkGlow = {
+    const overlay: BlinkOverlay = {
       openMask,
       frameMasks: [makeMask(0x01), null],
       repaint: (mask) => repaints.push(mask),
@@ -214,7 +214,7 @@ describe("createBlinkPainter", () => {
     const painter = createBlinkPainter(
       canvas as unknown as HTMLCanvasElement,
       makeInfo(5, 2, 3),
-      [glow],
+      [overlay],
       markDirty,
     );
 
@@ -246,20 +246,20 @@ describe("createBlinkPainter", () => {
     expect(markDirty).toHaveBeenCalledTimes(2);
   });
 
-  it("switches the per-frame glow masks of every overlay", () => {
+  it("switches the per-frame overlay masks of every overlay", () => {
     const canvas = new FakeCanvas();
     canvas.pixels.fill(0x11);
     const repaintsA: (PixelData | null)[] = [];
     const repaintsB: (PixelData | null)[] = [];
     const maskA = makeMask(0x01);
-    const glowA: BlinkGlow = {
+    const overlayA: BlinkOverlay = {
       openMask: makeMask(0x02),
       frameMasks: [maskA, null],
       repaint: (mask) => repaintsA.push(mask),
     };
     const openB = makeMask(0x03);
     const maskB = makeMask(0x04);
-    const glowB: BlinkGlow = {
+    const overlayB: BlinkOverlay = {
       openMask: openB,
       frameMasks: [null, maskB],
       repaint: (mask) => repaintsB.push(mask),
@@ -267,7 +267,7 @@ describe("createBlinkPainter", () => {
     const painter = createBlinkPainter(
       canvas as unknown as HTMLCanvasElement,
       makeInfo(4, 2, 4),
-      [glowA, glowB],
+      [overlayA, overlayB],
       vi.fn(),
     );
 
@@ -275,7 +275,7 @@ describe("createBlinkPainter", () => {
     painter.show(0);
     painter.show(-1);
 
-    expect(repaintsA).toEqual([null, maskA, glowA.openMask]);
+    expect(repaintsA).toEqual([null, maskA, overlayA.openMask]);
     expect(repaintsB).toEqual([maskB, null, openB]);
   });
 });

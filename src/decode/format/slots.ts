@@ -46,7 +46,7 @@ export function readSlots(image: PixelData): SlotValues {
     blink: readChoice(image, SLOTS.blink.x, SLOTS.blink.y),
     jacketStyle: readChoice(image, SLOTS.jacketStyle.x, SLOTS.jacketStyle.y),
     jacketLength: readChoice(image, SLOTS.jacketLength.x, SLOTS.jacketLength.y),
-    eyeHeight: readChoice(image, SLOTS.eyeHeight.x, SLOTS.eyeHeight.y),
+    eyePosition: readChoice(image, SLOTS.eyePosition.x, SLOTS.eyePosition.y),
     cape: readChoice(image, SLOTS.cape.x, SLOTS.cape.y),
     nose: readChoice(image, SLOTS.nose.x, SLOTS.nose.y),
     forcedSolid: readChoice(image, SLOTS.forcedSolid.x, SLOTS.forcedSolid.y),

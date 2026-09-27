@@ -1,6 +1,6 @@
 /**
  * The shared custom-image picker for the demo's texture rows
- * (`glint.texture` and `villagerNose.texture`): a file input that
+ * (`enchanted.texture` and `villagerNose.texture`): a file input that
  * feeds the picked image to a setter as an object URL (revoking the
  * previous one), plus a reset action restoring the built-in default.
  * Uploaded files are processed in the browser only.

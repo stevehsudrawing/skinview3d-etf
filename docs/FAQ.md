@@ -26,18 +26,18 @@ the `viewer.animation` slot, the ETF ticker hooks through
 `controller.rebind()` after the slot object changes (see
 [Getting Started](Getting-Started.md) §3.2).
 
-## 4. Why does the glint look different from the in-game ETF?
+## 4. Why do the enchanted pixels look different from the in-game ETF?
 
-Upstream renders the glint with fixed render types and no knobs.
-Here it is one additive shader overlay with `speed`, `opacity`,
+Upstream renders them with fixed render types and no knobs. Here
+they are one additive shader overlay with `speed`, `opacity`,
 `scale` and `smooth`; the decode data is spec-faithful, and the
 defaults are tuned against the in-game look (speed `0.1`, opacity
 `1`, scale `1`, smoothing on). See [Options](Options.md) §1.3.
 
-## 5. How do I use my own texture for the glint or the nose?
+## 5. How do I use my own texture for the enchanted pixels or the nose?
 
 Set the group's `texture` - at attach time or through
-`setGlintOptions()` / `setVillagerNoseOptions()` ([Options](Options.md)
+`setEnchantedOptions()` / `setVillagerNoseOptions()` ([Options](Options.md)
 §3 lists every accepted input form). Remote URLs need CORS headers;
 the demo's file pickers show the local-file flow.
 
@@ -45,4 +45,4 @@ the demo's file pickers show the local-file flow.
 
 Yes: pass `manageTicker: false` and call `controller.update(dt)`
 with the elapsed seconds. Blinking (in the `"auto"` state) and the
-scrolling glint follow that clock.
+scrolling enchanted pattern follow that clock.

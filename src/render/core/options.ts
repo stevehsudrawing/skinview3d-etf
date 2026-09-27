@@ -10,7 +10,7 @@ import type {
   BlinkState,
   ETFSkinFeaturesOptions,
   ETFTextureInput,
-  GlintOptions,
+  EnchantedOptions,
   SkinFeatureToggles,
 } from "./types";
 
@@ -56,36 +56,36 @@ export interface NormalizedBlinkOptions {
   reopenMs: number;
 }
 
-/** Default glint scroll speed in UV units per second. */
-const DEFAULT_GLINT_SPEED = 0.1;
+/** Default enchanted pattern scroll speed in UV units per second. */
+const DEFAULT_ENCHANTED_SPEED = 0.1;
 
-/** Default glint additive brightness factor. */
-const DEFAULT_GLINT_OPACITY = 1;
+/** Default enchanted additive brightness factor. */
+const DEFAULT_ENCHANTED_OPACITY = 1;
 
-/** Default glint tiling across the UVs. */
-const DEFAULT_GLINT_SCALE = 1;
+/** Default enchanted pattern tiling across the UVs. */
+const DEFAULT_ENCHANTED_SCALE = 1;
 
-/** Default glint smoothing: bilinear pattern filtering on. */
-const DEFAULT_GLINT_SMOOTH = true;
+/** Default enchanted smoothing: bilinear pattern filtering on. */
+const DEFAULT_ENCHANTED_SMOOTH = true;
 
 /**
- * The documented glint defaults, exported for consumers that quote
- * or reset them. The resolver derives the same numbers when options
- * are omitted; the option specs assert both stay in sync.
+ * The documented enchanted defaults, exported for consumers that
+ * quote or reset them. The resolver derives the same numbers when
+ * options are omitted; the option specs assert both stay in sync.
  */
-export const DEFAULT_GLINT_OPTIONS = {
+export const DEFAULT_ENCHANTED_OPTIONS = {
   /** Diagonal scroll speed, in UV units per second. */
-  speed: DEFAULT_GLINT_SPEED,
+  speed: DEFAULT_ENCHANTED_SPEED,
   /** Additive brightness factor in 0..1. */
-  opacity: DEFAULT_GLINT_OPACITY,
+  opacity: DEFAULT_ENCHANTED_OPACITY,
   /** Pattern tiling across the UVs. */
-  scale: DEFAULT_GLINT_SCALE,
+  scale: DEFAULT_ENCHANTED_SCALE,
   /** Bilinear pattern filtering (the in-game look). */
-  smooth: DEFAULT_GLINT_SMOOTH,
+  smooth: DEFAULT_ENCHANTED_SMOOTH,
 } as const;
 
-/** Fully resolved glint settings. */
-export interface NormalizedGlintOptions {
+/** Fully resolved enchanted settings. */
+export interface NormalizedEnchantedOptions {
   /** Texture override: `undefined` = built-in, `null` = off. */
   texture: ETFTextureInput | null | undefined;
   /** Diagonal scroll speed in UV units per second. */
@@ -110,8 +110,8 @@ export interface NormalizedOptions {
   manageTicker: boolean;
   /** Villager nose options: texture override only. */
   villagerNose: { texture: ETFTextureInput | null | undefined };
-  /** Glint options: texture override and motion parameters. */
-  glint: NormalizedGlintOptions;
+  /** Enchanted options: texture override and motion parameters. */
+  enchanted: NormalizedEnchantedOptions;
   /** Warning sink, or `null` for `console.warn`. */
   onWarning: ((message: string) => void) | null;
 }
@@ -194,34 +194,34 @@ export function normalizeBlinkOptions(
 }
 
 /**
- * Resolves the public glint options into fully normalized settings:
- * defaults applied, non-finite numbers replaced and `opacity`
- * clamped to 0..1.
+ * Resolves the public enchanted options into fully normalized
+ * settings: defaults applied, non-finite numbers replaced and
+ * `opacity` clamped to 0..1.
  *
  * @param options - The user options, if any.
  * @returns The resolved settings.
  */
-export function normalizeGlintOptions(
-  options?: GlintOptions,
-): NormalizedGlintOptions {
+export function normalizeEnchantedOptions(
+  options?: EnchantedOptions,
+): NormalizedEnchantedOptions {
   const speed =
     typeof options?.speed === "number" && Number.isFinite(options.speed)
       ? options.speed
-      : DEFAULT_GLINT_SPEED;
+      : DEFAULT_ENCHANTED_SPEED;
   const opacity =
     typeof options?.opacity === "number" && Number.isFinite(options.opacity)
       ? Math.min(1, Math.max(0, options.opacity))
-      : DEFAULT_GLINT_OPACITY;
+      : DEFAULT_ENCHANTED_OPACITY;
   const scale =
     typeof options?.scale === "number" &&
     Number.isFinite(options.scale) &&
     options.scale > 0
       ? options.scale
-      : DEFAULT_GLINT_SCALE;
+      : DEFAULT_ENCHANTED_SCALE;
   const smooth =
     typeof options?.smooth === "boolean"
       ? options.smooth
-      : DEFAULT_GLINT_SMOOTH;
+      : DEFAULT_ENCHANTED_SMOOTH;
   return { texture: options?.texture, speed, opacity, scale, smooth };
 }
 
@@ -248,7 +248,7 @@ export function normalizeOptions(
     bloom: options.bloom ?? false,
     manageTicker: options.manageTicker ?? true,
     villagerNose: { texture: options.villagerNose?.texture },
-    glint: normalizeGlintOptions(options.glint),
+    enchanted: normalizeEnchantedOptions(options.enchanted),
     onWarning: options.onWarning ?? null,
   };
 }

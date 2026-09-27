@@ -2,10 +2,10 @@
  * The renderer controller behind `attachETFSkinFeatures()`: validates
  * the viewer, decodes the current skin and owns every render artifact
  * (canvas edits, material swaps, the nose mesh, the emissive and
- * glint overlays, the blink repaints) with full restore on
+ * enchanted overlays, the blink repaints) with full restore on
  * `detach()`. Teardown always follows the same order: blink
- * snapshot, ticker, nose, emissive, glint, material swaps, canvas
- * baseline.
+ * snapshot, ticker, nose, emissive, enchanted, material swaps,
+ * canvas baseline.
  */
 
 import type { SkinViewer } from "skinview3d";
@@ -32,12 +32,12 @@ import {
   readCanvasPixels,
 } from "./core/canvas";
 import {
-  DEFAULT_GLINT_DATA_URL,
+  DEFAULT_ENCHANTED_DATA_URL,
   DEFAULT_VILLAGER_NOSE_DATA_URL,
 } from "./core/default-textures";
 import {
   normalizeBlinkOptions,
-  normalizeGlintOptions,
+  normalizeEnchantedOptions,
   normalizeOptions,
 } from "./core/options";
 import { createPartOverlays, disposeOverlays } from "./core/overlays";
@@ -53,29 +53,29 @@ import type {
   BlinkOptions,
   ETFController,
   ETFSkinFeaturesOptions,
-  GlintOptions,
+  EnchantedOptions,
   SkinFeatureToggles,
   VillagerNoseOptions,
 } from "./core/types";
 import {
   blinkSeed,
   blinkStateFrame,
+  createBlinkOverlay,
   createBlinkPainter,
   createBlinkScheduler,
-  createPatternGlow,
-  type BlinkGlow,
+  type BlinkOverlay,
   type BlinkPainter,
   type BlinkScheduler,
-} from "./features/blinking";
+} from "./features/blink";
 import { createEmissiveMaterial } from "./features/emissive";
 import {
-  advanceGlintPhase,
-  createGlintMaterial,
-  createGlintTexture,
-  setGlintPhase,
-  setGlintTuning,
-  updateGlintTexture,
-} from "./features/glint";
+  advanceEnchantedPhase,
+  createEnchantedMaterial,
+  createEnchantedTexture,
+  setEnchantedPhase,
+  setEnchantedTuning,
+  updateEnchantedTexture,
+} from "./features/enchanted";
 import {
   createTexturedNoseMesh,
   createVillagerNoseMesh,
@@ -85,10 +85,10 @@ import {
 import { createTranslucentSides } from "./features/transparency";
 
 /**
- * A fully transparent, skin-sized glow mask used whenever a blink
- * frame has no glowing pixels of its own.
+ * A fully transparent, skin-sized overlay mask used whenever a blink
+ * frame carries no overlay pixels of its own.
  */
-const EMPTY_GLOW_MASK: PixelData = createImage(SKIN_SIZE, SKIN_SIZE);
+const EMPTY_OVERLAY_MASK: PixelData = createImage(SKIN_SIZE, SKIN_SIZE);
 
 /** Cached mesh lookups for the current viewer binding. */
 interface SkinTargets {
@@ -101,7 +101,7 @@ interface SkinTargets {
  *
  * Decodes the viewer's current skin immediately and renders the
  * supported features (transparency, the nose, the emissive pixels,
- * blinking eyes and the enchanted glint). Call
+ * blinking eyes and the enchanted pixels). Call
  * `controller.refresh()` after every `viewer.loadSkin()`; call
  * `controller.detach()` to restore the viewer exactly as it was.
  *
@@ -124,21 +124,21 @@ export function attachETFSkinFeatures(
   const sides = createTranslucentSides();
 
   const villagerSlot: TextureSlot = createTextureSlot();
-  const glintSlot: TextureSlot = createTextureSlot();
+  const enchantedSlot: TextureSlot = createTextureSlot();
   let decoded: DecodeResult | null = null;
   let targets: SkinTargets | null = null;
   let baselinePixels: PixelData | null = null;
   let lastPainted: PixelData | null = null;
   let skinEdited = false;
   let noseMesh: NoseMesh | null = null;
-  let glowTexture: CanvasTexture | null = null;
-  let glowMaterial: MeshBasicMaterial | null = null;
-  let glowMeshes: Mesh[] = [];
-  let glintMaskTexture: CanvasTexture | null = null;
-  let glintPatternTexture: CanvasTexture | null = null;
-  let glintMaterial: ShaderMaterial | null = null;
-  let glintMeshes: Mesh[] = [];
-  let glintPhase = 0;
+  let emissiveTexture: CanvasTexture | null = null;
+  let emissiveMaterial: MeshBasicMaterial | null = null;
+  let emissiveMeshes: Mesh[] = [];
+  let enchantedMaskTexture: CanvasTexture | null = null;
+  let enchantedPatternTexture: CanvasTexture | null = null;
+  let enchantedMaterial: ShaderMaterial | null = null;
+  let enchantedMeshes: Mesh[] = [];
+  let enchantedPhase = 0;
   let blinkPainter: BlinkPainter | null = null;
   let blinkScheduler: BlinkScheduler | null = null;
   let ticker: TickerHandle | null = null;
@@ -198,38 +198,38 @@ export function attachETFSkinFeatures(
 
   /** Removes and disposes the emissive overlays, material and texture. */
   function clearEmissive(): void {
-    disposeOverlays(glowMeshes);
-    glowMeshes = [];
-    if (glowMaterial !== null) {
-      glowMaterial.dispose();
-      glowMaterial = null;
+    disposeOverlays(emissiveMeshes);
+    emissiveMeshes = [];
+    if (emissiveMaterial !== null) {
+      emissiveMaterial.dispose();
+      emissiveMaterial = null;
     }
-    if (glowTexture !== null) {
-      glowTexture.dispose();
-      glowTexture = null;
+    if (emissiveTexture !== null) {
+      emissiveTexture.dispose();
+      emissiveTexture = null;
     }
   }
 
   /**
-   * Removes and disposes the glint overlays, material and textures;
-   * the full-dispose route for the feature-off, `unapply()` and
-   * `detach()` paths - a plain re-apply updates the assets in place
-   * instead.
+   * Removes and disposes the enchanted overlays, material and
+   * textures; the full-dispose route for the feature-off, `unapply()`
+   * and `detach()` paths - a plain re-apply updates the assets in
+   * place instead.
    */
-  function clearGlint(): void {
-    disposeOverlays(glintMeshes);
-    glintMeshes = [];
-    if (glintMaterial !== null) {
-      glintMaterial.dispose();
-      glintMaterial = null;
+  function clearEnchanted(): void {
+    disposeOverlays(enchantedMeshes);
+    enchantedMeshes = [];
+    if (enchantedMaterial !== null) {
+      enchantedMaterial.dispose();
+      enchantedMaterial = null;
     }
-    if (glintMaskTexture !== null) {
-      glintMaskTexture.dispose();
-      glintMaskTexture = null;
+    if (enchantedMaskTexture !== null) {
+      enchantedMaskTexture.dispose();
+      enchantedMaskTexture = null;
     }
-    if (glintPatternTexture !== null) {
-      glintPatternTexture.dispose();
-      glintPatternTexture = null;
+    if (enchantedPatternTexture !== null) {
+      enchantedPatternTexture.dispose();
+      enchantedPatternTexture = null;
     }
   }
 
@@ -243,45 +243,48 @@ export function attachETFSkinFeatures(
   }
 
   /**
-   * Builds the glow integrations for the blink painter: one per
-   * active overlay feature (the emissive glow and / or the glint
+   * Builds the overlay integrations for the blink painter: one per
+   * active overlay feature (the emissive and / or the enchanted
    * mask), each with precomputed per-frame masks, so toggling a
    * frame only repaints the feature's texture.
    *
    * @param info - The decoded blink data.
-   * @returns The glow hooks in draw order.
+   * @returns The overlay hooks in draw order.
    */
-  function buildBlinkGlows(info: BlinkInfo): BlinkGlow[] {
-    const glows: BlinkGlow[] = [];
-    if (settings.features.emissive && glowTexture !== null) {
-      const glow = createPatternGlow(
+  function buildBlinkOverlays(info: BlinkInfo): BlinkOverlay[] {
+    const overlays: BlinkOverlay[] = [];
+    if (settings.features.emissive && emissiveTexture !== null) {
+      const emissiveOverlay = createBlinkOverlay(
         info,
         decoded?.emissive ?? null,
         (mask) => {
-          if (glowTexture !== null) {
-            repaintMaskTexture(glowTexture, mask ?? EMPTY_GLOW_MASK);
+          if (emissiveTexture !== null) {
+            repaintMaskTexture(emissiveTexture, mask ?? EMPTY_OVERLAY_MASK);
           }
         },
       );
-      if (glow !== null) {
-        glows.push(glow);
+      if (emissiveOverlay !== null) {
+        overlays.push(emissiveOverlay);
       }
     }
-    if (settings.features.enchanted && glintMaskTexture !== null) {
-      const glow = createPatternGlow(
+    if (settings.features.enchanted && enchantedMaskTexture !== null) {
+      const enchantedOverlay = createBlinkOverlay(
         info,
         decoded?.enchanted ?? null,
         (mask) => {
-          if (glintMaskTexture !== null) {
-            repaintMaskTexture(glintMaskTexture, mask ?? EMPTY_GLOW_MASK);
+          if (enchantedMaskTexture !== null) {
+            repaintMaskTexture(
+              enchantedMaskTexture,
+              mask ?? EMPTY_OVERLAY_MASK,
+            );
           }
         },
       );
-      if (glow !== null) {
-        glows.push(glow);
+      if (enchantedOverlay !== null) {
+        overlays.push(enchantedOverlay);
       }
     }
-    return glows;
+    return overlays;
   }
 
   /**
@@ -307,7 +310,7 @@ export function attachETFSkinFeatures(
     blinkPainter = createBlinkPainter(
       viewer.skinCanvas,
       info,
-      buildBlinkGlows(info),
+      buildBlinkOverlays(info),
       markSkinDirty,
     );
     blinkPainter.show(blinkStateFrame(settings.blink.state, info));
@@ -322,22 +325,23 @@ export function attachETFSkinFeatures(
   }
 
   /**
-   * Whether the glint needs per-frame updates: the feature is on, a
-   * built material exists and the speed is not zero.
+   * Whether the enchanted overlay needs per-frame updates: the
+   * feature is on, a built material exists and the speed is not
+   * zero.
    *
-   * @returns `true` while the glint scrolls.
+   * @returns `true` while the enchanted pattern scrolls.
    */
-  function glintActive(): boolean {
+  function enchantedActive(): boolean {
     return (
       settings.features.enchanted &&
-      settings.glint.speed !== 0 &&
-      glintMaterial !== null
+      settings.enchanted.speed !== 0 &&
+      enchantedMaterial !== null
     );
   }
 
   /**
    * Starts or stops the managed ticker so it runs exactly while the
-   * blink feature auto-cycles or the glint scrolls.
+   * blink feature auto-cycles or the enchanted pattern scrolls.
    */
   function syncTicker(): void {
     const blinkNeeded =
@@ -346,7 +350,7 @@ export function attachETFSkinFeatures(
       decoded !== null &&
       decoded.supported &&
       decoded.blink !== null;
-    const needed = settings.manageTicker && (blinkNeeded || glintActive());
+    const needed = settings.manageTicker && (blinkNeeded || enchantedActive());
     if (needed && ticker === null) {
       ticker = startTicker(viewer, update);
     } else if (!needed) {
@@ -366,7 +370,7 @@ export function attachETFSkinFeatures(
       return;
     }
     const head = headLayerMaterial(viewer.playerObject.skin);
-    if (nose.villager && nose.villagerSkinTextured) {
+    if (nose.villager && nose.villagerTextured) {
       noseMesh = createVillagerNoseMesh(
         head,
         createSkinSpaceTexture(viewer.skinCanvas),
@@ -401,95 +405,95 @@ export function attachETFSkinFeatures(
   }
 
   /**
-   * (Re)builds the emissive overlays for the given pattern: the glow
-   * texture is created on first use and repainted afterwards, the
-   * shared material is created once, and the overlay meshes are
-   * rebuilt from scratch.
+   * (Re)builds the emissive overlays for the given pattern: the
+   * emissive texture is created on first use and repainted
+   * afterwards, the shared material is created once, and the overlay
+   * meshes are rebuilt from scratch.
    *
    * @param pattern - The decoded emissive pattern.
    */
   function rebuildEmissive(pattern: PatternInfo): void {
-    disposeOverlays(glowMeshes);
-    glowMeshes = [];
-    if (glowTexture === null) {
-      glowTexture = createMaskTexture(pattern.mask);
+    disposeOverlays(emissiveMeshes);
+    emissiveMeshes = [];
+    if (emissiveTexture === null) {
+      emissiveTexture = createMaskTexture(pattern.mask);
     } else {
-      repaintMaskTexture(glowTexture, pattern.mask);
+      repaintMaskTexture(emissiveTexture, pattern.mask);
     }
-    if (glowMaterial === null) {
-      glowMaterial = createEmissiveMaterial(glowTexture);
+    if (emissiveMaterial === null) {
+      emissiveMaterial = createEmissiveMaterial(emissiveTexture);
     }
-    glowMeshes = createPartOverlays(
+    emissiveMeshes = createPartOverlays(
       viewer.playerObject.skin,
-      glowMaterial,
+      emissiveMaterial,
       "etf-emissive",
     );
   }
 
   /**
-   * (Re)builds the glint overlays for the current decode: the mask
-   * texture, the pattern texture and the shared material are created
-   * once and updated in place afterwards, and the overlay meshes
-   * (render order 1, on top of the emissive glow) go through the
-   * shared builder. The pattern texture resolves asynchronously
-   * through the slot; the build waits for it.
+   * (Re)builds the enchanted overlays for the current decode: the
+   * mask texture, the pattern texture and the shared material are
+   * created once and updated in place afterwards, and the overlay
+   * meshes (render order 1, on top of the emissive overlay) go
+   * through the shared builder. The pattern texture resolves
+   * asynchronously through the slot; the build waits for it.
    */
-  function rebuildGlint(): void {
-    disposeOverlays(glintMeshes);
-    glintMeshes = [];
+  function rebuildEnchanted(): void {
+    disposeOverlays(enchantedMeshes);
+    enchantedMeshes = [];
     const pattern = decoded?.enchanted ?? null;
     if (detached || !settings.features.enchanted || pattern === null) {
       return;
     }
-    if (settings.glint.texture === null) {
+    if (settings.enchanted.texture === null) {
       return;
     }
-    if (glintSlot.canvas === null) {
-      glintSlot.ensure(
-        settings.glint.texture ?? DEFAULT_GLINT_DATA_URL,
+    if (enchantedSlot.canvas === null) {
+      enchantedSlot.ensure(
+        settings.enchanted.texture ?? DEFAULT_ENCHANTED_DATA_URL,
         apply,
         (error) => {
-          warn(`glint texture failed: ${String(error)}`);
+          warn(`enchanted texture failed: ${String(error)}`);
         },
       );
       return;
     }
-    if (glintMaskTexture === null) {
-      glintMaskTexture = createMaskTexture(pattern.mask);
+    if (enchantedMaskTexture === null) {
+      enchantedMaskTexture = createMaskTexture(pattern.mask);
     } else {
-      repaintMaskTexture(glintMaskTexture, pattern.mask);
+      repaintMaskTexture(enchantedMaskTexture, pattern.mask);
     }
-    if (glintPatternTexture === null) {
-      glintPatternTexture = createGlintTexture(
-        glintSlot.canvas,
-        settings.glint.smooth,
-      );
-    } else {
-      updateGlintTexture(
-        glintPatternTexture,
-        glintSlot.canvas,
-        settings.glint.smooth,
-      );
-    }
-    if (glintMaterial === null) {
-      glintMaterial = createGlintMaterial(
-        glintMaskTexture,
-        glintPatternTexture,
-        settings.glint.scale,
-        settings.glint.opacity,
-        glintPhase,
+    if (enchantedPatternTexture === null) {
+      enchantedPatternTexture = createEnchantedTexture(
+        enchantedSlot.canvas,
+        settings.enchanted.smooth,
       );
     } else {
-      setGlintTuning(
-        glintMaterial,
-        settings.glint.scale,
-        settings.glint.opacity,
+      updateEnchantedTexture(
+        enchantedPatternTexture,
+        enchantedSlot.canvas,
+        settings.enchanted.smooth,
       );
     }
-    glintMeshes = createPartOverlays(
+    if (enchantedMaterial === null) {
+      enchantedMaterial = createEnchantedMaterial(
+        enchantedMaskTexture,
+        enchantedPatternTexture,
+        settings.enchanted.scale,
+        settings.enchanted.opacity,
+        enchantedPhase,
+      );
+    } else {
+      setEnchantedTuning(
+        enchantedMaterial,
+        settings.enchanted.scale,
+        settings.enchanted.opacity,
+      );
+    }
+    enchantedMeshes = createPartOverlays(
       viewer.playerObject.skin,
-      glintMaterial,
-      "etf-glint",
+      enchantedMaterial,
+      "etf-enchanted",
       1,
     );
   }
@@ -503,7 +507,7 @@ export function attachETFSkinFeatures(
     if (detached || decoded === null || !decoded.supported) {
       clearNose();
       clearEmissive();
-      clearGlint();
+      clearEnchanted();
       syncTicker();
       return;
     }
@@ -516,7 +520,7 @@ export function attachETFSkinFeatures(
       decoded.nose !== null &&
       !(
         decoded.nose.villager &&
-        !decoded.nose.villagerSkinTextured &&
+        !decoded.nose.villagerTextured &&
         settings.villagerNose.texture === null
       );
 
@@ -545,9 +549,9 @@ export function attachETFSkinFeatures(
     }
     const enchanted = decoded.enchanted;
     if (settings.features.enchanted && enchanted !== null) {
-      rebuildGlint();
+      rebuildEnchanted();
     } else {
-      clearGlint();
+      clearEnchanted();
     }
     setupBlink();
     syncTicker();
@@ -559,7 +563,7 @@ export function attachETFSkinFeatures(
     stopTicker();
     clearNose();
     clearEmissive();
-    clearGlint();
+    clearEnchanted();
     sides.restore();
     if (skinEdited && baselinePixels !== null) {
       paintCanvasPixels(viewer.skinCanvas, baselinePixels);
@@ -618,9 +622,9 @@ export function attachETFSkinFeatures(
 
   /**
    * Advances the time-based features (the blink schedule and the
-   * glint phase) by `dt` seconds; negative deltas are ignored. The
-   * managed ticker calls this automatically unless `manageTicker` is
-   * `false`.
+   * enchanted phase) by `dt` seconds; negative deltas are ignored.
+   * The managed ticker calls this automatically unless `manageTicker`
+   * is `false`.
    *
    * @param dt - Time since the previous update, in seconds.
    */
@@ -636,14 +640,14 @@ export function attachETFSkinFeatures(
     ) {
       blinkPainter.show(blinkScheduler.advance(seconds * 1000));
     }
-    if (glintActive() && glintMaterial !== null) {
-      glintPhase = advanceGlintPhase(
-        glintPhase,
-        settings.glint.speed,
+    if (enchantedActive() && enchantedMaterial !== null) {
+      enchantedPhase = advanceEnchantedPhase(
+        enchantedPhase,
+        settings.enchanted.speed,
         seconds,
-        settings.glint.scale,
+        settings.enchanted.scale,
       );
-      setGlintPhase(glintMaterial, glintPhase);
+      setEnchantedPhase(enchantedMaterial, enchantedPhase);
     }
   }
 
@@ -655,8 +659,8 @@ export function attachETFSkinFeatures(
     unapply();
     sides.dispose();
     villagerSlot.reset();
-    glintSlot.reset();
-    glintPhase = 0;
+    enchantedSlot.reset();
+    enchantedPhase = 0;
     baselinePixels = null;
     lastPainted = null;
     decoded = null;
@@ -697,29 +701,30 @@ export function attachETFSkinFeatures(
   }
 
   /**
-   * Merges glint options (texture and / or motion parameters) at
+   * Merges enchanted options (texture and / or motion parameters) at
    * runtime; an omitted property keeps its current value except
    * `texture`: an omitted `texture` keeps it, `texture: undefined`
    * restores the built-in default and `texture: null` disables the
-   * glint. The merged values go through the full normalization, so
-   * invalid numbers fall back to the documented defaults.
+   * enchanted pixels. The merged values go through the full
+   * normalization, so invalid numbers fall back to the documented
+   * defaults.
    *
-   * @param options - The partial glint options to apply.
+   * @param options - The partial enchanted options to apply.
    */
-  function setGlintOptions(options: GlintOptions): void {
+  function setEnchantedOptions(options: EnchantedOptions): void {
     if (detached) {
       return;
     }
     const hasTexture = "texture" in options;
-    settings.glint = normalizeGlintOptions({
-      texture: hasTexture ? options.texture : settings.glint.texture,
-      speed: options.speed ?? settings.glint.speed,
-      opacity: options.opacity ?? settings.glint.opacity,
-      scale: options.scale ?? settings.glint.scale,
-      smooth: options.smooth ?? settings.glint.smooth,
+    settings.enchanted = normalizeEnchantedOptions({
+      texture: hasTexture ? options.texture : settings.enchanted.texture,
+      speed: options.speed ?? settings.enchanted.speed,
+      opacity: options.opacity ?? settings.enchanted.opacity,
+      scale: options.scale ?? settings.enchanted.scale,
+      smooth: options.smooth ?? settings.enchanted.smooth,
     });
     if (hasTexture) {
-      glintSlot.reset();
+      enchantedSlot.reset();
     }
     apply();
   }
@@ -753,7 +758,7 @@ export function attachETFSkinFeatures(
     detach,
     setFeatures,
     setVillagerNoseOptions,
-    setGlintOptions,
+    setEnchantedOptions,
     setBlinkOptions,
   };
 }

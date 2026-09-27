@@ -8,7 +8,7 @@ const ALL_UNSET = {
   blink: null,
   jacketStyle: null,
   jacketLength: null,
-  eyeHeight: null,
+  eyePosition: null,
   cape: null,
   nose: null,
   forcedSolid: null,
@@ -20,12 +20,12 @@ describe("choice slots", () => {
     paintSlot(skin, "blink", 5);
     paintSlot(skin, "jacketStyle", 2);
     paintSlot(skin, "jacketLength", 3);
-    paintSlot(skin, "eyeHeight", 5);
+    paintSlot(skin, "eyePosition", 5);
     expect(readSlots(skin)).toEqual({
       blink: 5,
       jacketStyle: 2,
       jacketLength: 3,
-      eyeHeight: 5,
+      eyePosition: 5,
       cape: null,
       nose: null,
       forcedSolid: null,

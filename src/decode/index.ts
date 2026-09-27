@@ -39,7 +39,7 @@ function emptySlots(): SlotValues {
     blink: null,
     jacketStyle: null,
     jacketLength: null,
-    eyeHeight: null,
+    eyePosition: null,
     cape: null,
     nose: null,
     forcedSolid: null,
@@ -165,12 +165,12 @@ export function decodeSkin(image: PixelData): DecodeResult {
 
     const mode = decodeBlinkMode(slots.blink);
     if (mode !== null) {
-      if (nose !== null && nose.removesSource) {
+      if (nose !== null && nose.removesFacePixels) {
         for (const rect of blinkNoseCuts(mode)) {
           clearRect(skin, rect);
         }
       }
-      blink = decodeBlink(skin, mode, slots.eyeHeight);
+      blink = decodeBlink(skin, mode, slots.eyePosition);
     }
 
     const emissiveBox = selectBox(cells, 1);
@@ -183,8 +183,8 @@ export function decodeSkin(image: PixelData): DecodeResult {
     }
 
     // The jacket's masks reuse the base-skin rule, cut from the jacket
-    // texture: copied pixels glow even when a moved style cleared
-    // their leg sources on the skin.
+    // texture: the copied pixels keep their overlay even when a moved
+    // style cleared their leg sources on the skin.
     if (jacket !== null) {
       jacket.emissiveMask =
         emissive === null ? null : buildMask(jacket.texture, emissive.keys);

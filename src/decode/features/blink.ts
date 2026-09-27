@@ -1,6 +1,6 @@
 /**
- * Blinking decoding: mode resolution, lazy face copies, optimized eye
- * strips and the prepared animation frames.
+ * Blinking decoding: mode resolution, entire-face frames, the
+ * pixel-tall eye strips and the prepared animation frames.
  */
 
 import {
@@ -33,12 +33,12 @@ export function decodeBlinkMode(slot: PaletteId | null): BlinkMode | null {
 }
 
 /**
- * Returns the nose-area cuts the stored lazy frames receive when the
- * deprecated hat nose pixels are removed.
+ * Returns the nose-area cuts the stored entire-face frames receive
+ * when the deprecated floating-face nose pixels are removed.
  *
  * @param mode - The resolved blink mode.
  * @returns The rectangles to clear from the working skin before the
- *   frames are built; empty for the optimized modes.
+ *   frames are built; empty for the pixel-tall eye modes.
  */
 export function blinkNoseCuts(mode: BlinkMode): Rect[] {
   if (mode === 1) {
@@ -51,14 +51,14 @@ export function blinkNoseCuts(mode: BlinkMode): Rect[] {
 }
 
 /**
- * Builds one lazy frame: the working skin with the stored corner
- * squares copied into the face and hat fronts.
+ * Builds one entire-face frame: the working skin with the stored
+ * corner squares copied into the face and floating-face fronts.
  *
  * @param image - The working skin image.
  * @param frame - The frame to build (1 or 2).
  * @returns The prepared frame.
  */
-function buildLazyFrame(image: PixelData, frame: 1 | 2): PixelData {
+function buildEntireFaceFrame(image: PixelData, frame: 1 | 2): PixelData {
   const output = cloneImage(image);
   for (const corner of BLINK_CORNERS) {
     if (corner.frame === frame) {
@@ -69,19 +69,19 @@ function buildLazyFrame(image: PixelData, frame: 1 | 2): PixelData {
 }
 
 /**
- * Builds one optimized frame: the working skin with the closed-eye
- * strip stamped across the face row.
+ * Builds one pixel-tall eye frame: the working skin with the
+ * closed-eye strip stamped across the face row.
  *
  * @param image - The working skin image.
- * @param mode - The optimized mode 3-5.
- * @param eyeHeight - The clamped face row 1-8.
+ * @param mode - The pixel-tall eye mode 3-5.
+ * @param eyePosition - The clamped face row 1-8.
  * @param frameIndex - The index of the strip within the mode.
  * @returns The prepared frame.
  */
-function buildOptimizedFrame(
+function buildEyeStripFrame(
   image: PixelData,
   mode: 3 | 4 | 5,
-  eyeHeight: number,
+  eyePosition: number,
   frameIndex: number,
 ): PixelData {
   const output = cloneImage(image);
@@ -91,7 +91,7 @@ function buildOptimizedFrame(
     output,
     strip,
     BLINK_FACE_RECT.x1,
-    BLINK_FACE_RECT.y1 + (eyeHeight - 1),
+    BLINK_FACE_RECT.y1 + (eyePosition - 1),
   );
   return output;
 }
@@ -103,7 +103,7 @@ function buildOptimizedFrame(
  *
  * @param image - The working skin image.
  * @param mode - The resolved blink mode 1-5.
- * @param eyeSlot - The palette id read from the eye-height slot.
+ * @param eyeSlot - The palette id read from the eye-position slot.
  * @returns The blinking data with the prepared frames.
  */
 export function decodeBlink(
@@ -112,16 +112,17 @@ export function decodeBlink(
   eyeSlot: PaletteId | null,
 ): BlinkInfo {
   if (mode === 1 || mode === 2) {
-    const first = buildLazyFrame(image, 1);
-    const frames = mode === 1 ? [first] : [first, buildLazyFrame(image, 2)];
-    return { mode, eyeHeight: null, frames };
+    const first = buildEntireFaceFrame(image, 1);
+    const frames =
+      mode === 1 ? [first] : [first, buildEntireFaceFrame(image, 2)];
+    return { mode, eyePosition: null, frames };
   }
-  const eyeHeight: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 =
+  const eyePosition: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 =
     eyeSlot !== null && eyeSlot >= 1 && eyeSlot <= 8
       ? (eyeSlot as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8)
       : 1;
   const frames = BLINK_EYE_STRIPS[mode].map((_, index) =>
-    buildOptimizedFrame(image, mode, eyeHeight, index),
+    buildEyeStripFrame(image, mode, eyePosition, index),
   );
-  return { mode, eyeHeight, frames };
+  return { mode, eyePosition, frames };
 }

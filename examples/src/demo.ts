@@ -9,7 +9,7 @@
  * live in `controls.ts`, the provider group in `blockbench.ts`).
  * Every row shows one API keyword at its API-path depth with the
  * dotted path and description in the tooltip; rows the current
- * skin has no decode data for gray out, the blink / glint rows
+ * skin has no decode data for gray out, the blink / enchanted rows
  * couple to their feature switches, and function rows carry
  * `execute` buttons with their parameters as children (values the
  * demo derives render as locked read-only inputs). The host picker
@@ -37,7 +37,7 @@ import {
   attachETFSkinFeatures,
   decodeSkin,
   DEFAULT_BLINK_OPTIONS,
-  DEFAULT_GLINT_OPTIONS,
+  DEFAULT_ENCHANTED_OPTIONS,
 } from "../../src/index";
 import { createBlockbenchGroup } from "./blockbench";
 import {
@@ -351,61 +351,85 @@ export function initDemo(container: HTMLElement): DemoHandle {
     controller?.setBlinkOptions({ reopenMs: DEFAULT_BLINK_OPTIONS.reopenMs });
   });
 
-  const glintSpeedInput = numberInput(
-    DEFAULT_GLINT_OPTIONS.speed,
+  const enchantedSpeedInput = numberInput(
+    DEFAULT_ENCHANTED_OPTIONS.speed,
     0.05,
-    (value) => controller?.setGlintOptions({ speed: value }),
+    (value) => controller?.setEnchantedOptions({ speed: value }),
   );
-  const glintOpacityInput = numberInput(
-    DEFAULT_GLINT_OPTIONS.opacity,
+  const enchantedOpacityInput = numberInput(
+    DEFAULT_ENCHANTED_OPTIONS.opacity,
     0.05,
-    (value) => controller?.setGlintOptions({ opacity: value }),
+    (value) => controller?.setEnchantedOptions({ opacity: value }),
     0,
     1,
   );
-  const glintScaleInput = numberInput(
-    DEFAULT_GLINT_OPTIONS.scale,
+  const enchantedScaleInput = numberInput(
+    DEFAULT_ENCHANTED_OPTIONS.scale,
     0.25,
-    (value) => controller?.setGlintOptions({ scale: value }),
+    (value) => controller?.setEnchantedOptions({ scale: value }),
     0,
   );
-  const glintSpeedReset = actionButton("reset", "reset glint.speed", () => {
-    glintSpeedInput.value = String(DEFAULT_GLINT_OPTIONS.speed);
-    controller?.setGlintOptions({ speed: DEFAULT_GLINT_OPTIONS.speed });
-  });
-  const glintOpacityReset = actionButton("reset", "reset glint.opacity", () => {
-    glintOpacityInput.value = String(DEFAULT_GLINT_OPTIONS.opacity);
-    controller?.setGlintOptions({ opacity: DEFAULT_GLINT_OPTIONS.opacity });
-  });
-  const glintScaleReset = actionButton("reset", "reset glint.scale", () => {
-    glintScaleInput.value = String(DEFAULT_GLINT_OPTIONS.scale);
-    controller?.setGlintOptions({ scale: DEFAULT_GLINT_OPTIONS.scale });
-  });
+  const enchantedSpeedReset = actionButton(
+    "reset",
+    "reset enchanted.speed",
+    () => {
+      enchantedSpeedInput.value = String(DEFAULT_ENCHANTED_OPTIONS.speed);
+      controller?.setEnchantedOptions({
+        speed: DEFAULT_ENCHANTED_OPTIONS.speed,
+      });
+    },
+  );
+  const enchantedOpacityReset = actionButton(
+    "reset",
+    "reset enchanted.opacity",
+    () => {
+      enchantedOpacityInput.value = String(DEFAULT_ENCHANTED_OPTIONS.opacity);
+      controller?.setEnchantedOptions({
+        opacity: DEFAULT_ENCHANTED_OPTIONS.opacity,
+      });
+    },
+  );
+  const enchantedScaleReset = actionButton(
+    "reset",
+    "reset enchanted.scale",
+    () => {
+      enchantedScaleInput.value = String(DEFAULT_ENCHANTED_OPTIONS.scale);
+      controller?.setEnchantedOptions({
+        scale: DEFAULT_ENCHANTED_OPTIONS.scale,
+      });
+    },
+  );
 
-  const glintSmoothBox = document.createElement("input");
-  glintSmoothBox.type = "checkbox";
-  glintSmoothBox.checked = DEFAULT_GLINT_OPTIONS.smooth;
-  glintSmoothBox.disabled = true;
-  glintSmoothBox.addEventListener("change", () => {
-    controller?.setGlintOptions({ smooth: glintSmoothBox.checked });
+  const enchantedSmoothBox = document.createElement("input");
+  enchantedSmoothBox.type = "checkbox";
+  enchantedSmoothBox.checked = DEFAULT_ENCHANTED_OPTIONS.smooth;
+  enchantedSmoothBox.disabled = true;
+  enchantedSmoothBox.addEventListener("change", () => {
+    controller?.setEnchantedOptions({ smooth: enchantedSmoothBox.checked });
   });
-  const glintSmoothReset = actionButton("reset", "reset glint.smooth", () => {
-    glintSmoothBox.checked = DEFAULT_GLINT_OPTIONS.smooth;
-    controller?.setGlintOptions({ smooth: DEFAULT_GLINT_OPTIONS.smooth });
-  });
-  glintSpeedInput.disabled = true;
-  glintOpacityInput.disabled = true;
-  glintScaleInput.disabled = true;
+  const enchantedSmoothReset = actionButton(
+    "reset",
+    "reset enchanted.smooth",
+    () => {
+      enchantedSmoothBox.checked = DEFAULT_ENCHANTED_OPTIONS.smooth;
+      controller?.setEnchantedOptions({
+        smooth: DEFAULT_ENCHANTED_OPTIONS.smooth,
+      });
+    },
+  );
+  enchantedSpeedInput.disabled = true;
+  enchantedOpacityInput.disabled = true;
+  enchantedScaleInput.disabled = true;
 
   /** The latest custom texture sources, replayed on re-attach. */
-  let glintTextureSource: string | undefined;
+  let enchantedTextureSource: string | undefined;
   let noseTextureSource: string | undefined;
 
-  const glintPicker = createTexturePicker({
-    path: "glint.texture",
+  const enchantedPicker = createTexturePicker({
+    path: "enchanted.texture",
     apply: (source) => {
-      glintTextureSource = source;
-      controller?.setGlintOptions({ texture: source });
+      enchantedTextureSource = source;
+      controller?.setEnchantedOptions({ texture: source });
     },
   });
   const nosePicker = createTexturePicker({
@@ -415,8 +439,8 @@ export function initDemo(container: HTMLElement): DemoHandle {
       controller?.setVillagerNoseOptions({ texture: source });
     },
   });
-  glintPicker.input.disabled = true;
-  glintPicker.reset.disabled = true;
+  enchantedPicker.input.disabled = true;
+  enchantedPicker.reset.disabled = true;
   nosePicker.input.disabled = true;
   nosePicker.reset.disabled = true;
 
@@ -451,21 +475,21 @@ export function initDemo(container: HTMLElement): DemoHandle {
     controller.setBlinkOptions({
       state: blinkStateSelect.value as BlinkState,
     });
-    const speed = Number.parseFloat(glintSpeedInput.value);
+    const speed = Number.parseFloat(enchantedSpeedInput.value);
     if (Number.isFinite(speed)) {
-      controller.setGlintOptions({ speed });
+      controller.setEnchantedOptions({ speed });
     }
-    const opacity = Number.parseFloat(glintOpacityInput.value);
+    const opacity = Number.parseFloat(enchantedOpacityInput.value);
     if (Number.isFinite(opacity)) {
-      controller.setGlintOptions({ opacity });
+      controller.setEnchantedOptions({ opacity });
     }
-    const scale = Number.parseFloat(glintScaleInput.value);
+    const scale = Number.parseFloat(enchantedScaleInput.value);
     if (Number.isFinite(scale)) {
-      controller.setGlintOptions({ scale });
+      controller.setEnchantedOptions({ scale });
     }
-    controller.setGlintOptions({
-      smooth: glintSmoothBox.checked,
-      texture: glintTextureSource,
+    controller.setEnchantedOptions({
+      smooth: enchantedSmoothBox.checked,
+      texture: enchantedTextureSource,
     });
     controller.setVillagerNoseOptions({ texture: noseTextureSource });
   }
@@ -473,7 +497,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
   /**
    * Recomputes which controls accept input and which rows the
    * current skin cannot use: `enabled = attached && applicable &&
-   * coupling`; inapplicable rows gray out, the blink and glint
+   * `coupling`; inapplicable rows gray out, the blink and enchanted
    * subtrees follow their feature switch, and the attach / detach
    * rows follow the attach state.
    */
@@ -489,7 +513,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
         decoded !== null &&
         decoded.nose !== null &&
         decoded.nose.villager &&
-        !decoded.nose.villagerSkinTextured,
+        !decoded.nose.villagerTextured,
     };
     const updateRow = (
       row: HTMLTableRowElement,
@@ -515,12 +539,12 @@ export function initDemo(container: HTMLElement): DemoHandle {
     updateRow(closedRow, uses.blink, timingOn);
     updateRow(halfClosedRow, uses.blink, timingOn);
     updateRow(reopenRow, uses.blink, timingOn);
-    const glintOn = attached && uses.enchanted && enchantedBox.checked;
-    updateRow(glintTextureRow, uses.enchanted, glintOn);
-    updateRow(glintSpeedRow, uses.enchanted, glintOn);
-    updateRow(glintOpacityRow, uses.enchanted, glintOn);
-    updateRow(glintScaleRow, uses.enchanted, glintOn);
-    updateRow(glintSmoothRow, uses.enchanted, glintOn);
+    const enchantedOn = attached && uses.enchanted && enchantedBox.checked;
+    updateRow(enchantedTextureRow, uses.enchanted, enchantedOn);
+    updateRow(enchantedSpeedRow, uses.enchanted, enchantedOn);
+    updateRow(enchantedOpacityRow, uses.enchanted, enchantedOn);
+    updateRow(enchantedScaleRow, uses.enchanted, enchantedOn);
+    updateRow(enchantedSmoothRow, uses.enchanted, enchantedOn);
     const noseTextureOn = attached && uses.villagerNose && noseBox.checked;
     updateRow(villagerNoseTextureRow, uses.villagerNose, noseTextureOn);
   }
@@ -653,7 +677,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
   );
   const emissiveRow = optionRow(
     ["features", "emissive"],
-    "features.emissive: fullbright glow overlays",
+    "features.emissive: fullbright emissive overlays",
     [emissiveBox],
   );
   const blinkFeatureRow = optionRow(
@@ -663,7 +687,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
   );
   const enchantedRow = optionRow(
     ["features", "enchanted"],
-    "features.enchanted: the enchanted (glint) overlay",
+    "features.enchanted: the enchanted pixel overlay",
     [enchantedBox],
   );
   const blinkGroupRow = optionRow(
@@ -703,45 +727,45 @@ export function initDemo(container: HTMLElement): DemoHandle {
     [reopenInput],
     reopenReset,
   );
-  const glintGroupRow = optionRow(
-    ["glint"],
-    "glint: the enchanted overlay options",
+  const enchantedGroupRow = optionRow(
+    ["enchanted"],
+    "enchanted: the enchanted pixel overlay options",
     [],
   );
-  const glintTextureRow = optionRow(
-    ["glint", "texture"],
-    "glint.texture: the pattern image; defaults to the built-in " +
-      "self-drawn texture, null renders no glint",
-    [glintPicker.input],
-    glintPicker.reset,
+  const enchantedTextureRow = optionRow(
+    ["enchanted", "texture"],
+    "enchanted.texture: the pattern image; defaults to the built-in " +
+      "self-drawn texture, null renders no enchanted pixels",
+    [enchantedPicker.input],
+    enchantedPicker.reset,
   );
-  const glintSpeedRow = optionRow(
-    ["glint", "speed"],
-    `glint.speed: diagonal scroll in UV units per second (default ` +
-      `${DEFAULT_GLINT_OPTIONS.speed}); 0 freezes, negative reverses`,
-    [glintSpeedInput],
-    glintSpeedReset,
+  const enchantedSpeedRow = optionRow(
+    ["enchanted", "speed"],
+    `enchanted.speed: diagonal scroll in UV units per second (default ` +
+      `${DEFAULT_ENCHANTED_OPTIONS.speed}); 0 freezes, negative reverses`,
+    [enchantedSpeedInput],
+    enchantedSpeedReset,
   );
-  const glintOpacityRow = optionRow(
-    ["glint", "opacity"],
-    `glint.opacity: additive brightness in 0..1 (default ` +
-      `${DEFAULT_GLINT_OPTIONS.opacity}); values outside are clamped`,
-    [glintOpacityInput],
-    glintOpacityReset,
+  const enchantedOpacityRow = optionRow(
+    ["enchanted", "opacity"],
+    `enchanted.opacity: additive brightness in 0..1 (default ` +
+      `${DEFAULT_ENCHANTED_OPTIONS.opacity}); values outside are clamped`,
+    [enchantedOpacityInput],
+    enchantedOpacityReset,
   );
-  const glintScaleRow = optionRow(
-    ["glint", "scale"],
-    `glint.scale: pattern tiling across the UVs (default ` +
-      `${DEFAULT_GLINT_OPTIONS.scale}); <= 0 falls back to the default`,
-    [glintScaleInput],
-    glintScaleReset,
+  const enchantedScaleRow = optionRow(
+    ["enchanted", "scale"],
+    `enchanted.scale: pattern tiling across the UVs (default ` +
+      `${DEFAULT_ENCHANTED_OPTIONS.scale}); <= 0 falls back to the default`,
+    [enchantedScaleInput],
+    enchantedScaleReset,
   );
-  const glintSmoothRow = optionRow(
-    ["glint", "smooth"],
-    `glint.smooth: bilinear pattern filtering (default ` +
-      `${DEFAULT_GLINT_OPTIONS.smooth}); false keeps crisp pixels`,
-    [glintSmoothBox],
-    glintSmoothReset,
+  const enchantedSmoothRow = optionRow(
+    ["enchanted", "smooth"],
+    `enchanted.smooth: bilinear pattern filtering (default ` +
+      `${DEFAULT_ENCHANTED_OPTIONS.smooth}); false keeps crisp pixels`,
+    [enchantedSmoothBox],
+    enchantedSmoothReset,
   );
   const villagerNoseGroupRow = optionRow(
     ["villagerNose"],
@@ -771,12 +795,12 @@ export function initDemo(container: HTMLElement): DemoHandle {
     closedRow,
     halfClosedRow,
     reopenRow,
-    glintGroupRow,
-    glintTextureRow,
-    glintSpeedRow,
-    glintOpacityRow,
-    glintScaleRow,
-    glintSmoothRow,
+    enchantedGroupRow,
+    enchantedTextureRow,
+    enchantedSpeedRow,
+    enchantedOpacityRow,
+    enchantedScaleRow,
+    enchantedSmoothRow,
     villagerNoseGroupRow,
     villagerNoseTextureRow,
   ]);

@@ -44,18 +44,19 @@ export type RGBA = readonly [number, number, number, number];
  */
 export type PaletteId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 666;
 
-/** Blink mode: 1-2 lazy face copies, 3-5 optimized closed-eye strips. */
+/** Blink mode: 1-2 entire-face frames, 3-5 pixel-tall eye strips. */
 export type BlinkMode = 1 | 2 | 3 | 4 | 5;
 
-/** Blinking information decoded from the blink and eye-height slots. */
+/** Blinking information decoded from the blink and eye-position slots. */
 export interface BlinkInfo {
   /** The selected blink mode (slot `(52,16)`, palette ids 1-5). */
   mode: BlinkMode;
   /**
-   * The face row (1 = top) the closed-eye strip is stamped at, for the
-   * optimized modes 3-5; `null` for the lazy modes 1-2.
+   * The face row (1 = top; the settings' "Eye position: N") the
+   * closed-eye strip is stamped at, for the pixel-tall eye modes 3-5;
+   * `null` for the entire-face modes 1-2.
    */
-  eyeHeight: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | null;
+  eyePosition: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | null;
   /**
    * Prepared full-size frames: one frame for modes 1 and 3, two frames
    * for modes 2, 4 and 5.
@@ -79,13 +80,19 @@ export interface NoseInfo {
    * Whether the villager nose is textured with the player skin (slot
    * choices 7/9) instead of the villager texture.
    */
-  villagerSkinTextured: boolean;
-  /** The textured-nose source region 1-5, or `null` when not textured. */
-  variant: 1 | 2 | 3 | 4 | 5 | null;
+  villagerTextured: boolean;
+  /**
+   * The textured-nose source region 1-5 ("Textured #1-5"), or `null`
+   * when not textured.
+   */
+  textured: 1 | 2 | 3 | 4 | 5 | null;
   /** The prepared 8x8 textured-nose image, or `null` when not textured. */
   texture: PixelData | null;
-  /** Whether the hat nose pixels were removed from `skin`. */
-  removesSource: boolean;
+  /**
+   * Whether the "remove face pixels" behavior clears the deprecated
+   * nose pixels from `skin` (the floating-face copy).
+   */
+  removesFacePixels: boolean;
 }
 
 /** Jacket information decoded from the style and length slots. */
@@ -142,8 +149,8 @@ export interface SlotValues {
   jacketStyle: PaletteId | null;
   /** Jacket length slot `(52,18)`; palette ids 1-8 select a length. */
   jacketLength: PaletteId | null;
-  /** Eye-height slot `(52,19)`; palette ids 1-8 select a face row. */
-  eyeHeight: PaletteId | null;
+  /** Eye-position slot `(52,19)`; palette ids 1-8 select a face row. */
+  eyePosition: PaletteId | null;
   /**
    * Cape slot `(53,16)`: retained by the decoder but dead upstream -
    * the in-skin cape feature was discontinued and the slot is kept for
@@ -192,8 +199,8 @@ export interface DecodeResult {
   enchanted: PatternInfo | null;
   /**
    * The base skin with every removable overlay source cleared (nose
-   * and moved-jacket sources plus the lazy-blink nose cuts) and the
-   * forced-solid alpha strips applied.
+   * and moved-jacket sources plus the entire-face blink nose cuts)
+   * and the forced-solid alpha strips applied.
    */
   skin: PixelData;
 }

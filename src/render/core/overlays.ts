@@ -3,7 +3,7 @@
  * added as a child of the source mesh and sharing its geometry, so
  * model-type changes, arm scaling and any re-parenting stay in sync.
  *
- * The emissive glow and the glint overlay both use this builder; the
+ * The emissive and enchanted overlays both use this builder; the
  * polygon offset that keeps overlays in front of the base pixels
  * lives here as well.
  */

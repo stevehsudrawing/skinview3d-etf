@@ -17,7 +17,7 @@ import type { NoseInfo, PaletteId, PixelData, Rect } from "../core/types";
 export interface NoseDecodeResult {
   /** The decoded nose, or `null` when none is selected. */
   info: NoseInfo | null;
-  /** Base-skin rectangles to clear (the deprecated hat nose pixels). */
+  /** Base-skin rectangles to clear (the deprecated floating-face pixels). */
   removals: Rect[];
 }
 
@@ -43,7 +43,7 @@ function allNosePixels(image: PixelData, rect: Rect): boolean {
 /**
  * Resolves the nose slot, including the raw type-9 encoding: when the
  * slot holds no palette color, the literal pixel value `9` selects
- * the "villager-textured-remove" type.
+ * the "Villager textured, remove face pixels" type.
  *
  * @param image - The skin image.
  * @param slot - The palette id read from the nose slot, if any.
@@ -66,14 +66,14 @@ function resolveNoseChoice(
  * bottom halves swapped.
  *
  * @param image - The original skin image.
- * @param variant - The textured source region 1-5.
+ * @param textured - The textured source region 1-5.
  * @returns The prepared 8x8 nose image.
  */
 function buildTexturedNose(
   image: PixelData,
-  variant: 1 | 2 | 3 | 4 | 5,
+  textured: 1 | 2 | 3 | 4 | 5,
 ): PixelData {
-  const bounds = NOSE_CAPE_REGIONS[variant - 1];
+  const bounds = NOSE_CAPE_REGIONS[textured - 1];
   const texture = createImage(8, 8);
   for (let sx = bounds.x1; sx <= bounds.x2; sx++) {
     for (let sy = bounds.y1; sy <= bounds.y2; sy++) {
@@ -103,7 +103,7 @@ function buildTexturedNose(
 /**
  * Decodes the nose feature from the deprecated pixels and the nose
  * slot. The textured image is built from the original skin; the only
- * base-skin change is the deprecated hat pixel removal.
+ * base-skin change is the deprecated floating-face pixel removal.
  *
  * @param image - The original skin image.
  * @param slot - The palette id read from the nose slot, if any.
@@ -113,14 +113,17 @@ export function decodeNose(
   image: PixelData,
   slot: PaletteId | null,
 ): NoseDecodeResult {
-  const hatPresent = allNosePixels(image, DEPRECATED_NOSE_RECTS.hat);
+  const floatingFacePresent = allNosePixels(
+    image,
+    DEPRECATED_NOSE_RECTS.floatingFace,
+  );
   const facePresent = allNosePixels(image, DEPRECATED_NOSE_RECTS.face);
 
-  let villager = hatPresent || facePresent;
-  let villagerSkinTextured = false;
-  let variant: 1 | 2 | 3 | 4 | 5 | null = null;
+  let villager = floatingFacePresent || facePresent;
+  let villagerTextured = false;
+  let textured: 1 | 2 | 3 | 4 | 5 | null = null;
   let texture: PixelData | null = null;
-  let removesSource = hatPresent;
+  let removesFacePixels = floatingFacePresent;
 
   const choice = resolveNoseChoice(image, slot);
   if (choice !== null && choice >= 1 && choice <= 9) {
@@ -130,31 +133,31 @@ export function decodeNose(
         break;
       case 7:
         villager = true;
-        villagerSkinTextured = true;
+        villagerTextured = true;
         break;
       case 8:
         villager = true;
-        removesSource = true;
+        removesFacePixels = true;
         break;
       case 9:
         villager = true;
-        villagerSkinTextured = true;
-        removesSource = true;
+        villagerTextured = true;
+        removesFacePixels = true;
         break;
       default: {
-        variant = (choice - 1) as 1 | 2 | 3 | 4 | 5;
-        texture = buildTexturedNose(image, variant);
+        textured = (choice - 1) as 1 | 2 | 3 | 4 | 5;
+        texture = buildTexturedNose(image, textured);
       }
     }
   }
 
   const info: NoseInfo | null =
-    villager || variant !== null
-      ? { villager, villagerSkinTextured, variant, texture, removesSource }
+    villager || textured !== null
+      ? { villager, villagerTextured, textured, texture, removesFacePixels }
       : null;
 
   return {
     info,
-    removals: removesSource ? [DEPRECATED_NOSE_RECTS.hat] : [],
+    removals: removesFacePixels ? [DEPRECATED_NOSE_RECTS.floatingFace] : [],
   };
 }

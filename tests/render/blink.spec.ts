@@ -1,7 +1,7 @@
 /**
  * Blinking core specs: option normalization, the seeded schedule, the
- * repaint rectangles, the pattern-glow bridge and the fixed eye-state
- * resolution.
+ * repaint rectangles, the blink overlay bridge and the fixed
+ * eye-state resolution.
  */
 
 import { describe, expect, it } from "vitest";
@@ -21,10 +21,10 @@ import {
   blinkRects,
   blinkSeed,
   blinkStateFrame,
+  createBlinkOverlay,
   createBlinkScheduler,
-  createPatternGlow,
-  glowOverlaps,
-} from "../../src/render/features/blinking";
+  patternOverlapsBlink,
+} from "../../src/render/features/blink";
 
 /**
  * Builds synthetic blink data; the frame pixels are irrelevant for
@@ -32,23 +32,23 @@ import {
  *
  * @param mode - The blink mode.
  * @param frameCount - The number of prepared frames.
- * @param eyeHeight - The recorded eye height, if any.
+ * @param eyePosition - The recorded eye position, if any.
  * @returns The fabricated blink info.
  */
 function makeInfo(
   mode: BlinkMode,
   frameCount: number,
-  eyeHeight: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | null = null,
+  eyePosition: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | null = null,
 ): BlinkInfo {
   return {
     mode,
-    eyeHeight,
+    eyePosition,
     frames: Array.from({ length: frameCount }, () => createImage(64, 64)),
   };
 }
 
 /**
- * Builds a synthetic pattern whose mask carries one glowing pixel.
+ * Builds a synthetic pattern whose mask carries one overlay pixel.
  *
  * @param x - The pixel column (64x64 layout).
  * @param y - The pixel row.
@@ -130,7 +130,7 @@ describe("blinkSeed", () => {
 });
 
 describe("blinkRects", () => {
-  it("covers the face and hat squares for the lazy modes", () => {
+  it("covers the face and floating-face squares for the entire-face modes", () => {
     const expected = [
       { x1: 8, y1: 8, x2: 15, y2: 15 },
       { x1: 40, y1: 8, x2: 47, y2: 15 },
@@ -155,37 +155,37 @@ describe("blinkRects", () => {
   });
 });
 
-describe("glowOverlaps", () => {
-  it("detects glow pixels inside the eye strip", () => {
+describe("patternOverlapsBlink", () => {
+  it("detects overlay pixels inside the eye strip", () => {
     const info = makeInfo(3, 1, 5);
     const mask = createImage(64, 64);
-    expect(glowOverlaps(mask, info)).toBe(false);
+    expect(patternOverlapsBlink(mask, info)).toBe(false);
     mask.data[(12 * 64 + 10) * 4 + 3] = 255;
-    expect(glowOverlaps(mask, info)).toBe(true);
+    expect(patternOverlapsBlink(mask, info)).toBe(true);
   });
 
-  it("ignores glow pixels outside the rectangles and a null mask", () => {
+  it("ignores overlay pixels outside the rectangles and a null mask", () => {
     const info = makeInfo(3, 1, 5);
     const mask = createImage(64, 64);
     mask.data[(20 * 64 + 10) * 4 + 3] = 255;
-    expect(glowOverlaps(mask, info)).toBe(false);
-    expect(glowOverlaps(null, info)).toBe(false);
+    expect(patternOverlapsBlink(mask, info)).toBe(false);
+    expect(patternOverlapsBlink(null, info)).toBe(false);
   });
 
-  it("covers the hat square for the lazy modes", () => {
+  it("covers the floating-face square for the entire-face modes", () => {
     const info = makeInfo(1, 1);
     const mask = createImage(64, 64);
     mask.data[(8 * 64 + 40) * 4 + 3] = 255;
-    expect(glowOverlaps(mask, info)).toBe(true);
+    expect(patternOverlapsBlink(mask, info)).toBe(true);
   });
 });
 
-describe("createPatternGlow", () => {
+describe("createBlinkOverlay", () => {
   it("returns null without a pattern or without overlap", () => {
     const info = makeInfo(3, 1, 5);
-    expect(createPatternGlow(info, null, () => undefined)).toBeNull();
+    expect(createBlinkOverlay(info, null, () => undefined)).toBeNull();
     expect(
-      createPatternGlow(info, makePattern(0, 0), () => undefined),
+      createBlinkOverlay(info, makePattern(0, 0), () => undefined),
     ).toBeNull();
   });
 
@@ -193,16 +193,16 @@ describe("createPatternGlow", () => {
     const info = makeInfo(3, 1, 5);
     const pattern = makePattern(10, 12);
     const repaints: (PixelData | null)[] = [];
-    const glow = createPatternGlow(info, pattern, (mask) => {
+    const overlay = createBlinkOverlay(info, pattern, (mask) => {
       repaints.push(mask);
     });
-    expect(glow).not.toBeNull();
-    if (glow === null) {
+    expect(overlay).not.toBeNull();
+    if (overlay === null) {
       return;
     }
-    expect(glow.openMask).toBe(pattern.mask);
-    expect(glow.frameMasks).toEqual([null]);
-    glow.repaint(glow.openMask);
+    expect(overlay.openMask).toBe(pattern.mask);
+    expect(overlay.frameMasks).toEqual([null]);
+    overlay.repaint(overlay.openMask);
     expect(repaints).toEqual([pattern.mask]);
   });
 });

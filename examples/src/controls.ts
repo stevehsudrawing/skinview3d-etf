@@ -121,7 +121,7 @@ export function actionButton(
  * the dotted path. The button stays in the control column
  * (left-aligned - no `row-action` class).
  *
- * @param label - The accessible name (`execute glint.texture`).
+ * @param label - The accessible name (`execute enchanted.texture`).
  * @param onClick - The click handler.
  * @returns The `<button>` element.
  */
@@ -161,7 +161,7 @@ export function lockedInput(value: string, reason: string): HTMLInputElement {
 }
 
 /**
- * Builds one number input for a control row (blink timings, glint
+ * Builds one number input for a control row (blink timings, enchanted
  * values, the blockbench playback speed).
  *
  * @param value - The initial value.

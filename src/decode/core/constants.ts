@@ -110,26 +110,27 @@ export const SLOTS = {
   blink: { x: 52, y: 16 },
   jacketStyle: { x: 52, y: 17 },
   jacketLength: { x: 52, y: 18 },
-  eyeHeight: { x: 52, y: 19 },
+  eyePosition: { x: 52, y: 19 },
   cape: { x: 53, y: 16 },
   nose: { x: 53, y: 17 },
   forcedSolid: { x: 53, y: 18 },
 } as const;
 
 /**
- * The raw pixel that encodes nose type 9 (villager-textured-remove) in
- * the nose slot: RGBA `(9, 0, 0, 0)`. The editor writes this literal
- * value because the type id has no palette swatch; it is the only type
- * encoded outside the palette.
+ * The raw pixel that encodes nose type 9 (the "Villager textured,
+ * remove face pixels" type) in the nose slot: RGBA `(9, 0, 0, 0)`.
+ * The editor writes this literal value because the type id has no
+ * palette swatch; it is the only type encoded outside the palette.
  */
 export const NOSE_TYPE9_PIXEL: RGBA = [9, 0, 0, 0];
 
 /**
- * The deprecated six-pixel villager nose rectangles. The hat variant
- * also removes its pixels from the base skin; the face variant is kept.
+ * The deprecated six-pixel villager nose rectangles. The
+ * floating-face variant also removes its pixels from the base skin;
+ * the face variant is kept.
  */
-export const DEPRECATED_NOSE_RECTS: { hat: Rect; face: Rect } = {
-  hat: { x1: 43, y1: 13, x2: 44, y2: 15 },
+export const DEPRECATED_NOSE_RECTS: { floatingFace: Rect; face: Rect } = {
+  floatingFace: { x1: 43, y1: 13, x2: 44, y2: 15 },
   face: { x1: 11, y1: 13, x2: 12, y2: 15 },
 };
 
@@ -146,9 +147,9 @@ export const NOSE_CAPE_REGIONS: readonly Rect[] = [
   { x1: 44, y1: 48, x2: 51, y2: 51 },
 ];
 
-/** One stored lazy-blink face square and where it is copied to. */
+/** One stored entire-face blink square and where it is copied to. */
 export interface BlinkCorner {
-  /** The stored 8x8 source square (an unused head/hat corner). */
+  /** The stored 8x8 source square (an unused head-texture corner). */
   source: Rect;
   /** Target x of the square's top-left pixel. */
   targetX: number;
@@ -159,17 +160,18 @@ export interface BlinkCorner {
 }
 
 /**
- * The face-front square the lazy blink frames copy into; its top-left
- * corner is also the base of the optimized eye-strip row.
+ * The face-front square the entire-face blink frames copy into; its
+ * top-left corner is also the base of the pixel-tall eye strip row.
  */
 export const BLINK_FACE_RECT: Rect = { x1: 8, y1: 8, x2: 15, y2: 15 };
 
-/** The hat-front square the lazy blink frames copy into. */
-export const BLINK_HAT_RECT: Rect = { x1: 40, y1: 8, x2: 47, y2: 15 };
+/** The floating-face square the entire-face blink frames copy into. */
+export const BLINK_FLOATING_FACE_RECT: Rect = { x1: 40, y1: 8, x2: 47, y2: 15 };
 
 /**
- * The four lazy-blink corner squares. Frame 1 copies into the face and
- * hat front, frame 2 supplies the second (optional) frame.
+ * The four entire-face blink corner squares. Frame 1 copies into the
+ * face and floating-face fronts, frame 2 supplies the second
+ * (optional) frame.
  */
 export const BLINK_CORNERS: readonly BlinkCorner[] = [
   {
@@ -186,22 +188,22 @@ export const BLINK_CORNERS: readonly BlinkCorner[] = [
   },
   {
     source: { x1: 32, y1: 0, x2: 39, y2: 7 },
-    targetX: BLINK_HAT_RECT.x1,
-    targetY: BLINK_HAT_RECT.y1,
+    targetX: BLINK_FLOATING_FACE_RECT.x1,
+    targetY: BLINK_FLOATING_FACE_RECT.y1,
     frame: 1,
   },
   {
     source: { x1: 56, y1: 0, x2: 63, y2: 7 },
-    targetX: BLINK_HAT_RECT.x1,
-    targetY: BLINK_HAT_RECT.y1,
+    targetX: BLINK_FLOATING_FACE_RECT.x1,
+    targetY: BLINK_FLOATING_FACE_RECT.y1,
     frame: 2,
   },
 ];
 
 /**
- * The optimized-blink closed-eye strips per mode; each mode lists its
+ * The pixel-tall eye closed-eye strips per mode; each mode lists its
  * frame sources in order. A strip is stamped across the face row
- * `8 + (eyeHeight - 1)`.
+ * `8 + (eyePosition - 1)`.
  */
 export const BLINK_EYE_STRIPS: Readonly<Record<3 | 4 | 5, readonly Rect[]>> = {
   3: [{ x1: 12, y1: 16, x2: 19, y2: 16 }],
@@ -216,9 +218,9 @@ export const BLINK_EYE_STRIPS: Readonly<Record<3 | 4 | 5, readonly Rect[]>> = {
 };
 
 /**
- * Nose-area cuts inside the stored lazy frames, applied when the
- * deprecated hat nose pixels are removed: the first belongs to frame 1
- * (modes 1-2), the second to frame 2 (mode 2 only).
+ * Nose-area cuts inside the stored entire-face frames, applied when
+ * the deprecated floating-face nose pixels are removed: the first
+ * belongs to frame 1 (modes 1-2), the second to frame 2 (mode 2 only).
  */
 export const BLINK_NOSE_CUT_RECTS: readonly Rect[] = [
   { x1: 35, y1: 5, x2: 36, y2: 7 },

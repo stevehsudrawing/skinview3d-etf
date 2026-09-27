@@ -23,10 +23,10 @@ interface JacketExpectation {
 interface NoseExpectation {
   /** Villager nose flag. */
   villager: boolean;
-  /** Textured variant, or `null`. */
-  variant: number | null;
-  /** Source-removal flag. */
-  removesSource: boolean;
+  /** The textured selection 1-5, or `null`. */
+  textured: number | null;
+  /** Remove-face-pixels flag. */
+  removesFacePixels: boolean;
 }
 
 /** One fixture-matrix row. */
@@ -37,8 +37,8 @@ interface FixtureExpectation {
   cells: (PaletteId | null)[];
   /** Blink mode, or `null`. */
   blink: BlinkMode | null;
-  /** Eye height, or `null`. */
-  eyeHeight: number | null;
+  /** Eye position, or `null`. */
+  eyePosition: number | null;
   /** Jacket expectation, or `null`. */
   jacket: JacketExpectation | null;
   /** Nose expectation, or `null`. */
@@ -58,7 +58,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "alex.png",
     cells: PINK_CYAN,
     blink: 1,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: null,
     nose: null,
     emissive: true,
@@ -68,7 +68,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "amogus.png",
     cells: NO_CELLS,
     blink: null,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: null,
     nose: null,
     emissive: false,
@@ -78,7 +78,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "big-dress.png",
     cells: NO_CELLS,
     blink: null,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: { style: 3, length: 6, wide: true, moved: false, top: true },
     nose: null,
     emissive: false,
@@ -88,7 +88,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "blink-option1.png",
     cells: NO_CELLS,
     blink: 3,
-    eyeHeight: 5,
+    eyePosition: 5,
     jacket: null,
     nose: null,
     emissive: false,
@@ -98,7 +98,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "blink-option2.png",
     cells: NO_CELLS,
     blink: 4,
-    eyeHeight: 4,
+    eyePosition: 4,
     jacket: null,
     nose: null,
     emissive: false,
@@ -108,7 +108,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "blink-option3.png",
     cells: NO_CELLS,
     blink: 5,
-    eyeHeight: 3,
+    eyePosition: 3,
     jacket: null,
     nose: null,
     emissive: false,
@@ -118,7 +118,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "cape.png",
     cells: NO_CELLS,
     blink: 4,
-    eyeHeight: 4,
+    eyePosition: 4,
     jacket: null,
     nose: null,
     emissive: false,
@@ -128,7 +128,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "chicken.png",
     cells: NO_CELLS,
     blink: 2,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: null,
     nose: null,
     emissive: false,
@@ -138,7 +138,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "chieck-coat.png",
     cells: NO_CELLS,
     blink: 2,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: { style: 1, length: 4, wide: false, moved: false, top: true },
     nose: null,
     emissive: false,
@@ -148,7 +148,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "coat.png",
     cells: NO_CELLS,
     blink: 1,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: { style: 1, length: 6, wide: false, moved: false, top: true },
     nose: null,
     emissive: false,
@@ -158,7 +158,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "dress.png",
     cells: NO_CELLS,
     blink: null,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: { style: 4, length: 8, wide: true, moved: true, top: true },
     nose: null,
     emissive: false,
@@ -168,7 +168,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "dress2.png",
     cells: NO_CELLS,
     blink: null,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: { style: 1, length: 4, wide: false, moved: false, top: true },
     nose: null,
     emissive: false,
@@ -178,7 +178,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "ghost.png",
     cells: PINK_CYAN,
     blink: null,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: null,
     nose: null,
     emissive: true,
@@ -188,7 +188,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "robot.png",
     cells: PINK_ONLY,
     blink: 1,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: null,
     nose: null,
     emissive: true,
@@ -198,7 +198,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "skelly.png",
     cells: NO_CELLS,
     blink: null,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: null,
     nose: null,
     emissive: false,
@@ -208,7 +208,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "slime.png",
     cells: PINK_ONLY,
     blink: 2,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: { style: 1, length: 1, wide: false, moved: false, top: true },
     nose: null,
     emissive: true,
@@ -218,7 +218,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "steve-hsu.png",
     cells: NO_CELLS,
     blink: 5,
-    eyeHeight: 5,
+    eyePosition: 5,
     jacket: { style: 2, length: 3, wide: false, moved: true, top: true },
     nose: null,
     emissive: false,
@@ -228,9 +228,9 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "steve-villager.png",
     cells: NO_CELLS,
     blink: 4,
-    eyeHeight: 4,
+    eyePosition: 4,
     jacket: { style: 2, length: 8, wide: false, moved: true, top: true },
-    nose: { villager: true, variant: null, removesSource: true },
+    nose: { villager: true, textured: null, removesFacePixels: true },
     emissive: false,
     enchanted: false,
   },
@@ -238,7 +238,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "steve.png",
     cells: PINK_CYAN,
     blink: 1,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: { style: 1, length: 1, wide: false, moved: false, top: true },
     nose: null,
     emissive: true,
@@ -248,7 +248,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "steve2.png",
     cells: PINK_CYAN,
     blink: 1,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: { style: 2, length: 1, wide: false, moved: true, top: true },
     nose: null,
     emissive: true,
@@ -258,7 +258,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "thanos.png",
     cells: PINK_CYAN,
     blink: 1,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: null,
     nose: null,
     emissive: true,
@@ -268,7 +268,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     name: "wizard.png",
     cells: PINK_CYAN,
     blink: null,
-    eyeHeight: null,
+    eyePosition: null,
     jacket: { style: 2, length: 1, wide: false, moved: true, top: true },
     nose: null,
     emissive: true,
@@ -288,7 +288,7 @@ describe("decodeSkin", () => {
       blink: null,
       jacketStyle: null,
       jacketLength: null,
-      eyeHeight: null,
+      eyePosition: null,
       cape: null,
       nose: null,
       forcedSolid: null,
@@ -332,7 +332,7 @@ describe.skipIf(!fixturesAvailable)("fixture matrix", () => {
       expect(result.hasMarker).toBe(true);
       expect(result.cells).toEqual(row.cells);
       expect(result.blink?.mode ?? null).toBe(row.blink);
-      expect(result.blink?.eyeHeight ?? null).toBe(row.eyeHeight);
+      expect(result.blink?.eyePosition ?? null).toBe(row.eyePosition);
       if (row.jacket === null) {
         expect(result.jacket).toBeNull();
       } else {
@@ -361,12 +361,12 @@ describe.skipIf(!fixturesAvailable)("fixture matrix", () => {
       blink: 5,
       jacketStyle: 2,
       jacketLength: 3,
-      eyeHeight: 5,
+      eyePosition: 5,
       cape: null,
       nose: null,
       forcedSolid: null,
     });
-    expect(result.blink).toMatchObject({ mode: 5, eyeHeight: 5 });
+    expect(result.blink).toMatchObject({ mode: 5, eyePosition: 5 });
     expect(result.jacket).toMatchObject({
       style: 2,
       length: 3,

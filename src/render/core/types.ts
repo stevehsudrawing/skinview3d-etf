@@ -33,7 +33,7 @@ export type RemoteImage =
 
 /**
  * Every source accepted by the texture options
- * (`villagerNose.texture` and `glint.texture`).
+ * (`villagerNose.texture` and `enchanted.texture`).
  */
 export type ETFTextureInput = TextureSource | RemoteImage | PixelData | Texture;
 
@@ -52,7 +52,7 @@ export interface SkinFeatureToggles {
   nose?: boolean;
   /** Deferred - accepted and ignored until the jacket renderer lands. */
   jacket?: boolean;
-  /** Enables the enchanted (glint) overlay. */
+  /** Enables the enchanted pixel overlay. */
   enchanted?: boolean;
 }
 
@@ -106,11 +106,11 @@ export interface VillagerNoseOptions {
   texture?: ETFTextureInput | null;
 }
 
-/** Enchanted (glint) overlay options. */
-export interface GlintOptions {
+/** Enchanted pixel overlay options. */
+export interface EnchantedOptions {
   /**
-   * Glint pattern texture. Defaults to the built-in self-drawn
-   * texture; `null` renders no glint.
+   * Enchanted pattern texture. Defaults to the built-in self-drawn
+   * texture; `null` renders no enchanted pixels.
    */
   texture?: ETFTextureInput | null;
   /**
@@ -130,7 +130,7 @@ export interface GlintOptions {
   scale?: number;
   /**
    * Bilinear filtering for the pattern texture (default `true`, the
-   * smoothed in-game glint look); `false` keeps crisp pixels.
+   * smoothed in-game look); `false` keeps crisp pixels.
    */
   smooth?: boolean;
 }
@@ -158,8 +158,8 @@ export interface ETFSkinFeaturesOptions {
   manageTicker?: boolean;
   /** Villager nose options (the texture override). */
   villagerNose?: VillagerNoseOptions;
-  /** Enchanted (glint) overlay options (texture and motion). */
-  glint?: GlintOptions;
+  /** Enchanted pixel overlay options (texture and motion). */
+  enchanted?: EnchantedOptions;
   /**
    * Receives warning messages (unsupported skins, texture failures).
    * Falls back to `console.warn`, deduplicated once per message.
@@ -199,13 +199,13 @@ export interface ETFController {
    */
   setVillagerNoseOptions(options: VillagerNoseOptions): void;
   /**
-   * Merges glint options (texture and / or motion parameters) at
+   * Merges enchanted options (texture and / or motion parameters) at
    * runtime: omitted properties keep their current values except
    * `texture` - `texture: undefined` restores the built-in default
-   * and `texture: null` disables the glint. Invalid numbers fall
-   * back to the documented defaults.
+   * and `texture: null` disables the enchanted pixels. Invalid
+   * numbers fall back to the documented defaults.
    */
-  setGlintOptions(options: GlintOptions): void;
+  setEnchantedOptions(options: EnchantedOptions): void;
   /**
    * Merges blink options (eye state and/or timing) at runtime and
    * restarts the blink schedule.

@@ -7,7 +7,7 @@
  * screen.
  *
  * Only the geometry is replicated: the alpha / opacity fixes of the
- * rendering pipeline (hat-layer clearing for opaque skins, forced
+ * rendering pipeline (second-layer clearing for opaque skins, forced
  * opaque regions) belong to the host and are not part of the decoder.
  */
 

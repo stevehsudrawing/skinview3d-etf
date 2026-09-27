@@ -12,10 +12,10 @@ Unofficial, community-built extension for
 player skin features on the 3D player model:
 
 - transparency on the base skin layer;
-- emissive (glowing) pixels;
+- emissive pixels;
 - blinking eyes;
 - nose (villager and textured);
-- enchanted (glint) overlay;
+- enchanted pixel overlay;
 - jacket/dress extension.
 
 The v0.0.1 decoder is complete and available now: `decodeSkin()` reads
@@ -24,9 +24,9 @@ palette and the seven choice slots, transparency and forced-solid,
 blinking, nose, jacket (styles 1-8) and the emissive/enchanted pattern
 data - and prepares the overlay images the renderer consumes. The
 renderer ships transparency, the nose (villager and textured), the
-emissive (glowing) pixels, blinking eyes and the enchanted (glint)
-overlay through `attachETFSkinFeatures()` on a live viewer; jacket
-rendering is not implemented yet.
+emissive pixels, blinking eyes and the enchanted pixel overlay
+through `attachETFSkinFeatures()` on a live viewer; jacket rendering
+is not implemented yet.
 
 The in-skin cape no longer exists upstream (all code paths are
 commented out), so it is out of scope; the five former cape texture
@@ -38,9 +38,9 @@ Early development. The decoder (`decodeSkin()`) is complete and
 unit-tested against the
 [ETF example skins](https://github.com/Traben-0/Entity_Texture_Features/tree/ETF-Main/.github/README-assets/mod-skins).
 The renderer ships transparency, the nose (villager and textured),
-the emissive (glowing) pixels, blinking eyes and the enchanted
-(glint) overlay on a live viewer; jacket rendering is not
-implemented yet. Published on npm as `skinview3d-etf`; a live demo
+the emissive pixels, blinking eyes and the enchanted pixel overlay
+on a live viewer; jacket rendering is not implemented yet. Published
+on npm as `skinview3d-etf`; a live demo
 deploys from `main` (§4).
 
 ## 2. Usage
@@ -85,14 +85,14 @@ state or change the timing at runtime. The documented defaults are
 exported as `DEFAULT_BLINK_OPTIONS`.
 
 The options form four groups: `features` (the five toggles -
-including `enchanted`), `blink`, `glint` (`texture`, `speed`,
+including `enchanted`), `blink`, `enchanted` (`texture`, `speed`,
 `opacity`, `scale`, `smooth`) and `villagerNose` (`texture`).
-`DEFAULT_GLINT_OPTIONS` exports the glint defaults, and the runtime
-setters (`setFeatures()`, `setBlinkOptions()`, `setGlintOptions()`,
-`setVillagerNoseOptions()`) merge partial updates: an omitted
-property keeps its current value, while for the two texture options
-an explicit `texture: undefined` restores the built-in default and
-`null` turns the feature off.
+`DEFAULT_ENCHANTED_OPTIONS` exports the enchanted defaults, and the
+runtime setters (`setFeatures()`, `setBlinkOptions()`,
+`setEnchantedOptions()`, `setVillagerNoseOptions()`) merge partial
+updates: an omitted property keeps its current value, while for the
+two texture options an explicit `texture: undefined` restores the
+built-in default and `null` turns the feature off.
 
 The extension never rebuilds the scene graph and never seizes the
 viewer's animation slot; it adds artifacts under the existing meshes
@@ -111,8 +111,8 @@ const result = decodeSkin(imageData);
 
 Note the migration from v0.0.1 (breaking, expected before 1.0): the
 flat `villagerNoseTexture` option moved to `villagerNose.texture`,
-and the reserved `glintTexture` option is now `glint.texture` (the
-`glint` group adds `speed`, `opacity`, `scale` and `smooth`).
+and the reserved `glintTexture` option is now `enchanted.texture`
+(the group adds `speed`, `opacity`, `scale` and `smooth`).
 
 **Browser support:** the build targets ES2022 and the runtime expects
 WebGL 2 (matching the `three` release's own browser target) - the
@@ -165,9 +165,10 @@ A live build is deployed from `main` to the
   explain the derivation in their tooltip.
 - The `skinview3d-etf:` tree gates everything on its
   `attachETFSkinFeatures` / `detach` execute rows; the `blink` rows
-  couple to the feature switch, the `glint` rows to `enchanted` and
-  the `villagerNose.texture` row to the villager nose; a `reset`
-  button in the stage's corner restores the camera pose.
+  couple to the feature switch, the `enchanted` rows to
+  `features.enchanted` and the `villagerNose.texture` row to the
+  villager nose; a `reset` button in the stage's corner restores
+  the camera pose.
 - The `skinview3d-blockbench:` tree picks its input file
   (`animation`, the bundled self-made copy or a transient `[upload]`
   entry) and plays its animations (`animationName`, `setAnimation`,
@@ -182,7 +183,7 @@ A live build is deployed from `main` to the
 
 v0.0.2 (current milestone):
 
-- [x] render the enchanted (glint) overlay with the reworked
+- [x] render the enchanted pixel overlay with the reworked
       texture options (`smooth`, the texture-slot state machine);
 - [x] rebuild the demo control tree and rewrite the README;
 - [x] sync the documentation pages and prepare the release record;

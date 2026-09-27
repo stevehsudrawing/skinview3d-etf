@@ -15,7 +15,7 @@ to the documented defaults.
 | `emissive`     | `true`  | fullbright glow overlays for the decoded emissive pixels;        |
 | `blink`        | `true`  | automatic blinking and the fixed eye states;                     |
 | `nose`         | `true`  | villager and textured noses;                                     |
-| `enchanted`    | `true`  | the enchanted (glint) overlay;                                   |
+| `enchanted`    | `true`  | the enchanted pixel overlay;                                     |
 | `jacket`       | `true`  | deferred - accepted and ignored until the jacket renderer lands. |
 
 ### 1.2 blink
@@ -30,17 +30,17 @@ to the documented defaults.
 
 The documented defaults are exported as `DEFAULT_BLINK_OPTIONS`.
 
-### 1.3 glint
+### 1.3 enchanted
 
 | Key       | Default  | Effect                                                                              |
 | --------- | -------- | ----------------------------------------------------------------------------------- |
-| `texture` | built-in | the pattern image; `null` renders no glint;                                         |
+| `texture` | built-in | the pattern image; `null` renders no enchanted pixels;                              |
 | `speed`   | `0.1`    | diagonal scroll in UV units per second; `0` freezes, negative reverses;             |
 | `opacity` | `1`      | additive brightness factor, clamped to 0..1;                                        |
 | `scale`   | `1`      | pattern tiling across the UVs; `<= 0` falls back to the default;                    |
 | `smooth`  | `true`   | bilinear pattern filtering (the smoothed in-game look); `false` keeps crisp pixels. |
 
-The documented defaults are exported as `DEFAULT_GLINT_OPTIONS`.
+The documented defaults are exported as `DEFAULT_ENCHANTED_OPTIONS`.
 
 ### 1.4 villagerNose
 
@@ -62,7 +62,7 @@ The documented defaults are exported as `DEFAULT_GLINT_OPTIONS`.
 | --------------------------------- | ------------------------------- |
 | `setFeatures(partial)`            | `features`                      |
 | `setBlinkOptions(partial)`        | `blink` (restarts the schedule) |
-| `setGlintOptions(partial)`        | `glint`                         |
+| `setEnchantedOptions(partial)`    | `enchanted`                     |
 | `setVillagerNoseOptions(partial)` | `villagerNose`                  |
 
 Every setter merges partial updates: an omitted property keeps its
@@ -97,4 +97,4 @@ option groups.
 | `glintTexture`        | `glint.texture`        |
 
 `ETFController.setVillagerNoseTexture()` is replaced by
-`setVillagerNoseOptions()`, and `setGlintOptions()` is new.
+`setVillagerNoseOptions()`, and `setEnchantedOptions()` is new.

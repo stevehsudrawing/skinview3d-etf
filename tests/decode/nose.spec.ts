@@ -15,18 +15,18 @@ import {
 } from "../fixtures/synthetic";
 
 describe("nose", () => {
-  it("detects the deprecated hat nose and removes its pixels", () => {
+  it("detects the deprecated floating-face nose and removes its pixels", () => {
     const skin = createMarkedSkin();
-    paintRectWithPalette(skin, DEPRECATED_NOSE_RECTS.hat, 666);
+    paintRectWithPalette(skin, DEPRECATED_NOSE_RECTS.floatingFace, 666);
     const result = decodeNose(skin, null);
     expect(result.info).toMatchObject({
       villager: true,
-      villagerSkinTextured: false,
-      variant: null,
+      villagerTextured: false,
+      textured: null,
       texture: null,
-      removesSource: true,
+      removesFacePixels: true,
     });
-    expect(result.removals).toEqual([DEPRECATED_NOSE_RECTS.hat]);
+    expect(result.removals).toEqual([DEPRECATED_NOSE_RECTS.floatingFace]);
 
     const decoded = decodeSkin(skin);
     for (let y = 13; y <= 15; y++) {
@@ -42,7 +42,7 @@ describe("nose", () => {
     const result = decodeNose(skin, null);
     expect(result.info).toMatchObject({
       villager: true,
-      removesSource: false,
+      removesFacePixels: false,
     });
     expect(result.removals).toEqual([]);
     expect(getPixel(decodeSkin(skin).skin, 11, 13)).toEqual(NOSE_COLOR);
@@ -50,7 +50,7 @@ describe("nose", () => {
 
   it("requires all six pixels of a deprecated rectangle", () => {
     const skin = createMarkedSkin();
-    paintRectWithPalette(skin, DEPRECATED_NOSE_RECTS.hat, 666);
+    paintRectWithPalette(skin, DEPRECATED_NOSE_RECTS.floatingFace, 666);
     setPixel(skin, 43, 13, [0, 0, 0, 0]);
     expect(decodeNose(skin, null).info).toBeNull();
   });
@@ -61,18 +61,18 @@ describe("nose", () => {
       { id: 7, skinTextured: true, removes: false },
       { id: 8, skinTextured: false, removes: true },
     ] as const;
-    for (const variant of cases) {
+    for (const entry of cases) {
       const skin = createMarkedSkin();
-      const result = decodeNose(skin, variant.id);
+      const result = decodeNose(skin, entry.id);
       expect(result.info).toMatchObject({
         villager: true,
-        villagerSkinTextured: variant.skinTextured,
-        variant: null,
+        villagerTextured: entry.skinTextured,
+        textured: null,
         texture: null,
-        removesSource: variant.removes,
+        removesFacePixels: entry.removes,
       });
       expect(result.removals).toEqual(
-        variant.removes ? [DEPRECATED_NOSE_RECTS.hat] : [],
+        entry.removes ? [DEPRECATED_NOSE_RECTS.floatingFace] : [],
       );
     }
   });
@@ -83,9 +83,9 @@ describe("nose", () => {
     const result = decodeSkin(skin);
     expect(result.nose).toMatchObject({
       villager: true,
-      villagerSkinTextured: true,
-      variant: null,
-      removesSource: true,
+      villagerTextured: true,
+      textured: null,
+      removesFacePixels: true,
     });
     expect(result.slots.nose).toBeNull();
     expect(result.nose?.texture).toBeNull();
@@ -105,8 +105,8 @@ describe("nose", () => {
       const result = decodeSkin(skin);
       expect(result.nose).toMatchObject({
         villager: false,
-        variant,
-        removesSource: false,
+        textured: variant,
+        removesFacePixels: false,
       });
       const texture = result.nose?.texture ?? null;
       expect(texture).not.toBeNull();
@@ -147,15 +147,15 @@ describe("nose", () => {
 });
 
 describe.skipIf(!fixturesAvailable)("nose fixtures", () => {
-  it("decodes steve-villager's deprecated hat nose", () => {
+  it("decodes steve-villager's deprecated floating-face nose", () => {
     const original = loadSkin("steve-villager.png");
     const result = decodeSkin(original);
     expect(result.nose).toMatchObject({
       villager: true,
-      villagerSkinTextured: false,
-      variant: null,
+      villagerTextured: false,
+      textured: null,
       texture: null,
-      removesSource: true,
+      removesFacePixels: true,
     });
     for (let y = 13; y <= 15; y++) {
       for (let x = 43; x <= 44; x++) {

@@ -26,7 +26,7 @@ describe("example.png", () => {
       moved: true,
       top: true,
     });
-    expect(result.blink).toMatchObject({ mode: 5, eyeHeight: 4 });
+    expect(result.blink).toMatchObject({ mode: 5, eyePosition: 4 });
     expect(result.emissive).not.toBeNull();
     expect(result.enchanted).not.toBeNull();
   });

@@ -38,33 +38,33 @@ describe("blink", () => {
     expect(decodeBlinkMode(null)).toBeNull();
   });
 
-  it("only queues nose cuts for the lazy modes", () => {
+  it("only queues nose cuts for the entire-face modes", () => {
     expect(blinkNoseCuts(3)).toEqual([]);
     expect(blinkNoseCuts(1)).toHaveLength(1);
     expect(blinkNoseCuts(2)).toHaveLength(2);
   });
 
-  it("builds one lazy frame from the stored corners (mode 1)", () => {
+  it("builds one entire-face frame from the stored corners (mode 1)", () => {
     const skin = createMarkedSkin();
     setPixel(skin, 0, 0, [1, 1, 1, 255]);
     setPixel(skin, 32, 0, [2, 2, 2, 255]);
     setPixel(skin, 24, 0, [3, 3, 3, 255]);
     paintSlot(skin, "blink", 1);
     const result = decodeSkin(skin);
-    expect(result.blink).toMatchObject({ mode: 1, eyeHeight: null });
+    expect(result.blink).toMatchObject({ mode: 1, eyePosition: null });
     expect(result.blink?.frames).toHaveLength(1);
     expect(getPixel(frameOf(result.blink, 0), 8, 8)).toEqual([1, 1, 1, 255]);
     expect(getPixel(frameOf(result.blink, 0), 40, 8)).toEqual([2, 2, 2, 255]);
   });
 
-  it("adds the second lazy frame for mode 2", () => {
+  it("adds the second entire-face frame for mode 2", () => {
     const skin = createMarkedSkin();
     setPixel(skin, 0, 0, [1, 1, 1, 255]);
     setPixel(skin, 24, 0, [3, 3, 3, 255]);
     setPixel(skin, 56, 0, [4, 4, 4, 255]);
     paintSlot(skin, "blink", 2);
     const result = decodeSkin(skin);
-    expect(result.blink).toMatchObject({ mode: 2, eyeHeight: null });
+    expect(result.blink).toMatchObject({ mode: 2, eyePosition: null });
     expect(result.blink?.frames).toHaveLength(2);
     expect(getPixel(frameOf(result.blink, 0), 8, 8)).toEqual([1, 1, 1, 255]);
     expect(getPixel(frameOf(result.blink, 1), 8, 8)).toEqual([3, 3, 3, 255]);
@@ -77,9 +77,9 @@ describe("blink", () => {
     setPixel(skin, 19, 16, [12, 12, 12, 255]);
     setPixel(skin, 40, 8, [99, 99, 99, 255]);
     paintSlot(skin, "blink", 3);
-    paintSlot(skin, "eyeHeight", 5);
+    paintSlot(skin, "eyePosition", 5);
     const result = decodeSkin(skin);
-    expect(result.blink).toMatchObject({ mode: 3, eyeHeight: 5 });
+    expect(result.blink).toMatchObject({ mode: 3, eyePosition: 5 });
     expect(result.blink?.frames).toHaveLength(1);
     const frame = frameOf(result.blink, 0);
     expect(getPixel(frame, 8, 12)).toEqual([11, 11, 11, 255]);
@@ -93,9 +93,9 @@ describe("blink", () => {
     setPixel(skin, 12, 18, [22, 22, 22, 255]);
     setPixel(skin, 36, 16, [23, 23, 23, 255]);
     paintSlot(skin, "blink", 4);
-    paintSlot(skin, "eyeHeight", 4);
+    paintSlot(skin, "eyePosition", 4);
     const mode4 = decodeSkin(skin);
-    expect(mode4.blink).toMatchObject({ mode: 4, eyeHeight: 4 });
+    expect(mode4.blink).toMatchObject({ mode: 4, eyePosition: 4 });
     expect(getPixel(frameOf(mode4.blink, 0), 8, 11)).toEqual([21, 21, 21, 255]);
     expect(getPixel(frameOf(mode4.blink, 1), 8, 11)).toEqual([22, 22, 22, 255]);
 
@@ -103,9 +103,9 @@ describe("blink", () => {
     setPixel(skin5, 12, 16, [31, 31, 31, 255]);
     setPixel(skin5, 36, 16, [32, 32, 32, 255]);
     paintSlot(skin5, "blink", 5);
-    paintSlot(skin5, "eyeHeight", 3);
+    paintSlot(skin5, "eyePosition", 3);
     const mode5 = decodeSkin(skin5);
-    expect(mode5.blink).toMatchObject({ mode: 5, eyeHeight: 3 });
+    expect(mode5.blink).toMatchObject({ mode: 5, eyePosition: 3 });
     expect(getPixel(frameOf(mode5.blink, 0), 8, 10)).toEqual([31, 31, 31, 255]);
     expect(getPixel(frameOf(mode5.blink, 1), 8, 10)).toEqual([32, 32, 32, 255]);
   });
@@ -115,19 +115,19 @@ describe("blink", () => {
     setPixel(skin, 12, 16, [11, 11, 11, 255]);
     paintSlot(skin, "blink", 3);
     const unset = decodeSkin(skin);
-    expect(unset.blink).toMatchObject({ mode: 3, eyeHeight: 1 });
+    expect(unset.blink).toMatchObject({ mode: 3, eyePosition: 1 });
     expect(getPixel(frameOf(unset.blink, 0), 8, 8)).toEqual([11, 11, 11, 255]);
 
     const skinHigh = createMarkedSkin();
     setPixel(skinHigh, 12, 16, [11, 11, 11, 255]);
     paintSlot(skinHigh, "blink", 3);
-    paintSlot(skinHigh, "eyeHeight", 666);
-    expect(decodeSkin(skinHigh).blink).toMatchObject({ eyeHeight: 1 });
+    paintSlot(skinHigh, "eyePosition", 666);
+    expect(decodeSkin(skinHigh).blink).toMatchObject({ eyePosition: 1 });
   });
 
-  it("cuts the stored nose area when the hat nose pixels are removed", () => {
+  it("cuts the stored nose area when the floating-face nose pixels are removed", () => {
     const paintNose = (skin: PixelData): void => {
-      paintRectWithPalette(skin, DEPRECATED_NOSE_RECTS.hat, 666);
+      paintRectWithPalette(skin, DEPRECATED_NOSE_RECTS.floatingFace, 666);
     };
     const skin = createMarkedSkin();
     setPixel(skin, 35, 5, [77, 77, 77, 255]);

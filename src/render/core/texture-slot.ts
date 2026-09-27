@@ -1,7 +1,7 @@
 /**
  * Async texture resolution for the renderer's texture options (the
- * villager nose and the glint pattern): a small state machine around
- * one lazy load per input.
+ * villager nose and the enchanted pattern): a small state machine around
+ * one on-demand load per input.
  *
  * The slot resolves at most one input at a time (single flight),
  * never retries after a failure until `reset()`, and discards stale
@@ -17,7 +17,7 @@ export type TextureResolver = (
   input: ETFTextureInput,
 ) => Promise<HTMLCanvasElement>;
 
-/** One lazy texture resolution slot. */
+/** One on-demand texture resolution slot. */
 export interface TextureSlot {
   /** The resolved canvas, or `null` while idle, pending or failed. */
   readonly canvas: HTMLCanvasElement | null;
