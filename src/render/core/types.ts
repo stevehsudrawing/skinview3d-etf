@@ -38,8 +38,8 @@ export type RemoteImage =
 export type ETFTextureInput = TextureSource | RemoteImage | PixelData | Texture;
 
 /**
- * Per-feature switches. Keys whose rendering is not implemented yet
- * are accepted and ignored, so callers can wire settings UIs once.
+ * Per-feature switches; each is honored when the decoded skin
+ * carries its data, so callers can wire settings UIs once.
  */
 export interface SkinFeatureToggles {
   /** Enables transparency on the base skin layer. */
@@ -50,7 +50,7 @@ export interface SkinFeatureToggles {
   blink?: boolean;
   /** Enables the villager and textured nose. */
   nose?: boolean;
-  /** Deferred - accepted and ignored until the jacket renderer lands. */
+  /** Enables the jacket/dress extension (the decoded jacket texture). */
   jacket?: boolean;
   /** Enables the enchanted pixel overlay. */
   enchanted?: boolean;

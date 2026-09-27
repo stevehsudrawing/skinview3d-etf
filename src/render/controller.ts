@@ -2,14 +2,15 @@
  * The renderer controller behind `attachETFSkinFeatures()`: validates
  * the viewer, decodes the current skin and owns every render artifact
  * (canvas edits, material swaps, the nose mesh, the emissive and
- * enchanted overlays, the blink repaints) with full restore on
- * `detach()`. Teardown always follows the same order: blink
- * snapshot, ticker, nose, emissive, enchanted, material swaps,
- * canvas baseline.
+ * enchanted overlays, the jacket shell and its overlays, the blink
+ * repaints) with full restore on `detach()`. Teardown always
+ * follows the same order: blink snapshot, ticker, nose, emissive,
+ * enchanted, jacket, material swaps, canvas baseline.
  */
 
 import type { SkinViewer } from "skinview3d";
 import type {
+  BoxGeometry,
   CanvasTexture,
   Mesh,
   MeshBasicMaterial,
@@ -41,7 +42,11 @@ import {
   normalizeOptions,
 } from "./core/options";
 import { createPartOverlays, disposeOverlays } from "./core/overlays";
-import { headLayerMaterial, layerMapsOf } from "./core/parts";
+import {
+  bodyOuterMaterial,
+  headLayerMaterial,
+  layerMapsOf,
+} from "./core/parts";
 import { createTextureSlot, type TextureSlot } from "./core/texture-slot";
 import {
   createMaskTexture,
@@ -77,6 +82,13 @@ import {
   updateEnchantedTexture,
 } from "./features/enchanted";
 import {
+  createJacketGeometry,
+  createJacketMaterial,
+  createJacketMesh,
+  createJacketOverlayMesh,
+  disposeJacketMesh,
+} from "./features/jacket";
+import {
   createTexturedNoseMesh,
   createVillagerNoseMesh,
   disposeNose,
@@ -101,7 +113,7 @@ interface SkinTargets {
  *
  * Decodes the viewer's current skin immediately and renders the
  * supported features (transparency, the nose, the emissive pixels,
- * blinking eyes and the enchanted pixels). Call
+ * blinking eyes, the enchanted pixels and the jacket). Call
  * `controller.refresh()` after every `viewer.loadSkin()`; call
  * `controller.detach()` to restore the viewer exactly as it was.
  *
@@ -131,6 +143,9 @@ export function attachETFSkinFeatures(
   let lastPainted: PixelData | null = null;
   let skinEdited = false;
   let noseMesh: NoseMesh | null = null;
+  let jacketMesh: Mesh | null = null;
+  let jacketEnchantedMaterial: ShaderMaterial | null = null;
+  let jacketGeometries: Map<"thin" | "wide", BoxGeometry> | null = null;
   let emissiveTexture: CanvasTexture | null = null;
   let emissiveMaterial: MeshBasicMaterial | null = null;
   let emissiveMeshes: Mesh[] = [];
@@ -231,6 +246,19 @@ export function attachETFSkinFeatures(
       enchantedPatternTexture.dispose();
       enchantedPatternTexture = null;
     }
+  }
+
+  /**
+   * Removes and disposes the jacket mesh tree (the shell and its
+   * overlay children); the cached geometries survive until
+   * `detach()`.
+   */
+  function clearJacket(): void {
+    if (jacketMesh !== null) {
+      disposeJacketMesh(jacketMesh);
+      jacketMesh = null;
+    }
+    jacketEnchantedMaterial = null;
   }
 
   /** Restores and drops the current blink painter and scheduler. */
@@ -499,6 +527,95 @@ export function attachETFSkinFeatures(
   }
 
   /**
+   * Returns the cached thin / wide shell geometry, building it on
+   * first use.
+   *
+   * @param wide - Whether the shell is the wide variant.
+   * @returns The shared geometry (disposed on `detach()`).
+   */
+  function jacketGeometry(wide: boolean): BoxGeometry {
+    const key = wide ? "wide" : "thin";
+    if (jacketGeometries === null) {
+      jacketGeometries = new Map();
+    }
+    let geometry = jacketGeometries.get(key);
+    if (geometry === undefined) {
+      geometry = createJacketGeometry(wide);
+      jacketGeometries.set(key, geometry);
+    }
+    return geometry;
+  }
+
+  /** Disposes the cached jacket geometries. */
+  function disposeJacketGeometries(): void {
+    if (jacketGeometries !== null) {
+      for (const geometry of jacketGeometries.values()) {
+        geometry.dispose();
+      }
+      jacketGeometries = null;
+    }
+  }
+
+  /**
+   * (Re)builds the jacket mesh tree for the current decode: the
+   * shell under the body's outer layer at local `y = -12.5` (its top
+   * face sits on the body's bottom), plus the emissive and enchanted
+   * overlay children the decoded masks select.
+   */
+  function rebuildJacket(): void {
+    clearJacket();
+    const jacket = decoded?.jacket ?? null;
+    if (detached || !settings.features.jacket || jacket === null) {
+      return;
+    }
+    const geometry = jacketGeometry(jacket.wide);
+    const skin = viewer.playerObject.skin;
+    const mesh = createJacketMesh(
+      geometry,
+      createJacketMaterial(
+        bodyOuterMaterial(skin),
+        createSkinSpaceTexture(pixelsToCanvas(jacket.texture)),
+      ),
+    );
+    mesh.position.set(0, -12.5, 0);
+    if (settings.features.emissive && jacket.emissiveMask !== null) {
+      mesh.add(
+        createJacketOverlayMesh(
+          geometry,
+          createEmissiveMaterial(
+            createSkinSpaceTexture(pixelsToCanvas(jacket.emissiveMask)),
+          ),
+          "etf-jacket-emissive",
+          0,
+        ),
+      );
+    }
+    if (
+      settings.features.enchanted &&
+      jacket.enchantedMask !== null &&
+      enchantedPatternTexture !== null
+    ) {
+      jacketEnchantedMaterial = createEnchantedMaterial(
+        createSkinSpaceTexture(pixelsToCanvas(jacket.enchantedMask)),
+        enchantedPatternTexture,
+        settings.enchanted.scale,
+        settings.enchanted.opacity,
+        enchantedPhase,
+      );
+      mesh.add(
+        createJacketOverlayMesh(
+          geometry,
+          jacketEnchantedMaterial,
+          "etf-jacket-enchanted",
+          1,
+        ),
+      );
+    }
+    skin.body.outerLayer.add(mesh);
+    jacketMesh = mesh;
+  }
+
+  /**
    * Restores the baselines (canvas pixels and material flags), then
    * applies every enabled feature. Idempotent by construction.
    */
@@ -508,6 +625,7 @@ export function attachETFSkinFeatures(
       clearNose();
       clearEmissive();
       clearEnchanted();
+      clearJacket();
       syncTicker();
       return;
     }
@@ -553,6 +671,11 @@ export function attachETFSkinFeatures(
     } else {
       clearEnchanted();
     }
+    if (settings.features.jacket && decoded.jacket !== null) {
+      rebuildJacket();
+    } else {
+      clearJacket();
+    }
     setupBlink();
     syncTicker();
   }
@@ -564,6 +687,7 @@ export function attachETFSkinFeatures(
     clearNose();
     clearEmissive();
     clearEnchanted();
+    clearJacket();
     sides.restore();
     if (skinEdited && baselinePixels !== null) {
       paintCanvasPixels(viewer.skinCanvas, baselinePixels);
@@ -648,6 +772,9 @@ export function attachETFSkinFeatures(
         settings.enchanted.scale,
       );
       setEnchantedPhase(enchantedMaterial, enchantedPhase);
+      if (jacketEnchantedMaterial !== null) {
+        setEnchantedPhase(jacketEnchantedMaterial, enchantedPhase);
+      }
     }
   }
 
@@ -658,6 +785,7 @@ export function attachETFSkinFeatures(
     }
     unapply();
     sides.dispose();
+    disposeJacketGeometries();
     villagerSlot.reset();
     enchantedSlot.reset();
     enchantedPhase = 0;

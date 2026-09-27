@@ -162,3 +162,17 @@ export function headLayerMaterial(skin: SkinObject): MeshStandardMaterial {
     Array.isArray(material) ? material[0] : material
   ) as MeshStandardMaterial;
 }
+
+/**
+ * Returns the body's outer-layer material (the jacket material
+ * template).
+ *
+ * @param skin - The skin object to inspect.
+ * @returns The body's outer-layer material.
+ */
+export function bodyOuterMaterial(skin: SkinObject): MeshStandardMaterial {
+  const material = (skin.body.outerLayer as Mesh).material;
+  return (
+    Array.isArray(material) ? material[0] : material
+  ) as MeshStandardMaterial;
+}

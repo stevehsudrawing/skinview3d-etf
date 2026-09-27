@@ -4,9 +4,9 @@
  * `decodeSkin()` reads every ETF player skin feature into plain data
  * and prepared overlay images; `attachETFSkinFeatures()` renders the
  * supported features (transparency, the nose, the emissive pixels,
- * blinking eyes and the enchanted pixels) on a live `skinview3d`
- * viewer and returns a controller whose `refresh()` must be called
- * after every `viewer.loadSkin()`.
+ * blinking eyes, the enchanted pixels and the jacket/dress
+ * extension) on a live `skinview3d` viewer and returns a controller
+ * whose `refresh()` must be called after every `viewer.loadSkin()`.
  */
 
 export type {
