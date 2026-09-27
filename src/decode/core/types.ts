@@ -90,21 +90,32 @@ export interface NoseInfo {
 
 /** Jacket information decoded from the style and length slots. */
 export interface JacketInfo {
-  /** The coat style id 1-8. */
+  /** The jacket style id 1-8. */
   style: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   /**
    * The clamped raw length slot value 1-8 (an unset or out-of-range
    * slot decodes as 1).
    */
   length: number;
-  /** Whether the style uses the wider "fat" coat model. */
-  fat: boolean;
+  /** Whether the style uses the wider jacket model (`wide`). */
+  wide: boolean;
   /** Whether the style moved (and removed) the leg source pixels. */
   moved: boolean;
-  /** Whether the style keeps the coat's top faces. */
+  /** Whether the style keeps the jacket's top faces. */
   top: boolean;
-  /** The prepared 64x64 coat texture. */
+  /** The prepared 64x64 jacket texture. */
   texture: PixelData;
+  /**
+   * The jacket's emissive mask: the `texture` pixels whose RGBA
+   * matches a key of the decoded emissive pattern, or `null` when
+   * the pattern is off or nothing in the texture matches.
+   */
+  emissiveMask: PixelData | null;
+  /**
+   * The jacket's enchanted mask, cut from `texture` the same way as
+   * {@link emissiveMask}.
+   */
+  enchantedMask: PixelData | null;
 }
 
 /** An emissive or enchanted color-key pattern. */
@@ -181,7 +192,7 @@ export interface DecodeResult {
   enchanted: PatternInfo | null;
   /**
    * The base skin with every removable overlay source cleared (nose
-   * and moved-coat sources plus the lazy-blink nose cuts) and the
+   * and moved-jacket sources plus the lazy-blink nose cuts) and the
    * forced-solid alpha strips applied.
    */
   skin: PixelData;

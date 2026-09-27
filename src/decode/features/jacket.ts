@@ -1,12 +1,12 @@
 /**
- * Jacket (coat) decoding: the style table, the length clamp and the
- * prepared coat texture plus the moved-source removals.
+ * Jacket decoding: the style table, the length clamp and the prepared
+ * jacket texture plus the moved-source removals and masks.
  */
 
 import {
-  COAT_STYLES,
   JACKET_COPY_TABLE,
   JACKET_MOVED_RECTS,
+  JACKET_STYLES,
   SKIN_SIZE,
 } from "../core/constants";
 import { copyRect, createImage } from "../core/pixels";
@@ -21,29 +21,30 @@ export interface JacketDecodeResult {
 }
 
 /**
- * Builds the 64x64 coat texture. Sources are copied from the original
- * skin's leg outer layer; the source `y2` grows with the coat length
- * offset so a longer coat reads one extra row per length step.
+ * Builds the 64x64 jacket texture. Sources are copied from the
+ * original skin's leg outer layer; the source `y2` grows with the
+ * jacket length offset so a longer jacket reads one extra row per
+ * length step.
  *
  * @param image - The original skin image.
- * @param lengthOffset - The coat length offset `L = length - 1`.
+ * @param lengthOffset - The jacket length offset `L = length - 1`.
  * @param keepTop - Whether the style keeps the top faces (styles 1-4).
- * @returns The prepared 64x64 coat texture.
+ * @returns The prepared 64x64 jacket texture.
  */
-function buildCoatTexture(
+function buildJacketTexture(
   image: PixelData,
   lengthOffset: number,
   keepTop: boolean,
 ): PixelData {
-  const coat = createImage(SKIN_SIZE, SKIN_SIZE);
+  const jacket = createImage(SKIN_SIZE, SKIN_SIZE);
   for (const copy of JACKET_COPY_TABLE) {
     if (copy.topOnly && !keepTop) {
       continue;
     }
     const source = { ...copy.source, y2: copy.source.y2 + lengthOffset };
-    copyRect(image, coat, source, copy.targetX, copy.targetY);
+    copyRect(image, jacket, source, copy.targetX, copy.targetY);
   }
-  return coat;
+  return jacket;
 }
 
 /**
@@ -63,7 +64,7 @@ export function decodeJacket(
   if (styleSlot === null || styleSlot < 1 || styleSlot > 8) {
     return { info: null, removals: [] };
   }
-  const style = COAT_STYLES[styleSlot - 1];
+  const style = JACKET_STYLES[styleSlot - 1];
   const length =
     lengthSlot !== null && lengthSlot >= 1 && lengthSlot <= 8 ? lengthSlot : 1;
   const lengthOffset = length - 1;
@@ -78,10 +79,12 @@ export function decodeJacket(
     info: {
       style: style.id,
       length,
-      fat: style.fat,
+      wide: style.wide,
       moved: style.moved,
       top: style.top,
-      texture: buildCoatTexture(image, lengthOffset, style.top),
+      texture: buildJacketTexture(image, lengthOffset, style.top),
+      emissiveMask: null,
+      enchantedMask: null,
     },
     removals,
   };

@@ -3,9 +3,9 @@
  *
  * Runs the public `decodeSkin()` API on every example skin and draws
  * each prepared artifact (modified base skin, blink frames, nose
- * texture, coat texture, emissive/enchanted masks) onto a canvas at a
- * uniform size, with a JSON summary panel below. Artifacts that are
- * absent are omitted from the grid.
+ * texture, jacket texture, jacket masks, the emissive/enchanted
+ * masks) onto a canvas at a uniform size, with a JSON summary panel
+ * below. Artifacts that are absent are omitted from the grid.
  */
 
 import type { DecodeResult, PixelData } from "../../src/index";
@@ -111,9 +111,11 @@ function summaryText(result: DecodeResult): string {
         : {
             style: result.jacket.style,
             length: result.jacket.length,
-            fat: result.jacket.fat,
+            wide: result.jacket.wide,
             moved: result.jacket.moved,
             top: result.jacket.top,
+            emissiveMask: result.jacket.emissiveMask !== null,
+            enchantedMask: result.jacket.enchantedMask !== null,
           },
     emissive:
       result.emissive === null
@@ -153,7 +155,9 @@ async function showFixture(
     labeled("emissive mask", result.emissive?.mask ?? null, 4),
     labeled("enchanted mask", result.enchanted?.mask ?? null, 4),
     labeled("nose texture (8x8)", result.nose?.texture ?? null, 32),
-    labeled("coat texture", result.jacket?.texture ?? null, 4),
+    labeled("jacket texture", result.jacket?.texture ?? null, 4),
+    labeled("jacket emissive mask", result.jacket?.emissiveMask ?? null, 4),
+    labeled("jacket enchanted mask", result.jacket?.enchantedMask ?? null, 4),
     ...(result.blink?.frames ?? []).map((frame, index) =>
       labeled(`blink frame ${index + 1}`, frame, 4),
     ),

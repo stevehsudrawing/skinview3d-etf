@@ -225,34 +225,34 @@ export const BLINK_NOSE_CUT_RECTS: readonly Rect[] = [
   { x1: 59, y1: 5, x2: 60, y2: 7 },
 ];
 
-/** One coat style definition. */
-export interface CoatStyle {
+/** One jacket style definition. */
+export interface JacketStyle {
   /** The style id 1-8. */
   id: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   /** The upstream editor name. */
   name: string;
-  /** Whether the style uses the "fat" coat model. */
-  fat: boolean;
+  /** Whether the style uses the wider jacket model (`wide`). */
+  wide: boolean;
   /** Whether the style moved (and removed) the leg source pixels. */
   moved: boolean;
-  /** Whether the style keeps the coat's top faces. */
+  /** Whether the style keeps the jacket's top faces. */
   top: boolean;
 }
 
-/** The eight coat styles, indexed by `id - 1`. */
-export const COAT_STYLES: readonly CoatStyle[] = [
-  { id: 1, name: "copied-thin-top", fat: false, moved: false, top: true },
-  { id: 2, name: "moved-thin-top", fat: false, moved: true, top: true },
-  { id: 3, name: "copied-fat-top", fat: true, moved: false, top: true },
-  { id: 4, name: "moved-fat-top", fat: true, moved: true, top: true },
-  { id: 5, name: "copied-thin", fat: false, moved: false, top: false },
-  { id: 6, name: "moved-thin", fat: false, moved: true, top: false },
-  { id: 7, name: "copied-fat", fat: true, moved: false, top: false },
-  { id: 8, name: "moved-fat", fat: true, moved: true, top: false },
+/** The eight jacket styles, indexed by `id - 1`. */
+export const JACKET_STYLES: readonly JacketStyle[] = [
+  { id: 1, name: "copied-thin-top", wide: false, moved: false, top: true },
+  { id: 2, name: "moved-thin-top", wide: false, moved: true, top: true },
+  { id: 3, name: "copied-wide-top", wide: true, moved: false, top: true },
+  { id: 4, name: "moved-wide-top", wide: true, moved: true, top: true },
+  { id: 5, name: "copied-thin", wide: false, moved: false, top: false },
+  { id: 6, name: "moved-thin", wide: false, moved: true, top: false },
+  { id: 7, name: "copied-wide", wide: true, moved: false, top: false },
+  { id: 8, name: "moved-wide", wide: true, moved: true, top: false },
 ];
 
-/** One coat-texture copy entry. */
-export interface CoatCopy {
+/** One jacket-texture copy entry. */
+export interface JacketCopy {
   /** The source rectangle in the leg outer layer. */
   source: Rect;
   /** Target x of the copied area's top-left pixel. */
@@ -264,11 +264,11 @@ export interface CoatCopy {
 }
 
 /**
- * The coat-texture copy table. The source `y2` is extended by the coat
- * length offset `L = length - 1` at copy time. All sources sit in the
- * leg outer layer.
+ * The jacket-texture copy table. The source `y2` is extended by the
+ * jacket length offset `L = length - 1` at copy time. All sources sit
+ * in the leg outer layer.
  */
-export const JACKET_COPY_TABLE: readonly CoatCopy[] = [
+export const JACKET_COPY_TABLE: readonly JacketCopy[] = [
   {
     source: { x1: 4, y1: 32, x2: 7, y2: 35 },
     targetX: 20,
@@ -301,20 +301,20 @@ export const JACKET_COPY_TABLE: readonly CoatCopy[] = [
   },
 ];
 
-/** One moved-coat source removal. */
-export interface CoatSourceRemoval {
+/** One moved-jacket source removal. */
+export interface JacketSourceRemoval {
   /** The source rectangle cleared on the base skin. */
   rect: Rect;
-  /** When true the rectangle's `y2` grows by the coat length offset. */
+  /** When true the rectangle's `y2` grows by the jacket length offset. */
   extendY2: boolean;
 }
 
 /**
- * The base-skin rectangles cleared by the moved coat styles (2, 4, 6,
- * 8). The first two always cover the leg top faces; the last two cover
- * the leg side strips including the length extension.
+ * The base-skin rectangles cleared by the moved jacket styles (2, 4,
+ * 6, 8). The first two always cover the leg top faces; the last two
+ * cover the leg side strips including the length extension.
  */
-export const JACKET_MOVED_RECTS: readonly CoatSourceRemoval[] = [
+export const JACKET_MOVED_RECTS: readonly JacketSourceRemoval[] = [
   { rect: { x1: 4, y1: 32, x2: 7, y2: 35 }, extendY2: false },
   { rect: { x1: 4, y1: 48, x2: 7, y2: 51 }, extendY2: false },
   { rect: { x1: 0, y1: 36, x2: 15, y2: 36 }, extendY2: true },

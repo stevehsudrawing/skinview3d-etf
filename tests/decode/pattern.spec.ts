@@ -89,7 +89,7 @@ describe("pattern", () => {
 describe.skipIf(!fixturesAvailable)("pattern fixtures", () => {
   // Key counts and mask pixel counts, verified against the example
   // skins. Wizard's enchant mask shrinks by two pixels because its
-  // moved coat clears two matching leg pixels first.
+  // moved jacket clears two matching leg pixels first.
   const cases = [
     ["alex.png", 14, 225, 12, 395],
     ["ghost.png", 1, 5, 1, 57],

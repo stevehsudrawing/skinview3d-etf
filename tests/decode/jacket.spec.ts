@@ -3,7 +3,7 @@ import { getPixel, setPixel } from "../../src/decode/core/pixels";
 import { decodeJacket } from "../../src/decode/features/jacket";
 import { decodeSkin } from "../../src/decode/index";
 import { fixturesAvailable, loadSkin } from "../fixtures/skins";
-import { createMarkedSkin, paintSlot } from "../fixtures/synthetic";
+import { createMarkedSkin, paintCell, paintSlot } from "../fixtures/synthetic";
 
 describe("jacket", () => {
   it("maps every style id to its flags", () => {
@@ -17,15 +17,17 @@ describe("jacket", () => {
       [7, true, false, false],
       [8, true, true, false],
     ] as const;
-    for (const [id, fat, moved, top] of expected) {
+    for (const [id, wide, moved, top] of expected) {
       const skin = createMarkedSkin();
       const result = decodeJacket(skin, id, 4);
       expect(result.info).toMatchObject({
         style: id,
         length: 4,
-        fat,
+        wide,
         moved,
         top,
+        emissiveMask: null,
+        enchantedMask: null,
       });
     }
   });
@@ -40,7 +42,7 @@ describe("jacket", () => {
     expect(decodeJacket(skin, 666, 3).removals).toEqual([]);
   });
 
-  it("copies the leg sources into the coat texture", () => {
+  it("copies the leg sources into the jacket texture", () => {
     const skin = createMarkedSkin();
     setPixel(skin, 4, 32, [1, 2, 3, 255]);
     setPixel(skin, 4, 37, [10, 11, 12, 255]);
@@ -52,7 +54,7 @@ describe("jacket", () => {
     setPixel(skin, 4, 54, [61, 62, 63, 255]);
     const { info } = decodeJacket(skin, 1, 3);
     if (info === null) {
-      throw new Error("expected a coat");
+      throw new Error("expected a jacket");
     }
     expect(getPixel(info.texture, 20, 32)).toEqual([1, 2, 3, 255]);
     expect(getPixel(info.texture, 20, 37)).toEqual([10, 11, 12, 255]);
@@ -71,7 +73,7 @@ describe("jacket", () => {
     setPixel(skin, 0, 36, [31, 32, 33, 255]);
     const { info } = decodeJacket(skin, 5, 3);
     if (info === null) {
-      throw new Error("expected a coat");
+      throw new Error("expected a jacket");
     }
     expect(info.top).toBe(false);
     expect(getPixel(info.texture, 20, 32)).toEqual([0, 0, 0, 0]);
@@ -99,6 +101,48 @@ describe("jacket", () => {
     expect(result.jacket).toMatchObject({ style: 2, length: 3, moved: true });
     expect(getPixel(result.skin, 0, 38)).toEqual([0, 0, 0, 0]);
     expect(getPixel(result.skin, 0, 39)).toEqual([9, 9, 9, 255]);
+  });
+
+  it("cuts the jacket masks from the jacket texture", () => {
+    const skin = createMarkedSkin();
+    paintCell(skin, 0, 1);
+    paintCell(skin, 1, 2);
+    setPixel(skin, 56, 16, [9, 8, 7, 255]);
+    setPixel(skin, 56, 24, [6, 5, 4, 255]);
+    setPixel(skin, 4, 32, [9, 8, 7, 255]);
+    setPixel(skin, 4, 48, [6, 5, 4, 255]);
+    paintSlot(skin, "jacketStyle", 1);
+    paintSlot(skin, "jacketLength", 4);
+    const result = decodeSkin(skin);
+    const emissive = result.jacket?.emissiveMask ?? null;
+    const enchanted = result.jacket?.enchantedMask ?? null;
+    if (emissive === null || enchanted === null) {
+      throw new Error("expected jacket masks");
+    }
+    expect(getPixel(emissive, 20, 32)).toEqual([9, 8, 7, 255]);
+    expect(getPixel(emissive, 56, 16)).toEqual([0, 0, 0, 0]);
+    expect(getPixel(enchanted, 24, 32)).toEqual([6, 5, 4, 255]);
+  });
+
+  it("returns null jacket masks when the texture never matches", () => {
+    const skin = createMarkedSkin();
+    paintCell(skin, 0, 1);
+    setPixel(skin, 56, 16, [9, 8, 7, 255]);
+    paintSlot(skin, "jacketStyle", 1);
+    const result = decodeSkin(skin);
+    expect(result.emissive).not.toBeNull();
+    expect(result.jacket).not.toBeNull();
+    expect(result.jacket?.emissiveMask).toBeNull();
+    expect(result.jacket?.enchantedMask).toBeNull();
+  });
+
+  it("leaves the jacket masks null without a pattern", () => {
+    const skin = createMarkedSkin();
+    paintSlot(skin, "jacketStyle", 1);
+    const result = decodeSkin(skin);
+    expect(result.jacket).not.toBeNull();
+    expect(result.jacket?.emissiveMask).toBeNull();
+    expect(result.jacket?.enchantedMask).toBeNull();
   });
 });
 

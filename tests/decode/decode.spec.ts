@@ -7,12 +7,12 @@ import { createBlankSkin } from "../fixtures/synthetic";
 
 /** Expected jacket values for one fixture. */
 interface JacketExpectation {
-  /** Coat style id. */
+  /** Jacket style id. */
   style: number;
   /** Clamped length value. */
   length: number;
-  /** Fat model flag. */
-  fat: boolean;
+  /** Wide model flag. */
+  wide: boolean;
   /** Moved-source flag. */
   moved: boolean;
   /** Top-faces flag. */
@@ -79,7 +79,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     cells: NO_CELLS,
     blink: null,
     eyeHeight: null,
-    jacket: { style: 3, length: 6, fat: true, moved: false, top: true },
+    jacket: { style: 3, length: 6, wide: true, moved: false, top: true },
     nose: null,
     emissive: false,
     enchanted: false,
@@ -139,7 +139,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     cells: NO_CELLS,
     blink: 2,
     eyeHeight: null,
-    jacket: { style: 1, length: 4, fat: false, moved: false, top: true },
+    jacket: { style: 1, length: 4, wide: false, moved: false, top: true },
     nose: null,
     emissive: false,
     enchanted: false,
@@ -149,7 +149,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     cells: NO_CELLS,
     blink: 1,
     eyeHeight: null,
-    jacket: { style: 1, length: 6, fat: false, moved: false, top: true },
+    jacket: { style: 1, length: 6, wide: false, moved: false, top: true },
     nose: null,
     emissive: false,
     enchanted: false,
@@ -159,7 +159,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     cells: NO_CELLS,
     blink: null,
     eyeHeight: null,
-    jacket: { style: 4, length: 8, fat: true, moved: true, top: true },
+    jacket: { style: 4, length: 8, wide: true, moved: true, top: true },
     nose: null,
     emissive: false,
     enchanted: false,
@@ -169,7 +169,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     cells: NO_CELLS,
     blink: null,
     eyeHeight: null,
-    jacket: { style: 1, length: 4, fat: false, moved: false, top: true },
+    jacket: { style: 1, length: 4, wide: false, moved: false, top: true },
     nose: null,
     emissive: false,
     enchanted: false,
@@ -209,7 +209,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     cells: PINK_ONLY,
     blink: 2,
     eyeHeight: null,
-    jacket: { style: 1, length: 1, fat: false, moved: false, top: true },
+    jacket: { style: 1, length: 1, wide: false, moved: false, top: true },
     nose: null,
     emissive: true,
     enchanted: false,
@@ -219,7 +219,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     cells: NO_CELLS,
     blink: 5,
     eyeHeight: 5,
-    jacket: { style: 2, length: 3, fat: false, moved: true, top: true },
+    jacket: { style: 2, length: 3, wide: false, moved: true, top: true },
     nose: null,
     emissive: false,
     enchanted: false,
@@ -229,7 +229,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     cells: NO_CELLS,
     blink: 4,
     eyeHeight: 4,
-    jacket: { style: 2, length: 8, fat: false, moved: true, top: true },
+    jacket: { style: 2, length: 8, wide: false, moved: true, top: true },
     nose: { villager: true, variant: null, removesSource: true },
     emissive: false,
     enchanted: false,
@@ -239,7 +239,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     cells: PINK_CYAN,
     blink: 1,
     eyeHeight: null,
-    jacket: { style: 1, length: 1, fat: false, moved: false, top: true },
+    jacket: { style: 1, length: 1, wide: false, moved: false, top: true },
     nose: null,
     emissive: true,
     enchanted: true,
@@ -249,7 +249,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     cells: PINK_CYAN,
     blink: 1,
     eyeHeight: null,
-    jacket: { style: 2, length: 1, fat: false, moved: true, top: true },
+    jacket: { style: 2, length: 1, wide: false, moved: true, top: true },
     nose: null,
     emissive: true,
     enchanted: true,
@@ -269,7 +269,7 @@ const MATRIX: readonly FixtureExpectation[] = [
     cells: PINK_CYAN,
     blink: null,
     eyeHeight: null,
-    jacket: { style: 2, length: 1, fat: false, moved: true, top: true },
+    jacket: { style: 2, length: 1, wide: false, moved: true, top: true },
     nose: null,
     emissive: true,
     enchanted: true,
@@ -370,7 +370,7 @@ describe.skipIf(!fixturesAvailable)("fixture matrix", () => {
     expect(result.jacket).toMatchObject({
       style: 2,
       length: 3,
-      fat: false,
+      wide: false,
       moved: true,
       top: true,
     });
@@ -403,7 +403,7 @@ describe.skipIf(!fixturesAvailable)("fixture matrix", () => {
     }
   });
 
-  it("applies steve-villager's nose and coat removals", () => {
+  it("applies steve-villager's nose and jacket removals", () => {
     const original = loadSkin("steve-villager.png");
     const result = decodeSkin(original);
     const removals = [

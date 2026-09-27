@@ -6,7 +6,12 @@
 
 import { FORCED_SOLID_RECTS } from "./core/constants";
 import { convertLegacySkin, isLegacySkin } from "./core/legacy";
-import { clearRect, cloneImage, stripAlphaRect } from "./core/pixels";
+import {
+  buildMask,
+  clearRect,
+  cloneImage,
+  stripAlphaRect,
+} from "./core/pixels";
 import type {
   BlinkInfo,
   DecodeResult,
@@ -97,9 +102,10 @@ function assertPixelData(image: PixelData): void {
  * the marker state, the raw slot values and every feature the skin
  * selects: blinking (with prepared frames), nose (villager and
  * textured, with the prepared 8x8 image), jacket (with the prepared
- * coat texture and removal rectangles applied to `skin`), emissive and
- * enchanted patterns (with matching masks), plus the modified base
- * skin. Only 64x64 skins are supported natively; legacy 64x32 skins
+ * jacket texture, its emissive / enchanted masks and the removal
+ * rectangles applied to `skin`), emissive and enchanted patterns
+ * (with matching masks), plus the modified base skin. Only 64x64
+ * skins are supported natively; legacy 64x32 skins
  * are converted to the 1.8 layout first (`core/legacy.ts`), and every
  * other size decodes as `supported: false` with a warning and no
  * features.
@@ -130,7 +136,7 @@ export function decodeSkin(image: PixelData): DecodeResult {
   let forcedSolid = false;
 
   if (hasMarker) {
-    // Nose removals, then the coat texture and its moved-source
+    // Nose removals, then the jacket texture and its moved-source
     // removals, then the forced-solid strips - all mirrored from the
     // upstream processing order so that the frames and masks below see
     // the same working skin the renderer will.
@@ -174,6 +180,16 @@ export function decodeSkin(image: PixelData): DecodeResult {
     const enchantedBox = selectBox(cells, 2);
     if (enchantedBox !== null) {
       enchanted = decodePattern(skin, enchantedBox);
+    }
+
+    // The jacket's masks reuse the base-skin rule, cut from the jacket
+    // texture: copied pixels glow even when a moved style cleared
+    // their leg sources on the skin.
+    if (jacket !== null) {
+      jacket.emissiveMask =
+        emissive === null ? null : buildMask(jacket.texture, emissive.keys);
+      jacket.enchantedMask =
+        enchanted === null ? null : buildMask(jacket.texture, enchanted.keys);
     }
   }
 
