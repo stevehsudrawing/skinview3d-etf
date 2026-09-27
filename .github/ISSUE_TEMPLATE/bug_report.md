@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Report a problem with the decoder, the renderer or the integration
-title: ""
+title: "[BUG]"
 labels: bug
 assignees: ""
 ---
@@ -12,11 +12,11 @@ assignees: ""
 
 - [ ] I have searched the open and closed issues for duplicates.
 - [ ] I have read the README status and roadmap; the affected feature
-      is expected to work at the current stage. (The project is
-      pre-alpha; in-skin capes were removed upstream and are not
+      is expected to work at the current stage. (The project is in
+      alpha; in-skin capes were removed upstream and are not
       supported.)
-- [ ] I can reproduce the problem with the latest available build
-      (note: nothing is published to npm yet).
+- [ ] I can reproduce the problem with the latest published release
+      (`npm install skinview3d-etf`).
 
 ## 2. Description
 
@@ -29,6 +29,8 @@ assignees: ""
 - [ ] emissive (glowing pixels)
 - [ ] nose (villager / textured)
 - [ ] blinking
+- [ ] enchanted (the scrolling overlay)
+- [ ] jacket / dress (the extension below the body)
 - [ ] integration / lifecycle (`refresh()`, `rebind()`, `detach()`)
 - [ ] demo page
 
