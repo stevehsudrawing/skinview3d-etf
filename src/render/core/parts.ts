@@ -157,10 +157,7 @@ export function layerMapsOf(skin: SkinObject): Texture[] {
  * @returns The head's inner-layer material.
  */
 export function headLayerMaterial(skin: SkinObject): MeshStandardMaterial {
-  const material = (skin.head.innerLayer as Mesh).material;
-  return (
-    Array.isArray(material) ? material[0] : material
-  ) as MeshStandardMaterial;
+  return materialsOf(skin.head.innerLayer as Mesh)[0];
 }
 
 /**
@@ -171,8 +168,5 @@ export function headLayerMaterial(skin: SkinObject): MeshStandardMaterial {
  * @returns The body's outer-layer material.
  */
 export function bodyOuterMaterial(skin: SkinObject): MeshStandardMaterial {
-  const material = (skin.body.outerLayer as Mesh).material;
-  return (
-    Array.isArray(material) ? material[0] : material
-  ) as MeshStandardMaterial;
+  return materialsOf(skin.body.outerLayer as Mesh)[0];
 }

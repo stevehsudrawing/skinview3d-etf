@@ -50,7 +50,7 @@ export const JACKET_SIZES: Readonly<Record<"thin" | "wide", JacketBoxSize>> = {
  * which is also the anchor upstream samples (`texOffs(16, 32)`). The
  * decoder fills exactly these face regions.
  */
-export const JACKET_UV_REGION = {
+const JACKET_UV_REGION = {
   /** The region anchor column. */
   u: 16,
   /** The region anchor row. */
@@ -191,7 +191,10 @@ export function createJacketMaterial(
 }
 
 /**
- * Creates the jacket shell mesh (the `etf-jacket` name).
+ * Creates the jacket shell mesh (the `etf-jacket` name) and anchors
+ * it where the shell hangs: under the body's outer layer so its top
+ * face meets the body's bottom (`y = -12.5`; 1 unit = 1 px, the
+ * upstream model position).
  *
  * @param geometry - The shell geometry (shared with the overlays).
  * @param material - The shell material.
@@ -203,6 +206,7 @@ export function createJacketMesh(
 ): Mesh {
   const mesh = new Mesh(geometry, material);
   mesh.name = "etf-jacket";
+  mesh.position.set(0, -12.5, 0);
   return mesh;
 }
 

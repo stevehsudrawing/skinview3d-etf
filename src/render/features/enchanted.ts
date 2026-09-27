@@ -131,6 +131,13 @@ export function updateEnchantedTexture(
 }
 
 /**
+ * Draw order of the enchanted overlays: one above the emissive
+ * overlays (which draw at the default order 0), so the additive
+ * pattern is never hidden behind them.
+ */
+export const ENCHANTED_RENDER_ORDER = 1;
+
+/**
  * Creates the shared enchanted material: the decoded mask x the
  * scrolling pattern, additively blended.
  *

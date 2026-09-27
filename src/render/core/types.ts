@@ -183,8 +183,9 @@ export interface ETFController {
   rebind(): void;
   /**
    * Advances time-based features by `dt` seconds (the host clock).
-   * Negative deltas are ignored. In managed ticker mode this runs
-   * automatically; otherwise call it from your render loop.
+   * Negative and non-finite deltas are ignored. In managed ticker
+   * mode this runs automatically; otherwise call it from your
+   * render loop.
    */
   update(dt: number): void;
   /** Restores everything and disposes renderer resources. Idempotent. */

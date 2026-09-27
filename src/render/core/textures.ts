@@ -22,9 +22,7 @@ import type { ETFTextureInput, RemoteImage, TextureSource } from "./types";
  * @returns The loaded image element.
  * @throws Error when loading fails.
  */
-export function loadRemoteImage(
-  source: RemoteImage,
-): Promise<HTMLImageElement> {
+function loadRemoteImage(source: RemoteImage): Promise<HTMLImageElement> {
   const url = typeof source === "string" ? source : source.src;
   const image = document.createElement("img");
   image.crossOrigin = "anonymous";

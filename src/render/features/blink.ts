@@ -43,7 +43,8 @@ export interface BlinkScheduler {
   /**
    * Advances the schedule by `dtMs` milliseconds.
    *
-   * @param dtMs - Elapsed time; negative values are ignored.
+   * @param dtMs - Elapsed time; negative and non-finite values are
+   *   ignored.
    * @returns The visible frame index, or -1 for the open state.
    */
   advance(dtMs: number): number;
@@ -293,7 +294,7 @@ export function createBlinkScheduler(
 
   return {
     advance: (dtMs: number): number => {
-      let left = Math.max(0, dtMs);
+      let left = Number.isFinite(dtMs) && dtMs > 0 ? dtMs : 0;
       while (left > 0) {
         if (remaining > left) {
           remaining -= left;

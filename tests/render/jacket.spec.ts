@@ -3,10 +3,12 @@
  * and the UV rewrite (pure parts - no viewer required).
  */
 
+import { BoxGeometry, MeshBasicMaterial } from "three";
 import { describe, expect, it } from "vitest";
 import {
   JACKET_SIZES,
   createJacketGeometry,
+  createJacketMesh,
   jacketFaceRects,
 } from "../../src/render/features/jacket";
 
@@ -55,5 +57,16 @@ describe("createJacketGeometry", () => {
     expect(wide.parameters.width).toBe(9.5);
     expect(wide.parameters.height).toBe(13.5);
     expect(wide.parameters.depth).toBe(5.5);
+  });
+});
+
+describe("createJacketMesh", () => {
+  it("anchors the shell at the body's bottom", () => {
+    const mesh = createJacketMesh(
+      new BoxGeometry(1, 1, 1),
+      new MeshBasicMaterial(),
+    );
+    expect(mesh.name).toBe("etf-jacket");
+    expect(mesh.position.toArray()).toEqual([0, -12.5, 0]);
   });
 });

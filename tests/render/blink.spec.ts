@@ -269,6 +269,13 @@ describe("createBlinkScheduler", () => {
     expect(scheduler.advance(1234)).toBe(1);
   });
 
+  it("ignores non-finite steps", () => {
+    const scheduler = createBlinkScheduler(2, timing(), 1234);
+    expect(scheduler.advance(Number.NaN)).toBe(-1);
+    expect(scheduler.advance(Number.POSITIVE_INFINITY)).toBe(-1);
+    expect(scheduler.advance(1234)).toBe(1);
+  });
+
   it("stays bounded across a very large step", () => {
     const scheduler = createBlinkScheduler(2, timing(), 1234);
     expect([-1, 0, 1]).toContain(scheduler.advance(1e9));

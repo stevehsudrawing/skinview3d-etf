@@ -56,9 +56,9 @@ import {
 import { startTicker, type TickerHandle } from "./core/ticker";
 import type {
   BlinkOptions,
+  EnchantedOptions,
   ETFController,
   ETFSkinFeaturesOptions,
-  EnchantedOptions,
   SkinFeatureToggles,
   VillagerNoseOptions,
 } from "./core/types";
@@ -77,6 +77,7 @@ import {
   advanceEnchantedPhase,
   createEnchantedMaterial,
   createEnchantedTexture,
+  ENCHANTED_RENDER_ORDER,
   setEnchantedPhase,
   setEnchantedTuning,
   updateEnchantedTexture,
@@ -462,8 +463,8 @@ export function attachETFSkinFeatures(
    * (Re)builds the enchanted overlays for the current decode: the
    * mask texture, the pattern texture and the shared material are
    * created once and updated in place afterwards, and the overlay
-   * meshes (render order 1, on top of the emissive overlay) go
-   * through the shared builder. The pattern texture resolves
+   * meshes (drawn above the emissive overlay) go through the shared
+   * builder. The pattern texture resolves
    * asynchronously through the slot; the build waits for it.
    */
   function rebuildEnchanted(): void {
@@ -522,7 +523,7 @@ export function attachETFSkinFeatures(
       viewer.playerObject.skin,
       enchantedMaterial,
       "etf-enchanted",
-      1,
+      ENCHANTED_RENDER_ORDER,
     );
   }
 
@@ -558,9 +559,9 @@ export function attachETFSkinFeatures(
 
   /**
    * (Re)builds the jacket mesh tree for the current decode: the
-   * shell under the body's outer layer at local `y = -12.5` (its top
-   * face sits on the body's bottom), plus the emissive and enchanted
-   * overlay children the decoded masks select.
+   * shell under the body's outer layer (anchored by
+   * `createJacketMesh`), plus the emissive and enchanted overlay
+   * children the decoded masks select.
    */
   function rebuildJacket(): void {
     clearJacket();
@@ -577,7 +578,6 @@ export function attachETFSkinFeatures(
         createSkinSpaceTexture(pixelsToCanvas(jacket.texture)),
       ),
     );
-    mesh.position.set(0, -12.5, 0);
     if (settings.features.emissive && jacket.emissiveMask !== null) {
       mesh.add(
         createJacketOverlayMesh(
@@ -607,7 +607,7 @@ export function attachETFSkinFeatures(
           geometry,
           jacketEnchantedMaterial,
           "etf-jacket-enchanted",
-          1,
+          ENCHANTED_RENDER_ORDER,
         ),
       );
     }
@@ -746,9 +746,9 @@ export function attachETFSkinFeatures(
 
   /**
    * Advances the time-based features (the blink schedule and the
-   * enchanted phase) by `dt` seconds; negative deltas are ignored.
-   * The managed ticker calls this automatically unless `manageTicker`
-   * is `false`.
+   * enchanted phase) by `dt` seconds; negative and non-finite deltas
+   * are ignored. The managed ticker calls this automatically unless
+   * `manageTicker` is `false`.
    *
    * @param dt - Time since the previous update, in seconds.
    */
@@ -756,7 +756,7 @@ export function attachETFSkinFeatures(
     if (detached) {
       return;
     }
-    const seconds = Math.max(0, dt);
+    const seconds = Number.isFinite(dt) && dt > 0 ? dt : 0;
     if (
       blinkScheduler !== null &&
       blinkPainter !== null &&
@@ -796,7 +796,8 @@ export function attachETFSkinFeatures(
   }
 
   /**
-   * Switches features on or off at runtime.
+   * Merges feature switches at runtime; an explicit `undefined`
+   * keeps the current value (same as an omitted property).
    *
    * @param features - The partial feature switches to merge.
    */
@@ -804,7 +805,14 @@ export function attachETFSkinFeatures(
     if (detached) {
       return;
     }
-    Object.assign(settings.features, features);
+    settings.features = {
+      transparency: features.transparency ?? settings.features.transparency,
+      emissive: features.emissive ?? settings.features.emissive,
+      blink: features.blink ?? settings.features.blink,
+      nose: features.nose ?? settings.features.nose,
+      jacket: features.jacket ?? settings.features.jacket,
+      enchanted: features.enchanted ?? settings.features.enchanted,
+    };
     apply();
   }
 
@@ -859,7 +867,8 @@ export function attachETFSkinFeatures(
 
   /**
    * Merges blink options (state and/or timing) and restarts the
-   * blink schedule.
+   * blink schedule; an explicit `undefined` keeps the current value
+   * (same as an omitted property).
    *
    * @param options - The partial blink options to apply.
    */
@@ -868,12 +877,11 @@ export function attachETFSkinFeatures(
       return;
     }
     settings.blink = normalizeBlinkOptions({
-      state: settings.blink.state,
-      periodMs: settings.blink.interval,
-      closedMs: settings.blink.closedMs,
-      halfClosedMs: settings.blink.halfClosedMs,
-      reopenMs: settings.blink.reopenMs,
-      ...options,
+      state: options.state ?? settings.blink.state,
+      periodMs: options.periodMs ?? settings.blink.interval,
+      closedMs: options.closedMs ?? settings.blink.closedMs,
+      halfClosedMs: options.halfClosedMs ?? settings.blink.halfClosedMs,
+      reopenMs: options.reopenMs ?? settings.blink.reopenMs,
     });
     apply();
   }
