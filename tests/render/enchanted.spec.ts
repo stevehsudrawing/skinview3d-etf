@@ -8,6 +8,7 @@ import {
   DoubleSide,
   LinearFilter,
   NearestFilter,
+  RepeatWrapping,
   Texture,
 } from "three";
 import { describe, expect, it } from "vitest";
@@ -91,6 +92,15 @@ describe("createEnchantedMaterial", () => {
     expect(material.polygonOffset).toBe(true);
     expect(material.polygonOffsetFactor).toBe(-1);
     expect(material.polygonOffsetUnits).toBe(-1);
+  });
+});
+
+describe("createEnchantedTexture", () => {
+  it("wraps the pattern and leaves mipmaps off", () => {
+    const texture = createEnchantedTexture({} as HTMLCanvasElement, true);
+    expect(texture.wrapS).toBe(RepeatWrapping);
+    expect(texture.wrapT).toBe(RepeatWrapping);
+    expect(texture.generateMipmaps).toBe(false);
   });
 });
 

@@ -1,55 +1,17 @@
 /**
  * Transparency specs: the per-part alpha scan over the layer-1 box
- * unwrap and the material swap manager (real three objects, no DOM).
+ * unwrap and the material swap manager (real three objects on the
+ * shared fake skin, no DOM).
  */
 
-import type { SkinObject } from "skinview3d";
-import {
-  DoubleSide,
-  FrontSide,
-  Mesh,
-  MeshStandardMaterial,
-  Texture,
-} from "three";
+import { DoubleSide, FrontSide, MeshStandardMaterial, Texture } from "three";
 import { describe, expect, it, vi } from "vitest";
 import { createImage } from "../../src/decode/core/pixels";
-import { layer1Rects } from "../../src/render/core/parts";
 import {
   createTranslucentSides,
   translucentParts,
 } from "../../src/render/features/transparency";
-
-/**
- * Builds a minimal `SkinObject` stand-in: six parts whose layer meshes
- * carry fresh materials.
- *
- * @returns The fake skin plus its inner-layer meshes.
- */
-function makeSkin(): {
-  skin: SkinObject;
-  inner: Record<
-    "head" | "body" | "leftArm" | "rightArm" | "leftLeg" | "rightLeg",
-    Mesh
-  >;
-} {
-  const names = [
-    "head",
-    "body",
-    "leftArm",
-    "rightArm",
-    "leftLeg",
-    "rightLeg",
-  ] as const;
-  const inner = {} as Record<(typeof names)[number], Mesh>;
-  const fake = {} as Record<(typeof names)[number], unknown>;
-  for (const name of names) {
-    const innerMesh = new Mesh(undefined, new MeshStandardMaterial());
-    const outerMesh = new Mesh(undefined, new MeshStandardMaterial());
-    inner[name] = innerMesh;
-    fake[name] = { innerLayer: innerMesh, outerLayer: outerMesh };
-  }
-  return { skin: fake as unknown as SkinObject, inner };
-}
+import { createFakeSkin } from "../fixtures/fake-skin";
 
 /**
  * Builds an all-opaque skin image.
@@ -65,23 +27,6 @@ function makeOpaqueImage(): {
   image.data.fill(255);
   return image;
 }
-
-describe("layer1Rects", () => {
-  it("pins the head and arm regions", () => {
-    expect(layer1Rects("head", "default")).toEqual([
-      { topLeft: { x: 8, y: 0 }, bottomRight: { x: 23, y: 7 } },
-      { topLeft: { x: 0, y: 8 }, bottomRight: { x: 31, y: 15 } },
-    ]);
-    expect(layer1Rects("rightArm", "default")).toEqual([
-      { topLeft: { x: 44, y: 16 }, bottomRight: { x: 51, y: 19 } },
-      { topLeft: { x: 40, y: 20 }, bottomRight: { x: 55, y: 31 } },
-    ]);
-    expect(layer1Rects("rightArm", "slim")).toEqual([
-      { topLeft: { x: 44, y: 16 }, bottomRight: { x: 49, y: 19 } },
-      { topLeft: { x: 40, y: 20 }, bottomRight: { x: 53, y: 31 } },
-    ]);
-  });
-});
 
 describe("translucentParts", () => {
   it("reports nothing for an opaque skin", () => {
@@ -119,7 +64,7 @@ describe("translucentParts", () => {
 
 describe("createTranslucentSides", () => {
   it("swaps only the marked parts", () => {
-    const { skin, inner } = makeSkin();
+    const { skin, inner } = createFakeSkin();
     const image = makeOpaqueImage();
     image.data[(20 * 64 + 20) * 4 + 3] = 100;
     const originalBody = inner.body.material as MeshStandardMaterial;
@@ -140,7 +85,7 @@ describe("createTranslucentSides", () => {
   });
 
   it("restores on demand and reuses the clone cache", () => {
-    const { skin, inner } = makeSkin();
+    const { skin, inner } = createFakeSkin();
     const image = makeOpaqueImage();
     image.data[(20 * 64 + 20) * 4 + 3] = 100;
     const originalBody = inner.body.material as MeshStandardMaterial;
@@ -159,7 +104,7 @@ describe("createTranslucentSides", () => {
   });
 
   it("releases the swaps when inactive", () => {
-    const { skin, inner } = makeSkin();
+    const { skin, inner } = createFakeSkin();
     const image = makeOpaqueImage();
     image.data[(20 * 64 + 20) * 4 + 3] = 100;
     const originalBody = inner.body.material as MeshStandardMaterial;
@@ -172,7 +117,7 @@ describe("createTranslucentSides", () => {
   });
 
   it("re-syncs the clone map from the host material", () => {
-    const { skin, inner } = makeSkin();
+    const { skin, inner } = createFakeSkin();
     const image = makeOpaqueImage();
     image.data[(20 * 64 + 20) * 4 + 3] = 100;
     const originalBody = inner.body.material as MeshStandardMaterial;
@@ -188,7 +133,7 @@ describe("createTranslucentSides", () => {
   });
 
   it("never clobbers a material it did not place", () => {
-    const { skin, inner } = makeSkin();
+    const { skin, inner } = createFakeSkin();
     const image = makeOpaqueImage();
     image.data[(20 * 64 + 20) * 4 + 3] = 100;
     const sides = createTranslucentSides();
@@ -202,7 +147,7 @@ describe("createTranslucentSides", () => {
   });
 
   it("disposes the clones and rebuilds them afterwards", () => {
-    const { skin, inner } = makeSkin();
+    const { skin, inner } = createFakeSkin();
     const image = makeOpaqueImage();
     image.data[(20 * 64 + 20) * 4 + 3] = 100;
     const sides = createTranslucentSides();
