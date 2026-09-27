@@ -209,7 +209,8 @@ v0.0.3 (current milestone):
       (breaking);
 - [x] run the milestone audit (four slices) and land its fixes;
 - [x] refresh the demo and the documentation pages;
-- [ ] v0.0.3 release.
+- [x] add the issue templates and the discoverability links;
+- [x] v0.0.3 release.
 
 History:
 
