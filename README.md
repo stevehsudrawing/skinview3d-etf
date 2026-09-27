@@ -42,6 +42,11 @@ enchanted pixel overlay and the jacket/dress extension - on a live
 viewer. Published on npm as `skinview3d-etf`; a live demo deploys
 from `main` (§4).
 
+The full documentation lives in this repository under
+[`docs/`](https://github.com/stevehsudrawing/skinview3d-etf/tree/main/docs);
+the [Wiki](https://github.com/stevehsudrawing/skinview3d-etf/wiki)
+mirrors the same pages.
+
 ## 2. Usage
 
 Install from npm:
@@ -185,8 +190,9 @@ A live build is deployed from `main` to the
   (`animation`, the bundled self-made copy or a transient `[upload]`
   entry) and plays its animations (`animationName`, `setAnimation`,
   `forceLoop`, `paused`, `speed`) next to the ETF features.
-- The footer links back to the source repository; uploaded files are
-  processed in the browser only and are never sent anywhere.
+- The footer links back to the source repository, the Wiki
+  documentation and the issue tracker; uploaded files are processed
+  in the browser only and are never sent anywhere.
 - The decoder preview tab draws every prepared `decodeSkin()` artifact
   next to the 3D view.
 - The demo is not part of the npm package.
@@ -209,6 +215,9 @@ History:
 
 - [x] v0.0.2 release.
 - [x] v0.0.1 release.
+
+Bug reports and feature requests are welcome through the
+[issue tracker](https://github.com/stevehsudrawing/skinview3d-etf/issues).
 
 ## 6. Credits and disclaimer
 

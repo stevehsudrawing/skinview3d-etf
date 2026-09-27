@@ -139,3 +139,10 @@ the demo's file pickers show the local-file flow.
 Yes: pass `manageTicker: false` and call `controller.update(dt)`
 with the elapsed seconds. Blinking (in the `"auto"` state) and the
 scrolling enchanted pattern follow that clock.
+
+## 7. Still stuck?
+
+If nothing here covers your case, open an
+[issue](https://github.com/stevehsudrawing/skinview3d-etf/issues):
+the bug report and the feature request templates guide the fields
+they need.

@@ -70,6 +70,7 @@ controller.detach();
   Vite page with several sample skins and a PNG upload;
 - [npm package](https://www.npmjs.com/package/skinview3d-etf);
 - [Repository](https://github.com/stevehsudrawing/skinview3d-etf);
+- [Issues](https://github.com/stevehsudrawing/skinview3d-etf/issues)
 - [Wiki](https://github.com/stevehsudrawing/skinview3d-etf/wiki) -
   the latest-state mirror of this documentation.
 
