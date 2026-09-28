@@ -4,9 +4,8 @@ import tseslint from "typescript-eslint";
 
 export default [
   {
-    // Build output and the local-only working trees; `**/dist/` also covers
-    // the demo build output.
-    ignores: ["**/dist/", "node_modules/", "local/"],
+    // Build output; `**/dist/` also covers the demo build output.
+    ignores: ["**/dist/", "node_modules/"],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,

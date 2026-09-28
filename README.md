@@ -114,6 +114,13 @@ const result = decodeSkin(imageData);
 // result.skin, result.emissive?.mask, result.blink?.frames, ...
 ```
 
+> [!CAUTION]
+> The decoder API (`decodeSkin()` and its types) is moving to the
+> standalone `etf-skin-decoder` package. Once extracted, it stays
+> available here as a re-export for the rest of the v0.0.x line;
+> **v0.1.0 will remove it from this package** (BREAKING). New code
+> should import it from `etf-skin-decoder` directly.
+
 Note the migrations (breaking, expected before 1.0): the flat v0.0.1
 `villagerNoseTexture` option moved to `villagerNose.texture`, and
 the reserved v0.0.1 `glintTexture` option is now
@@ -190,9 +197,8 @@ A live build is deployed from `main` to the
   (`animation`, the bundled self-made copy or a transient `[upload]`
   entry) and plays its animations (`animationName`, `setAnimation`,
   `forceLoop`, `paused`, `speed`) next to the ETF features.
-- The footer links back to the source repository, the Wiki
-  documentation and the issue tracker; uploaded files are processed
-  in the browser only and are never sent anywhere.
+- Uploaded files are processed in the browser only and are never sent
+  anywhere.
 - The decoder preview tab draws every prepared `decodeSkin()` artifact
   next to the 3D view.
 - The demo is not part of the npm package.
@@ -211,6 +217,19 @@ v0.0.3 (current milestone):
 - [x] refresh the demo and the documentation pages;
 - [x] add the issue templates and the discoverability links;
 - [x] v0.0.3 release.
+
+Planned:
+
+- [ ] extract the decoder into the standalone `etf-skin-decoder`
+      package (v0.0.x); `decodeSkin()` and its types remain available
+      here as a re-export for the rest of the v0.0.x line;
+- [ ] remove the decoder API (v0.1.0; breaking).
+
+Exploring (no timeline):
+
+- optional bloom quality mode;
+- headless rendering (Node) for screenshot tests;
+- enchanted direction / angle parameters.
 
 History:
 

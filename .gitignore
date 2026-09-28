@@ -10,10 +10,7 @@
 node_modules/
 dist/
 
-# Local-only working trees
-local/
-.github/copilot-instructions.md
-.github/instructions/
+# Local-only project files
 **/*.psd
 
 # Demo fixtures: only the self-drawn example.png is committed
