@@ -86,6 +86,27 @@ const result = decodeSkin(imageData);
 // result.skin, result.emissive?.mask, result.blink?.frames, ...
 ```
 
+Interop: any canvas works through `getImageData()` - including one
+painted by the host's utility layer
+([`skinview-utils`](https://github.com/bs-community/skinview-utils)):
+
+```ts
+import { loadSkinToCanvas } from "skinview-utils";
+
+const canvas = document.createElement("canvas");
+loadSkinToCanvas(canvas, image); // converts legacy skins too
+const context = canvas.getContext("2d");
+const result = decodeSkin(
+  context.getImageData(0, 0, canvas.width, canvas.height),
+);
+```
+
+The live viewer takes the same route: `SkinViewer.loadSkin()` paints
+its skin canvas through `loadSkinToCanvas()` before the extension
+reads it, so a skin with zero transparent pixels first loses the
+regions the host's opaque-background fix clears (see
+[FAQ](FAQ.md) §7).
+
 Any other size decodes as `supported: false` with a warning and no
 features; a malformed buffer throws a `TypeError`. A skin without
 the ETF marker decodes as `hasMarker: false` - use the demo's

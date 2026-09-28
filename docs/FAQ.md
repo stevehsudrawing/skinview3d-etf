@@ -140,7 +140,23 @@ Yes: pass `manageTicker: false` and call `controller.update(dt)`
 with the elapsed seconds. Blinking (in the `"auto"` state) and the
 scrolling enchanted pattern follow that clock.
 
-## 7. Still stuck?
+## 7. Why do some features vanish for a fully opaque skin?
+
+`skinview3d` paints every skin through `skinview-utils`'
+`loadSkinToCanvas()`, which applies the upstream "opaque background
+fix": a skin with no transparent pixel at all has its helmet faces
+and most of its layer-2 band (`y 32-63`) cleared first. ETF data can
+live exactly there - the jacket's leg sources, the marker pattern
+boxes 3 and 4, and the deprecated floating-face nose pixels - so the
+jacket's shell comes out textureless and the emissive / nose data
+never decodes in the live viewer; blink, the slots and the marker
+itself are unaffected. Keep any single
+transparent pixel (most skins have unused regions that stay
+transparent) and nothing changes. `decodeSkin()` on the raw pixels
+is unaffected too; the demo's preview tab shows what a skin actually
+carries.
+
+## 8. Still stuck?
 
 If nothing here covers your case, open an
 [issue](https://github.com/stevehsudrawing/skinview3d-etf/issues):

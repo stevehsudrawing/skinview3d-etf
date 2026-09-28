@@ -36,6 +36,9 @@
     "build:demo": "vite build examples",
     "prepare": "husky"
   },
+  "dependencies": {
+    "skinview-utils": "^0.7.1"
+  },
   "peerDependencies": {
     "skinview3d": "^3.4.0",
     "three": "^0.156.0"

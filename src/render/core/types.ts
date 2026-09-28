@@ -3,33 +3,16 @@
  * the controller contract. Type-only module - no runtime code.
  */
 
+import type { RemoteImage, TextureCanvas, TextureSource } from "skinview-utils";
 import type { Texture } from "three";
 import type { PixelData } from "../../decode/core/types";
 
-/** A DOM canvas accepted as a texture source. */
-export type TextureCanvas = HTMLCanvasElement | OffscreenCanvas;
-
 /**
- * A ready-to-use image source (the shapes the host library's
- * `loadSkin` / `loadCape` loaders accept).
+ * The texture-input shapes, re-used verbatim from `skinview-utils`
+ * (the host library's utility layer): this package and the host
+ * accept exactly the same inputs, from one shared definition.
  */
-export type TextureSource =
-  HTMLImageElement | HTMLVideoElement | ImageBitmap | TextureCanvas;
-
-/**
- * A remotely loaded image: a URL string or an object with `src` plus
- * optional CORS settings (the host library's `RemoteImage` shape).
- */
-export type RemoteImage =
-  | string
-  | {
-      /** The image URL. */
-      src: string;
-      /** Requested CORS mode; defaults to `"anonymous"`. */
-      crossOrigin?: string | null;
-      /** Referrer policy forwarded to the image element. */
-      referrerPolicy?: string;
-    };
+export type { RemoteImage, TextureCanvas, TextureSource };
 
 /**
  * Every source accepted by the texture options

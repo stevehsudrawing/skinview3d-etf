@@ -73,7 +73,10 @@ the built-in default, while `texture: null` turns the feature off.
 
 ## 3. Texture inputs
 
-Both texture options accept the same `ETFTextureInput` union:
+Both texture options accept the same `ETFTextureInput` union - the
+host's input forms (`skinview-utils`' `RemoteImage` /
+`TextureSource`, re-used verbatim) plus a pixel buffer and a `three`
+`Texture`:
 
 - a URL string;
 - `{ src, crossOrigin?, referrerPolicy? }` for CORS-controlled

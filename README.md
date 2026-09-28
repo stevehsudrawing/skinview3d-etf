@@ -99,6 +99,13 @@ updates: an omitted property keeps its current value, while for the
 two texture options an explicit `texture: undefined` restores the
 built-in default and `null` turns the feature off.
 
+The texture options accept the host's input forms unchanged: the
+`TextureSource` / `RemoteImage` types are re-used from
+[`skinview-utils`](https://github.com/bs-community/skinview-utils),
+so a canvas from `loadSkinToCanvas()` / `loadCapeToCanvas()` passes
+directly; `decodeSkin()` likewise takes any plain `ImageData`-shaped
+buffer (e.g. `ctx.getImageData()`).
+
 The extension never rebuilds the scene graph and never seizes the
 viewer's animation slot; it adds artifacts under the existing meshes
 and cleans all of them up on `detach()`.
