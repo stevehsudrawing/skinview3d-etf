@@ -6,8 +6,9 @@
 > release; treat every minor release as potentially breaking. Do not
 > use it in production yet.
 
-Unofficial, community-built extension for
-[skinview3d](https://github.com/bs-community/skinview3d) that renders
+Unofficial, community-built extension for `skinview3d`
+([GitHub](https://github.com/bs-community/skinview3d) | [npm](https://www.npmjs.com/package/skinview3d))
+that renders
 [ETF (Entity Texture Features)](https://github.com/Traben-0/Entity_Texture_Features)
 player skin features on the 3D player model. Not affiliated with or
 endorsed by the ETF or skinview3d projects.
@@ -33,8 +34,10 @@ See [Options](Options.md) for every knob and
 npm install skinview3d-etf
 ```
 
-`skinview3d` and `three` are peer dependencies, so install the
-versions the viewer already uses.
+`skinview3d` and `three`
+([GitHub](https://github.com/mrdoob/three.js) | [npm](https://www.npmjs.com/package/three))
+are peer dependencies, so install the versions the viewer already
+uses.
 
 ```ts
 import { SkinViewer } from "skinview3d";

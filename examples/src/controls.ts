@@ -55,7 +55,7 @@ export function optionRow(
  * (`demo-option-<slug>-<lowercased path segments>`), so equal leaf
  * keywords in different groups stay addressable, and every control
  * without its own label is tied to its row header. A parenthetical
- * version suffix in the title (` (v0.0.3)`) is display-only and
+ * version suffix in the title (` (v0.0.4)`) is display-only and
  * drops out of the slug, so version bumps never move the ids.
  *
  * @param title - The group title.

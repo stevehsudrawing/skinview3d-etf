@@ -74,8 +74,10 @@ the built-in default, while `texture: null` turns the feature off.
 ## 3. Texture inputs
 
 Both texture options accept the same `ETFTextureInput` union - the
-host's input forms (`skinview-utils`' `RemoteImage` /
-`TextureSource`, re-used verbatim) plus a pixel buffer and a `three`
+host's input forms re-used from `skinview-utils`
+([GitHub](https://github.com/bs-community/skinview-utils) | [npm](https://www.npmjs.com/package/skinview-utils))
+(`RemoteImage` / `TextureSource`), plus a pixel buffer and a `three`
+([GitHub](https://github.com/mrdoob/three.js) | [npm](https://www.npmjs.com/package/three))
 `Texture`:
 
 - a URL string;

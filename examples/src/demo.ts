@@ -101,7 +101,7 @@ const ANIMATIONS: ReadonlyArray<{
  */
 const GROUP_VERSIONS = {
   /** The extension's milestone version. */
-  etf: "v0.0.3",
+  etf: "v0.0.4",
   /** The installed `skinview3d-blockbench`. */
   blockbench: "v1.0.19",
   /** The installed `skinview3d`. */
