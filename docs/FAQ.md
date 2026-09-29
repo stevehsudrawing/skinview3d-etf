@@ -120,7 +120,9 @@ the next `controller.refresh()` call.
 
 ## 4. Does it work next to skinview3d-blockbench?
 
-Yes - coexistence is a design goal. Both extensions add to the
+Yes - coexistence with `skinview3d-blockbench`
+([GitHub](https://github.com/Andcool-Systems/skinview3d-blockbench-animation) | [npm](https://www.npmjs.com/package/skinview3d-blockbench))
+is a design goal. Both extensions add to the
 existing scene without rebuilding it; when another provider takes
 the `viewer.animation` slot, the ETF ticker hooks through
 `addAnimation()` instead of seizing the slot. Call
@@ -142,8 +144,11 @@ scrolling enchanted pattern follow that clock.
 
 ## 7. Why do some features vanish for a fully opaque skin?
 
-`skinview3d` paints every skin through `skinview-utils`'
-`loadSkinToCanvas()`, which applies the upstream "opaque background
+`skinview3d`
+([GitHub](https://github.com/bs-community/skinview3d) | [npm](https://www.npmjs.com/package/skinview3d))
+paints every skin through `loadSkinToCanvas()` from `skinview-utils`
+([GitHub](https://github.com/bs-community/skinview-utils) | [npm](https://www.npmjs.com/package/skinview-utils)),
+which applies the upstream "opaque background
 fix": a skin with no transparent pixel at all has its helmet faces
 and most of its layer-2 band (`y 32-63`) cleared first. ETF data can
 live exactly there - the jacket's leg sources, the marker pattern

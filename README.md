@@ -1,13 +1,19 @@
 # skinview3d-etf
 
+[![npm version](https://img.shields.io/npm/v/skinview3d-etf?style=flat-square)](https://www.npmjs.com/package/skinview3d-etf)
+[![license: MIT](https://img.shields.io/npm/l/skinview3d-etf?style=flat-square)](https://github.com/stevehsudrawing/skinview3d-etf/blob/main/LICENSE)
+[![demo](https://img.shields.io/badge/demo-live-blue?style=flat-square)](https://stevehsudrawing.github.io/skinview3d-etf/)
+[![docs](https://img.shields.io/badge/docs-wiki-blue?style=flat-square)](https://github.com/stevehsudrawing/skinview3d-etf/wiki)
+
 > [!WARNING]
 > This project is in **alpha** (first release `0.0.1`). The public
 > API, rendering behavior, package layout and documentation may still
 > change in any `0.x` release; treat every minor release as
 > potentially breaking. Do not use it in production yet.
 
-Unofficial, community-built extension for
-[skinview3d](https://github.com/bs-community/skinview3d) that renders
+Unofficial, community-built extension for `skinview3d`
+([GitHub](https://github.com/bs-community/skinview3d) | [npm](https://www.npmjs.com/package/skinview3d))
+that renders
 [ETF (Entity Texture Features)](https://github.com/Traben-0/Entity_Texture_Features)
 player skin features on the 3D player model:
 
@@ -39,8 +45,9 @@ unit-tested against the
 The renderer ships all six features - transparency, the nose
 (villager and textured), the emissive pixels, blinking eyes, the
 enchanted pixel overlay and the jacket/dress extension - on a live
-viewer. Published on npm as `skinview3d-etf`; a live demo deploys
-from `main` (§4).
+viewer. Published on npm as `skinview3d-etf`
+([GitHub](https://github.com/stevehsudrawing/skinview3d-etf) | [npm](https://www.npmjs.com/package/skinview3d-etf));
+a live demo deploys from `main` (§4).
 
 The full documentation lives in this repository under
 [`docs/`](https://github.com/stevehsudrawing/skinview3d-etf/tree/main/docs);
@@ -55,8 +62,10 @@ Install from npm:
 npm install skinview3d-etf
 ```
 
-`skinview3d` and `three` are peer dependencies, so install the
-versions the viewer already uses.
+`skinview3d` and `three`
+([GitHub](https://github.com/mrdoob/three.js) | [npm](https://www.npmjs.com/package/three))
+are peer dependencies, so install the versions the viewer already
+uses.
 
 ```ts
 import { SkinViewer } from "skinview3d";
@@ -101,7 +110,8 @@ built-in default and `null` turns the feature off.
 
 The texture options accept the host's input forms unchanged: the
 `TextureSource` / `RemoteImage` types are re-used from
-[`skinview-utils`](https://github.com/bs-community/skinview-utils),
+`skinview-utils`
+([GitHub](https://github.com/bs-community/skinview-utils) | [npm](https://www.npmjs.com/package/skinview-utils)),
 so a canvas from `loadSkinToCanvas()` / `loadCapeToCanvas()` passes
 directly; `decodeSkin()` likewise takes any plain `ImageData`-shaped
 buffer (e.g. `ctx.getImageData()`).
@@ -123,7 +133,9 @@ const result = decodeSkin(imageData);
 
 > [!CAUTION]
 > The decoder API (`decodeSkin()` and its types) now lives in the
-> standalone `etf-skin-decoder` package and is re-exported here for
+> standalone `etf-skin-decoder`
+> ([GitHub](https://github.com/stevehsudrawing/etf-skin-decoder) | [npm](https://www.npmjs.com/package/etf-skin-decoder))
+> package and is re-exported here for
 > the rest of the v0.0.x line. **v0.1.0 will remove it from this
 > package** (BREAKING). New code should import it from
 > `etf-skin-decoder` directly.
@@ -176,7 +188,9 @@ A live build is deployed from `main` to the
   automatically (rejected files raise a browser alert).
 - The 3D tab shows three control trees grouped by owning package,
   in order: `skinview3d-etf`, the host `skinview3d` and
-  `skinview3d-blockbench` (hidden until its `SkinViewBlockbench`
+  `skinview3d-blockbench`
+  ([GitHub](https://github.com/Andcool-Systems/skinview3d-blockbench-animation) | [npm](https://www.npmjs.com/package/skinview3d-blockbench))
+  (hidden until its `SkinViewBlockbench`
   mode is picked in the `viewer.animation` row); every group title
   carries its package version. Each row carries one exact API
   keyword at its API-path depth and its tooltip shows the dotted
@@ -212,24 +226,17 @@ A live build is deployed from `main` to the
 
 ## 5. Roadmap
 
-v0.0.3 (current milestone):
+v0.0.4 (current milestone):
 
-- [x] render the jacket/dress extension with its own emissive and
-      enchanted overlays;
-- [x] align the six feature families with the ETF labels
-      (breaking);
-- [x] unify the decode geometry types under `Coordinate`
-      (breaking);
-- [x] run the milestone audit (four slices) and land its fixes;
-- [x] refresh the demo and the documentation pages;
-- [x] add the issue templates and the discoverability links;
-- [x] v0.0.3 release.
+- [x] reuse the `skinview-utils` texture-input types (interop);
+- [x] hand the decoder over to the standalone `etf-skin-decoder`
+      package and re-export it for the v0.0.x line;
+- [x] add the README badges and the package links;
+- [x] refresh the documentation pages;
+- [x] v0.0.4 release.
 
 Planned:
 
-- [ ] extract the decoder into the standalone `etf-skin-decoder`
-      package (v0.0.x); `decodeSkin()` and its types remain available
-      here as a re-export for the rest of the v0.0.x line;
 - [ ] remove the decoder API (v0.1.0; breaking).
 
 Exploring (no timeline):
@@ -240,6 +247,7 @@ Exploring (no timeline):
 
 History:
 
+- [x] v0.0.3 release.
 - [x] v0.0.2 release.
 - [x] v0.0.1 release.
 

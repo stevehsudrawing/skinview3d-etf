@@ -8,8 +8,12 @@ Install from npm:
 npm install skinview3d-etf
 ```
 
-`skinview3d` and `three` are peer dependencies; install the versions
-your viewer already uses.
+`skinview3d`
+([GitHub](https://github.com/bs-community/skinview3d) | [npm](https://www.npmjs.com/package/skinview3d))
+and `three`
+([GitHub](https://github.com/mrdoob/three.js) | [npm](https://www.npmjs.com/package/three))
+are peer dependencies; install the versions your viewer already
+uses.
 
 ## 2. Attach the features
 
@@ -86,14 +90,15 @@ const result = decodeSkin(imageData);
 // result.skin, result.emissive?.mask, result.blink?.frames, ...
 ```
 
-The decoder is also published as the standalone
-`etf-skin-decoder` package; `skinview3d-etf` depends on it and
+The decoder is also published as the standalone `etf-skin-decoder`
+([GitHub](https://github.com/stevehsudrawing/etf-skin-decoder) | [npm](https://www.npmjs.com/package/etf-skin-decoder))
+package; `skinview3d-etf` depends on it and
 re-exports its API for the rest of the v0.0.x line. New code should
 **import it from `etf-skin-decoder`** directly.
 
 Interop: any canvas works through `getImageData()` - including one
-painted by the host's utility layer
-([`skinview-utils`](https://github.com/bs-community/skinview-utils)):
+painted by the host's utility layer `skinview-utils`
+([GitHub](https://github.com/bs-community/skinview-utils) | [npm](https://www.npmjs.com/package/skinview-utils)):
 
 ```ts
 import { loadSkinToCanvas } from "skinview-utils";
