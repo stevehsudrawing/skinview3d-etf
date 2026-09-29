@@ -4,13 +4,13 @@
  * pixel-art textures that sample in skin space.
  */
 
+import type { PixelData } from "etf-skin-decoder";
 import {
   CanvasTexture,
   ClampToEdgeWrapping,
   NearestFilter,
   type Texture,
 } from "three";
-import type { PixelData } from "../../decode/core/types";
 import { paintCanvasPixels, pixelsToCanvas } from "./canvas";
 import type { ETFTextureInput, RemoteImage, TextureSource } from "./types";
 

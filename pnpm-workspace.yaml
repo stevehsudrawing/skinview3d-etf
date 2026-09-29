@@ -3,3 +3,5 @@
 # default; esbuild (a tsup dependency) needs its install script.
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - etf-skin-decoder@0.1.0

@@ -14,6 +14,8 @@
  * feature recipes.
  */
 
+import type { Rect } from "etf-skin-decoder";
+import { SKIN_SIZE } from "etf-skin-decoder";
 import {
   BoxGeometry,
   Mesh,
@@ -22,8 +24,6 @@ import {
   type Material,
   type MeshStandardMaterial,
 } from "three";
-import { SKIN_SIZE } from "../../decode/core/constants";
-import type { Rect } from "../../decode/core/types";
 
 /** One jacket shell's dimensions, in model units (1 unit = 1 px). */
 interface JacketBoxSize {

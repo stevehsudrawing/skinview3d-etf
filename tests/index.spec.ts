@@ -3,8 +3,8 @@
  * package's contract, so a lost re-export must fail here.
  */
 
+import { decodeSkin } from "etf-skin-decoder";
 import { describe, expect, it } from "vitest";
-import { decodeSkin } from "../src/decode/index";
 import * as entry from "../src/index";
 import { attachETFSkinFeatures } from "../src/render/controller";
 import {

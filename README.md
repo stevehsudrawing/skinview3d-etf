@@ -122,11 +122,11 @@ const result = decodeSkin(imageData);
 ```
 
 > [!CAUTION]
-> The decoder API (`decodeSkin()` and its types) is moving to the
-> standalone `etf-skin-decoder` package. Once extracted, it stays
-> available here as a re-export for the rest of the v0.0.x line;
-> **v0.1.0 will remove it from this package** (BREAKING). New code
-> should import it from `etf-skin-decoder` directly.
+> The decoder API (`decodeSkin()` and its types) now lives in the
+> standalone `etf-skin-decoder` package and is re-exported here for
+> the rest of the v0.0.x line. **v0.1.0 will remove it from this
+> package** (BREAKING). New code should import it from
+> `etf-skin-decoder` directly.
 
 Note the migrations (breaking, expected before 1.0): the flat v0.0.1
 `villagerNoseTexture` option moved to `villagerNose.texture`, and

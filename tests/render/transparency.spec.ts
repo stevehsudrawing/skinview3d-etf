@@ -4,9 +4,9 @@
  * shared fake skin, no DOM).
  */
 
+import { createImage } from "etf-skin-decoder";
 import { DoubleSide, FrontSide, MeshStandardMaterial, Texture } from "three";
 import { describe, expect, it, vi } from "vitest";
-import { createImage } from "../../src/decode/core/pixels";
 import {
   createTranslucentSides,
   translucentParts,

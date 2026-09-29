@@ -3,7 +3,7 @@
  * comparing pixel buffers.
  */
 
-import type { PixelData, Rect } from "../../decode/core/types";
+import type { PixelData, Rect } from "etf-skin-decoder";
 
 /**
  * Reads the full pixel content of a canvas.

@@ -166,6 +166,9 @@ importers:
 
   .:
     dependencies:
+      etf-skin-decoder:
+        specifier: ^0.1.0
+        version: 0.1.0
       skinview-utils:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1142,6 +1145,10 @@ packages:
   esutils@2.0.3:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
+
+  etf-skin-decoder@0.1.0:
+    resolution: {integrity: sha512-XjRFO0KGPZO6u9vHysy3Xq0lqiz/pzF6tNijOGpalmeQGjDvxqCg9OKPkthRK6JdhroYb5kd/BfBkwiRe+o7Xw==}
+    engines: {node: '>=22.12.0'}
 
   expect-type@1.4.0:
     resolution: {integrity: sha512-KfYbmpRm0VbLjEvVa9yGwCi9GI34xvi7A/HXYWQO65CSD2u3MczUJSuwXKFIxlGsgBQizV9q5J9NHj4VG0n+pA==}
@@ -2605,6 +2612,8 @@ snapshots:
       '@types/estree': 1.0.9
 
   esutils@2.0.3: {}
+
+  etf-skin-decoder@0.1.0: {}
 
   expect-type@1.4.0: {}
 

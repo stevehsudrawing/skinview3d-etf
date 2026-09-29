@@ -37,6 +37,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "etf-skin-decoder": "^0.1.0",
     "skinview-utils": "^0.7.1"
   },
   "peerDependencies": {

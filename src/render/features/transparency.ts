@@ -7,9 +7,9 @@
  * faces behind opaque pixels are provably invisible.
  */
 
+import type { PixelData, Rect } from "etf-skin-decoder";
 import type { SkinObject } from "skinview3d";
 import { DoubleSide, type Mesh, type MeshStandardMaterial } from "three";
-import type { PixelData, Rect } from "../../decode/core/types";
 import {
   BODY_PART_IDS,
   layer1Rects,

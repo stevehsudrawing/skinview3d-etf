@@ -12,7 +12,7 @@ import {
   type Texture,
 } from "three";
 
-import type { Coordinate } from "../../decode/core/types";
+import type { Coordinate } from "etf-skin-decoder";
 
 /** A rectangle in skin space; edges in 64ths, not pixel indices. */
 interface FaceRect {

@@ -8,6 +8,18 @@
  * enchanted, jacket, material swaps, canvas baseline.
  */
 
+import type {
+  BlinkInfo,
+  DecodeResult,
+  PatternInfo,
+  PixelData,
+} from "etf-skin-decoder";
+import {
+  cloneImage,
+  createImage,
+  decodeSkin,
+  SKIN_SIZE,
+} from "etf-skin-decoder";
 import type { SkinViewer } from "skinview3d";
 import type {
   BoxGeometry,
@@ -17,15 +29,6 @@ import type {
   ShaderMaterial,
   Texture,
 } from "three";
-import { SKIN_SIZE } from "../decode/core/constants";
-import { cloneImage, createImage } from "../decode/core/pixels";
-import type {
-  BlinkInfo,
-  DecodeResult,
-  PatternInfo,
-  PixelData,
-} from "../decode/core/types";
-import { decodeSkin } from "../decode/index";
 import {
   paintCanvasPixels,
   pixelsEqual,

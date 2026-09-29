@@ -86,6 +86,11 @@ const result = decodeSkin(imageData);
 // result.skin, result.emissive?.mask, result.blink?.frames, ...
 ```
 
+The decoder is also published as the standalone
+`etf-skin-decoder` package; `skinview3d-etf` depends on it and
+re-exports its API for the rest of the v0.0.x line. New code should
+**import it from `etf-skin-decoder`** directly.
+
 Interop: any canvas works through `getImageData()` - including one
 painted by the host's utility layer
 ([`skinview-utils`](https://github.com/bs-community/skinview-utils)):

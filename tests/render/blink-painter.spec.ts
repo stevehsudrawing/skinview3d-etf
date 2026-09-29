@@ -7,13 +7,9 @@
  * restore are asserted without a browser.
  */
 
+import type { BlinkInfo, BlinkMode, PixelData } from "etf-skin-decoder";
+import { createImage } from "etf-skin-decoder";
 import { describe, expect, it, vi } from "vitest";
-import { createImage } from "../../src/decode/core/pixels";
-import type {
-  BlinkInfo,
-  BlinkMode,
-  PixelData,
-} from "../../src/decode/core/types";
 import {
   createBlinkPainter,
   type BlinkOverlay,

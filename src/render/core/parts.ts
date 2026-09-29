@@ -5,9 +5,9 @@
  * six-part list again.
  */
 
+import type { Rect } from "etf-skin-decoder";
 import type { SkinObject } from "skinview3d";
 import type { Mesh, MeshStandardMaterial, Texture } from "three";
-import type { Rect } from "../../decode/core/types";
 
 /** The six body-part keys, in model order. */
 export const BODY_PART_IDS = [

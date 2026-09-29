@@ -9,6 +9,7 @@
  * whose `refresh()` must be called after every `viewer.loadSkin()`.
  */
 
+export { decodeSkin } from "etf-skin-decoder";
 export type {
   BlinkInfo,
   BlinkMode,
@@ -23,8 +24,7 @@ export type {
   RGB,
   RGBA,
   SlotValues,
-} from "./decode/core/types";
-export { decodeSkin } from "./decode/index";
+} from "etf-skin-decoder";
 export { attachETFSkinFeatures } from "./render/controller";
 export {
   DEFAULT_BLINK_OPTIONS,

@@ -4,14 +4,14 @@
  * eye-state resolution.
  */
 
-import { describe, expect, it } from "vitest";
-import { createImage } from "../../src/decode/core/pixels";
 import type {
   BlinkInfo,
   BlinkMode,
   PatternInfo,
   PixelData,
-} from "../../src/decode/core/types";
+} from "etf-skin-decoder";
+import { createImage } from "etf-skin-decoder";
+import { describe, expect, it } from "vitest";
 import {
   normalizeBlinkOptions,
   type NormalizedBlinkOptions,

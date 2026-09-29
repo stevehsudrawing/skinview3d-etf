@@ -4,9 +4,9 @@
  * shared fake canvas (no browser).
  */
 
+import type { PixelData } from "etf-skin-decoder";
+import { createImage, setPixel } from "etf-skin-decoder";
 import { describe, expect, it } from "vitest";
-import { createImage, setPixel } from "../../src/decode/core/pixels";
-import type { PixelData } from "../../src/decode/core/types";
 import {
   paintCanvasPixels,
   paintCanvasRect,

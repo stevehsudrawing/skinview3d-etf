@@ -3,9 +3,9 @@
  * the controller contract. Type-only module - no runtime code.
  */
 
+import type { PixelData } from "etf-skin-decoder";
 import type { RemoteImage, TextureCanvas, TextureSource } from "skinview-utils";
 import type { Texture } from "three";
-import type { PixelData } from "../../decode/core/types";
 
 /**
  * The texture-input shapes, re-used verbatim from `skinview-utils`

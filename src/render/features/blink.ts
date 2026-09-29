@@ -10,18 +10,13 @@
  * frame and suspends the schedule.
  */
 
+import type { BlinkInfo, PatternInfo, PixelData, Rect } from "etf-skin-decoder";
 import {
   BLINK_EYE_STRIPS,
   BLINK_FACE_RECT,
   BLINK_FLOATING_FACE_RECT,
-} from "../../decode/core/constants";
-import { buildMask } from "../../decode/core/pixels";
-import type {
-  BlinkInfo,
-  PatternInfo,
-  PixelData,
-  Rect,
-} from "../../decode/core/types";
+  buildMask,
+} from "etf-skin-decoder";
 import {
   paintCanvasPixels,
   paintCanvasRect,
