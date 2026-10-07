@@ -137,6 +137,29 @@ describe("createEnchantedMaterial", () => {
     };
     expect(offset.x).toBe(0.25);
     expect(offset.y).toBe(0.75);
+    const shift = material.uniforms.uUvShift.value as {
+      x: number;
+      y: number;
+    };
+    expect(shift.x).toBe(0);
+    expect(shift.y).toBe(0);
+  });
+
+  it("wires an explicit sampling shift", () => {
+    const material = createEnchantedMaterial(
+      mask,
+      pattern,
+      1,
+      1,
+      { x: 0, y: 0 },
+      [0, -12 / 64],
+    );
+    const shift = material.uniforms.uUvShift.value as {
+      x: number;
+      y: number;
+    };
+    expect(shift.x).toBe(0);
+    expect(shift.y).toBeCloseTo(-12 / 64);
   });
 
   it("updates the offset in place via setEnchantedOffset", () => {

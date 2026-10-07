@@ -6,7 +6,10 @@
  * applied before the tiling scale, so the pattern's apparent movement
  * across the model is `speed x direction` UV units per second no
  * matter the `scale` - the parameters stay decoupled from the
- * perceived speed.
+ * perceived speed. A fixed per-material sampling shift (`uUvShift`)
+ * lets a surface whose layout restarts another surface's region
+ * continue that surface's pattern phase (the jacket's waist stitch)
+ * while its mask keeps sampling the host UVs unchanged.
  * The material is additive (three: SrcAlpha/One, so the contribution
  * is the pattern color x the mask alpha x `opacity`), depth-read-only
  * and pushed slightly in front of the source mesh via the shared
@@ -44,13 +47,14 @@ const ENCHANTED_FRAGMENT_SHADER = `
 uniform sampler2D uMask;
 uniform sampler2D uEnchanted;
 uniform vec2 uOffset;
+uniform vec2 uUvShift;
 uniform float uScale;
 uniform float uOpacity;
 varying vec2 vUv;
 
 void main() {
   vec4 m = texture2D(uMask, vUv);
-  vec4 g = texture2D(uEnchanted, (vUv + uOffset) * uScale);
+  vec4 g = texture2D(uEnchanted, (vUv + uOffset + uUvShift) * uScale);
   gl_FragColor = vec4(g.rgb, m.a * uOpacity);
 }
 `;
@@ -175,6 +179,10 @@ export const ENCHANTED_RENDER_ORDER = 1;
  * @param scale - The pattern tiling across the UVs.
  * @param opacity - The additive brightness factor, 0..1.
  * @param offset - The initial scroll offset, in UV units.
+ * @param uvShift - The fixed sampling shift, in UV units: a surface whose
+ *   layout restarts another surface's region continues that surface's
+ *   pattern phase instead (the jacket's waist stitch). The mask sample is
+ *   untouched.
  * @returns The prepared material, owned by the caller.
  */
 export function createEnchantedMaterial(
@@ -183,12 +191,14 @@ export function createEnchantedMaterial(
   scale: number,
   opacity: number,
   offset: EnchantedOffset,
+  uvShift: readonly [number, number] = [0, 0],
 ): ShaderMaterial {
   return new ShaderMaterial({
     uniforms: {
       uMask: { value: mask },
       uEnchanted: { value: pattern },
       uOffset: { value: new Vector2(offset.x, offset.y) },
+      uUvShift: { value: new Vector2(uvShift[0], uvShift[1]) },
       uScale: { value: scale },
       uOpacity: { value: opacity },
     },

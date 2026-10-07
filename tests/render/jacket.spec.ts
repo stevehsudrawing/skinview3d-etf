@@ -1,11 +1,13 @@
 /**
- * Jacket shell facts: the size table, the six skin-space face rects
- * and the UV rewrite (pure parts - no viewer required).
+ * Jacket shell facts: the size table, the pattern shift, the six
+ * skin-space face rects and the UV rewrite (pure parts - no viewer
+ * required).
  */
 
 import { BoxGeometry, MeshBasicMaterial } from "three";
 import { describe, expect, it } from "vitest";
 import {
+  JACKET_PATTERN_SHIFT,
   JACKET_SIZES,
   createJacketGeometry,
   createJacketMesh,
@@ -27,6 +29,13 @@ describe("JACKET_SIZES", () => {
   });
 });
 
+describe("JACKET_PATTERN_SHIFT", () => {
+  it("continues the body outer layer's phase one face height down", () => {
+    expect(JACKET_PATTERN_SHIFT[0]).toBe(0);
+    expect(JACKET_PATTERN_SHIFT[1]).toBeCloseTo(-12 / 64);
+  });
+});
+
 describe("jacketFaceRects", () => {
   it("pins the six face regions in three.js face order", () => {
     expect(jacketFaceRects()).toEqual([
@@ -41,18 +50,22 @@ describe("jacketFaceRects", () => {
 });
 
 describe("createJacketGeometry", () => {
-  it("builds the shell with skin-space UVs at the decoded width", () => {
+  it("builds the shell with host-convention UVs at the decoded width", () => {
     const thin = createJacketGeometry(false);
     expect(thin.parameters.width).toBe(8.5);
     expect(thin.parameters.height).toBe(12.5);
     expect(thin.parameters.depth).toBe(4.5);
     expect(thin.attributes.uv.count).toBe(24);
-    // The +x face starts on its region's top-left corner (28, 36),
-    // the +y face on (20, 32) - both in skin space (v grows down).
+    // The +x face samples its region's top-left corner (28, 36)
+    // through the host convention (v = 1 - 36/64 = 28/64); the +y
+    // face starts on (20, 32), and the bottom face keeps its
+    // [0, 1, 3, 2] permutation.
     expect(thin.attributes.uv.getX(0)).toBeCloseTo(28 / 64);
-    expect(thin.attributes.uv.getY(0)).toBeCloseTo(36 / 64);
+    expect(thin.attributes.uv.getY(0)).toBeCloseTo(28 / 64);
     expect(thin.attributes.uv.getX(8)).toBeCloseTo(20 / 64);
     expect(thin.attributes.uv.getY(8)).toBeCloseTo(32 / 64);
+    expect(thin.attributes.uv.getX(12)).toBeCloseTo(28 / 64);
+    expect(thin.attributes.uv.getY(12)).toBeCloseTo(28 / 64);
     const wide = createJacketGeometry(true);
     expect(wide.parameters.width).toBe(9.5);
     expect(wide.parameters.height).toBe(13.5);

@@ -92,6 +92,7 @@ import {
   createJacketMesh,
   createJacketOverlayMesh,
   disposeJacketMesh,
+  JACKET_PATTERN_SHIFT,
 } from "./features/jacket";
 import {
   createTexturedNoseMesh,
@@ -581,16 +582,14 @@ export function attachETFSkinFeatures(
       geometry,
       createJacketMaterial(
         bodyOuterMaterial(skin),
-        createSkinSpaceTexture(pixelsToCanvas(jacket.texture)),
+        createSkinSpaceTexture(pixelsToCanvas(jacket.texture), true),
       ),
     );
     if (settings.features.emissive && jacket.emissiveMask !== null) {
       mesh.add(
         createJacketOverlayMesh(
           geometry,
-          createEmissiveMaterial(
-            createSkinSpaceTexture(pixelsToCanvas(jacket.emissiveMask)),
-          ),
+          createEmissiveMaterial(createMaskTexture(jacket.emissiveMask)),
           "etf-jacket-emissive",
           0,
         ),
@@ -598,15 +597,17 @@ export function attachETFSkinFeatures(
     }
     if (
       settings.features.enchanted &&
+      settings.enchanted.texture !== null &&
       jacket.enchantedMask !== null &&
       enchantedPatternTexture !== null
     ) {
       jacketEnchantedMaterial = createEnchantedMaterial(
-        createSkinSpaceTexture(pixelsToCanvas(jacket.enchantedMask)),
+        createMaskTexture(jacket.enchantedMask),
         enchantedPatternTexture,
         settings.enchanted.scale,
         settings.enchanted.opacity,
         enchantedOffset,
+        JACKET_PATTERN_SHIFT,
       );
       mesh.add(
         createJacketOverlayMesh(

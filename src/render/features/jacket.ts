@@ -5,13 +5,17 @@
  *
  * The shell hangs under the body's outer layer, so the host's
  * re-parenting and the outer-layer visibility carry over through the
- * parent chain. The box UVs are written in skin space against the
+ * parent chain. The box UVs follow the host `setUVs` convention
+ * (`v = 1 - y / 64` against default-`flipY` textures) over the
  * body-outer region of the 64x64 layout - the same regions the
- * decoder fills - so the jacket texture samples exactly like the
- * skin pixels it was cut from. The overlay meshes (the jacket's
- * emissive and enchanted masks) share the shell geometry and are
- * children of the shell; their materials come from the shared
- * feature recipes.
+ * decoder fills - so the shell carries exactly the host box's UVs
+ * and the enchanted pattern samples like the body's. The pattern
+ * phase then continues across the waist through the fixed sampling
+ * shift (the shell's top edge restarts the region's layout one face
+ * height above where the body outer's phase ends). The overlay meshes
+ * (the jacket's emissive and enchanted masks) share the shell
+ * geometry and are children of the shell; their materials come from
+ * the shared feature recipes.
  */
 
 import type { Rect } from "etf-skin-decoder";
@@ -63,6 +67,18 @@ const JACKET_UV_REGION = {
   depth: 4,
 } as const;
 
+/**
+ * The enchanted pattern's fixed sampling shift for the shell, in UV
+ * units: the shell's top edge restarts the box layout at the
+ * region's top row, so continuing the body outer layer's phase
+ * across the waist takes one face-height step down (`(0, -12/64)`
+ * for the default layout).
+ */
+export const JACKET_PATTERN_SHIFT: readonly [number, number] = [
+  0,
+  -JACKET_UV_REGION.height / SKIN_SIZE,
+];
+
 /** One box face as skin-space edges (`[x1, y1, x2, y2]`, exclusive ends). */
 type FaceEdges = readonly [number, number, number, number];
 
@@ -103,9 +119,9 @@ export function jacketFaceRects(): readonly Rect[] {
 
 /**
  * The four UV corners of one face in the classic unwrap order. The V
- * axis follows our skin-space convention (`v = y / 64` grows
- * downwards, `flipY = false` textures), so the host's bottom-up
- * `1 - y / 64` formula swaps to `y / 64`.
+ * axis follows the host `setUVs` convention (`v = 1 - y / 64`
+ * against default-`flipY` textures), so the corners carry over to
+ * the host body-outer box's UVs verbatim.
  *
  * @param edges - The face edges (exclusive ends).
  * @returns The four corners as `[u, v]` pairs.
@@ -115,18 +131,19 @@ function faceCorners([x1, y1, x2, y2]: FaceEdges): readonly (readonly [
   number,
 ])[] {
   return [
-    [x1 / SKIN_SIZE, y2 / SKIN_SIZE],
-    [x2 / SKIN_SIZE, y2 / SKIN_SIZE],
-    [x2 / SKIN_SIZE, y1 / SKIN_SIZE],
-    [x1 / SKIN_SIZE, y1 / SKIN_SIZE],
+    [x1 / SKIN_SIZE, (SKIN_SIZE - y2) / SKIN_SIZE],
+    [x2 / SKIN_SIZE, (SKIN_SIZE - y2) / SKIN_SIZE],
+    [x2 / SKIN_SIZE, (SKIN_SIZE - y1) / SKIN_SIZE],
+    [x1 / SKIN_SIZE, (SKIN_SIZE - y1) / SKIN_SIZE],
   ];
 }
 
 /**
  * Rewrites a box geometry's UVs to sample the jacket layout. The
  * per-face vertex arrangement replicates the host model's classic
- * box unwrap (its `setUVs`, MIT), so a face samples the same region
- * the host's body outer layer would.
+ * box unwrap (its `setUVs`, MIT) - corner order and V convention
+ * included - so a face carries the same UVs the host's body outer
+ * layer box would.
  *
  * @param geometry - The box geometry to rewrite (mutated).
  */
@@ -159,7 +176,7 @@ function writeJacketUVs(geometry: BoxGeometry): void {
 
 /**
  * Builds one jacket shell geometry: a box at the requested width
- * whose UVs sample the jacket layout in skin space.
+ * whose UVs sample the jacket layout in the host `setUVs` convention.
  *
  * @param wide - Whether to build the wide shell (`false` = thin).
  * @returns The prepared geometry, owned by the caller.
