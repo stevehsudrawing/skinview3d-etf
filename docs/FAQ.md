@@ -73,7 +73,7 @@ transparency) and redraws them at an extra-bright light level
 (`FULL_BRIGHT + 2`). Here they are a separate unlit overlay drawn over the base
 skin: the transparency stays intact, the pixels keep their own color, and the
 surrounding light is yours to tune (the demo exposes `viewer.globalLight` /
-`viewer.cameraLight`; the reserved `bloom` option does nothing yet).
+`viewer.cameraLight`; the reserved `emissive.bloom` option does nothing yet).
 
 ### 2.2 enchanted
 
@@ -82,7 +82,7 @@ glint look comes from its own enchantment texture - this project bundles no such
 assets, so the built-in pattern is a self-drawn mock. It is drawn as one
 additive overlay with `speed`, `opacity`, `scale` and `smooth`; the decode data
 is spec-faithful, and the defaults are tuned against the in-game look (speed
-`0.1`, opacity `1`, scale `1`, smoothing on). See [Options](Options.md) §1.3,
+`0.1`, opacity `1`, scale `1`, smoothing on). See [Options](Options.md) §1.5,
 and pass your own `texture` for a different pattern.
 
 ### 2.3 blinking

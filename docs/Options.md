@@ -17,7 +17,13 @@ defaults are listed below. Invalid values fall back to the documented defaults.
 | `enchanted`    | `true`  | the enchanted pixel overlay;                                   |
 | `jacket`       | `true`  | the jacket/dress extension (thin / wide, top / no-top styles); |
 
-### 1.2 blink
+### 1.2 emissive
+
+| Key     | Default | Effect                           |
+| ------- | ------- | -------------------------------- |
+| `bloom` | `false` | reserved - accepted and ignored; |
+
+### 1.3 blink
 
 | Key            | Default        | Effect                                                                                                                                                       |
 | -------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -29,7 +35,13 @@ defaults are listed below. Invalid values fall back to the documented defaults.
 
 The documented defaults are exported as `DEFAULT_BLINK_OPTIONS`.
 
-### 1.3 enchanted
+### 1.4 villagerNose
+
+| Key       | Default  | Effect                                                        |
+| --------- | -------- | ------------------------------------------------------------- |
+| `texture` | built-in | the flat villager nose image; `null` disables villager noses. |
+
+### 1.5 enchanted
 
 | Key         | Default  | Effect                                                                                                                            |
 | ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -42,17 +54,10 @@ The documented defaults are exported as `DEFAULT_BLINK_OPTIONS`.
 
 The documented defaults are exported as `DEFAULT_ENCHANTED_OPTIONS`.
 
-### 1.4 villagerNose
-
-| Key       | Default  | Effect                                                        |
-| --------- | -------- | ------------------------------------------------------------- |
-| `texture` | built-in | the flat villager nose image; `null` disables villager noses. |
-
-### 1.5 Other
+### 1.6 Other
 
 | Key            | Default        | Effect                                                                                                      |
 | -------------- | -------------- | ----------------------------------------------------------------------------------------------------------- |
-| `bloom`        | `false`        | reserved - accepted and ignored;                                                                            |
 | `manageTicker` | `true`         | the controller drives `update(dt)` from the animation slot; see [Getting Started](Getting-Started.md) §3.3; |
 | `onWarning`    | `console.warn` | warning sink, deduplicated once per message.                                                                |
 
@@ -61,9 +66,10 @@ The documented defaults are exported as `DEFAULT_ENCHANTED_OPTIONS`.
 | Setter                            | Group                           |
 | --------------------------------- | ------------------------------- |
 | `setFeatures(partial)`            | `features`                      |
+| `setEmissiveOptions(partial)`     | `emissive`                      |
 | `setBlinkOptions(partial)`        | `blink` (restarts the schedule) |
-| `setEnchantedOptions(partial)`    | `enchanted`                     |
 | `setVillagerNoseOptions(partial)` | `villagerNose`                  |
+| `setEnchantedOptions(partial)`    | `enchanted`                     |
 
 Every setter merges partial updates: an omitted property keeps its current
 value, and an explicit `undefined` counts as omitted (it does not clear the
@@ -94,8 +100,9 @@ form. Caller objects are only read, never mutated or disposed.
 ## 4. Migration
 
 Breaking (expected before 1.0): the flat v0.0.1 keys moved into option groups in
-v0.0.2, and v0.0.3 renamed the glint group after its feature family and reworked
-the decode geometry. The release notes list every mapping.
+v0.0.2, v0.0.3 renamed the glint group after its feature family and reworked the
+decode geometry, and v0.0.5 moved the reserved `bloom` flag under its feature
+group. The release notes list every mapping.
 
 | Entry              | v0.0.1                                               | v0.0.2                     | current                                               |
 | ------------------ | ---------------------------------------------------- | -------------------------- | ----------------------------------------------------- |
@@ -109,3 +116,4 @@ the decode geometry. The release notes list every mapping.
 | nose fields        | `villagerSkinTextured` / `variant` / `removesSource` | (unchanged)                | `villagerTextured` / `textured` / `removesFacePixels` |
 | jacket width flag  | `fat`                                                | (unchanged)                | `wide`                                                |
 | jacket length type | `number`                                             | (unchanged)                | `1`-`8` union                                         |
+| bloom flag         | `bloom`                                              | (unchanged)                | `emissive.bloom`                                      |

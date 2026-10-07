@@ -41,6 +41,7 @@ import {
 } from "./core/default-textures";
 import {
   normalizeBlinkOptions,
+  normalizeEmissiveOptions,
   normalizeEnchantedOptions,
   normalizeOptions,
 } from "./core/options";
@@ -59,6 +60,7 @@ import {
 import { startTicker, type TickerHandle } from "./core/ticker";
 import type {
   BlinkOptions,
+  EmissiveOptions,
   EnchantedOptions,
   ETFController,
   ETFSkinFeaturesOptions,
@@ -825,6 +827,43 @@ export function attachETFSkinFeatures(
   }
 
   /**
+   * Merges emissive options at runtime; an omitted (`undefined`)
+   * `bloom` keeps the current value (same as an omitted property).
+   *
+   * @param options - The partial emissive options to apply.
+   */
+  function setEmissiveOptions(options: EmissiveOptions): void {
+    if (detached) {
+      return;
+    }
+    settings.emissive = normalizeEmissiveOptions({
+      bloom: options.bloom ?? settings.emissive.bloom,
+    });
+    apply();
+  }
+
+  /**
+   * Merges blink options (state and/or timing) and restarts the
+   * blink schedule; an explicit `undefined` keeps the current value
+   * (same as an omitted property).
+   *
+   * @param options - The partial blink options to apply.
+   */
+  function setBlinkOptions(options: BlinkOptions): void {
+    if (detached) {
+      return;
+    }
+    settings.blink = normalizeBlinkOptions({
+      state: options.state ?? settings.blink.state,
+      periodMs: options.periodMs ?? settings.blink.interval,
+      closedMs: options.closedMs ?? settings.blink.closedMs,
+      halfClosedMs: options.halfClosedMs ?? settings.blink.halfClosedMs,
+      reopenMs: options.reopenMs ?? settings.blink.reopenMs,
+    });
+    apply();
+  }
+
+  /**
    * Merges villager nose options at runtime; an omitted `texture`
    * keeps the current one, `texture: undefined` restores the
    * built-in default, `null` disables villager noses and any other
@@ -874,27 +913,6 @@ export function attachETFSkinFeatures(
     apply();
   }
 
-  /**
-   * Merges blink options (state and/or timing) and restarts the
-   * blink schedule; an explicit `undefined` keeps the current value
-   * (same as an omitted property).
-   *
-   * @param options - The partial blink options to apply.
-   */
-  function setBlinkOptions(options: BlinkOptions): void {
-    if (detached) {
-      return;
-    }
-    settings.blink = normalizeBlinkOptions({
-      state: options.state ?? settings.blink.state,
-      periodMs: options.periodMs ?? settings.blink.interval,
-      closedMs: options.closedMs ?? settings.blink.closedMs,
-      halfClosedMs: options.halfClosedMs ?? settings.blink.halfClosedMs,
-      reopenMs: options.reopenMs ?? settings.blink.reopenMs,
-    });
-    apply();
-  }
-
   refresh();
   return {
     refresh,
@@ -902,8 +920,9 @@ export function attachETFSkinFeatures(
     update,
     detach,
     setFeatures,
+    setEmissiveOptions,
+    setBlinkOptions,
     setVillagerNoseOptions,
     setEnchantedOptions,
-    setBlinkOptions,
   };
 }

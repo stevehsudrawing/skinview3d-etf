@@ -1,13 +1,14 @@
 /**
  * Option normalization specs: the defaults, feature merging and the
- * blink / enchanted passthrough of `normalizeOptions()`, plus the
- * resolved blink and enchanted shapes.
+ * emissive / blink / enchanted passthrough of `normalizeOptions()`,
+ * plus the resolved emissive, blink and enchanted shapes.
  */
 
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_BLINK_OPTIONS,
   DEFAULT_ENCHANTED_OPTIONS,
+  normalizeEmissiveOptions,
   normalizeEnchantedOptions,
   normalizeOptions,
 } from "../../src/render/core/options";
@@ -30,7 +31,7 @@ describe("normalizeOptions", () => {
       halfClosedMs: 125,
       reopenMs: 125,
     });
-    expect(settings.bloom).toBe(false);
+    expect(settings.emissive).toEqual({ bloom: false });
     expect(settings.manageTicker).toBe(true);
     expect(settings.villagerNose).toEqual({ texture: undefined });
     expect(settings.enchanted).toEqual({
@@ -66,13 +67,13 @@ describe("normalizeOptions", () => {
   it("passes the scalar and callback options through", () => {
     const onWarning = (): void => undefined;
     const settings = normalizeOptions({
-      bloom: true,
+      emissive: { bloom: true },
       manageTicker: false,
       villagerNose: { texture: null },
       enchanted: { texture: "https://example.com/enchanted.png" },
       onWarning,
     });
-    expect(settings.bloom).toBe(true);
+    expect(settings.emissive.bloom).toBe(true);
     expect(settings.manageTicker).toBe(false);
     expect(settings.villagerNose.texture).toBeNull();
     expect(settings.enchanted.texture).toBe(
@@ -90,6 +91,21 @@ describe("normalizeOptions", () => {
     expect(settings.blink.interval).toBe(6000);
     expect(settings.blink.halfClosedMs).toBe(150);
     expect(settings.blink.reopenMs).toBe(150);
+  });
+});
+
+describe("normalizeEmissiveOptions", () => {
+  it("applies the documented defaults", () => {
+    expect(normalizeEmissiveOptions()).toEqual({ bloom: false });
+    expect(normalizeEmissiveOptions({})).toEqual({ bloom: false });
+  });
+
+  it("passes booleans through and guards other values", () => {
+    expect(normalizeEmissiveOptions({ bloom: true }).bloom).toBe(true);
+    expect(normalizeEmissiveOptions({ bloom: false }).bloom).toBe(false);
+    expect(
+      normalizeEmissiveOptions({ bloom: 1 as unknown as boolean }).bloom,
+    ).toBe(false);
   });
 });
 

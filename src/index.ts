@@ -33,6 +33,7 @@ export {
 export type {
   BlinkOptions,
   BlinkState,
+  EmissiveOptions,
   EnchantedOptions,
   ETFController,
   ETFSkinFeaturesOptions,

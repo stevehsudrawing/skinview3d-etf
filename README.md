@@ -94,15 +94,16 @@ through `addAnimation`); pass `manageTicker: false` and call
 change the timing at runtime. The documented defaults are exported as
 `DEFAULT_BLINK_OPTIONS`.
 
-The options form four groups: `features` (the six toggles - `transparency`,
-`emissive`, `blink`, `nose`, `enchanted` and `jacket`), `blink`, `enchanted`
-(`texture`, `speed`, `direction`, `opacity`, `scale`, `smooth`) and
-`villagerNose` (`texture`). `DEFAULT_ENCHANTED_OPTIONS` exports the enchanted
-defaults, and the runtime setters (`setFeatures()`, `setBlinkOptions()`,
-`setEnchantedOptions()`, `setVillagerNoseOptions()`) merge partial updates: an
-omitted property keeps its current value, while for the two texture options an
-explicit `texture: undefined` restores the built-in default and `null` turns the
-feature off.
+The options form five groups: `features` (the six toggles - `transparency`,
+`emissive`, `blink`, `nose`, `enchanted` and `jacket`), `emissive` (the reserved
+`bloom` flag), `blink`, `villagerNose` (`texture`) and `enchanted` (`texture`,
+`speed`, `direction`, `opacity`, `scale`, `smooth`). `DEFAULT_ENCHANTED_OPTIONS`
+exports the enchanted defaults, and the runtime setters (`setFeatures()`,
+`setEmissiveOptions()`, `setBlinkOptions()`, `setVillagerNoseOptions()`,
+`setEnchantedOptions()`) merge partial updates: an omitted property keeps its
+current value, while for the two texture options an explicit
+`texture: undefined` restores the built-in default and `null` turns the feature
+off.
 
 The texture options accept the host's input forms unchanged: the `TextureSource`
 / `RemoteImage` types are re-used from `skinview-utils`
@@ -141,7 +142,9 @@ Note the migrations (breaking, expected before 1.0): the flat v0.0.1
 v0.0.1 `glintTexture` option is now `enchanted.texture` (the group adds `speed`,
 `opacity`, `scale` and `smooth`). Upgrading from v0.0.2, the `glint` option
 group and its setter are renamed `enchanted` (`glint.texture` ->
-`enchanted.texture`, `setGlintOptions()` -> `setEnchantedOptions()`).
+`enchanted.texture`, `setGlintOptions()` -> `setEnchantedOptions()`). Upgrading
+from v0.0.4, the reserved `bloom` flag moved under its feature group (`bloom` ->
+`emissive.bloom`).
 
 **Browser support:** the build targets ES2022 and the runtime expects WebGL 2
 (matching the `three` release's own browser target) - the current versions of

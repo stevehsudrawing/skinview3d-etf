@@ -10,9 +10,16 @@ import type {
   BlinkState,
   ETFSkinFeaturesOptions,
   ETFTextureInput,
+  EmissiveOptions,
   EnchantedOptions,
   SkinFeatureToggles,
 } from "./types";
+
+/** Fully resolved emissive settings. */
+export interface NormalizedEmissiveOptions {
+  /** Bloom switch; accepted and ignored - deferred quality mode. */
+  bloom: boolean;
+}
 
 /** Default blink interval in milliseconds. */
 const DEFAULT_PERIOD_MS = 6000;
@@ -112,18 +119,34 @@ export interface NormalizedEnchantedOptions {
 export interface NormalizedOptions {
   /** Every feature switch with defaults applied. */
   features: Required<SkinFeatureToggles>;
+  /** Normalized emissive options: the reserved bloom switch. */
+  emissive: NormalizedEmissiveOptions;
   /** Normalized blink behavior: state, interval and phases. */
   blink: NormalizedBlinkOptions;
-  /** Bloom switch; accepted and ignored - deferred quality mode. */
-  bloom: boolean;
-  /** Whether the controller drives `update(dt)` from the viewer. */
-  manageTicker: boolean;
   /** Villager nose options: texture override only. */
   villagerNose: { texture: ETFTextureInput | null | undefined };
   /** Enchanted options: texture override and motion parameters. */
   enchanted: NormalizedEnchantedOptions;
+  /** Whether the controller drives `update(dt)` from the viewer. */
+  manageTicker: boolean;
   /** Warning sink, or `null` for `console.warn`. */
   onWarning: ((message: string) => void) | null;
+}
+
+/**
+ * Resolves the public emissive options into fully normalized
+ * settings: only a boolean `bloom` passes through; anything else
+ * falls back to `false` (the flag is accepted and ignored).
+ *
+ * @param options - The user options, if any.
+ * @returns The resolved settings.
+ */
+export function normalizeEmissiveOptions(
+  options?: EmissiveOptions,
+): NormalizedEmissiveOptions {
+  return {
+    bloom: typeof options?.bloom === "boolean" ? options.bloom : false,
+  };
 }
 
 /**
@@ -280,11 +303,11 @@ export function normalizeOptions(
       jacket: features.jacket ?? true,
       enchanted: features.enchanted ?? true,
     },
+    emissive: normalizeEmissiveOptions(options.emissive),
     blink: normalizeBlinkOptions(options.blink),
-    bloom: options.bloom ?? false,
-    manageTicker: options.manageTicker ?? true,
     villagerNose: { texture: options.villagerNose?.texture },
     enchanted: normalizeEnchantedOptions(options.enchanted),
+    manageTicker: options.manageTicker ?? true,
     onWarning: options.onWarning ?? null,
   };
 }

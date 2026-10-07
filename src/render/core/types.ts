@@ -40,6 +40,18 @@ export interface SkinFeatureToggles {
 }
 
 /**
+ * Emissive pixel options: the reserved bloom flag.
+ */
+export interface EmissiveOptions {
+  /**
+   * Reserved - accepted and ignored. Upstream renders emissive
+   * pixels fullbright without post-processing; an optional bloom
+   * quality mode is deferred.
+   */
+  bloom?: boolean;
+}
+
+/**
  * The eye state: `"auto"` blinks periodically, the other values hold
  * one frame and suspend the schedule.
  */
@@ -126,18 +138,24 @@ export interface EnchantedOptions {
   smooth?: boolean;
 }
 
-/** Options accepted by `attachETFSkinFeatures()`. */
+/**
+ * Options accepted by `attachETFSkinFeatures()`. The five feature
+ * groups come first - `features` carries the switches, the other
+ * four carry their feature's options - and each group has a
+ * matching controller setter; `manageTicker` and `onWarning` stay
+ * last.
+ */
 export interface ETFSkinFeaturesOptions {
   /** Per-feature switches; every feature defaults to enabled. */
   features?: SkinFeatureToggles;
+  /** Emissive pixel options: the reserved bloom flag. */
+  emissive?: EmissiveOptions;
   /** Blink behavior: eye state and timing. */
   blink?: BlinkOptions;
-  /**
-   * Reserved - accepted and ignored. Upstream renders emissive
-   * pixels fullbright without post-processing; an optional bloom
-   * quality mode is deferred.
-   */
-  bloom?: boolean;
+  /** Villager nose options (the texture override). */
+  villagerNose?: VillagerNoseOptions;
+  /** Enchanted pixel overlay options (texture and motion). */
+  enchanted?: EnchantedOptions;
   /**
    * When `true` (the default) the controller drives `update(dt)` from
    * the viewer's animation slot - hooking an existing animation or
@@ -147,10 +165,6 @@ export interface ETFSkinFeaturesOptions {
    * `controller.rebind()` to re-attach it.
    */
   manageTicker?: boolean;
-  /** Villager nose options (the texture override). */
-  villagerNose?: VillagerNoseOptions;
-  /** Enchanted pixel overlay options (texture and motion). */
-  enchanted?: EnchantedOptions;
   /**
    * Receives warning messages (unsupported skins, texture failures).
    * Falls back to `console.warn`, deduplicated once per message.
@@ -184,6 +198,19 @@ export interface ETFController {
   /** Switches features on or off at runtime. */
   setFeatures(features: SkinFeatureToggles): void;
   /**
+   * Merges emissive options at runtime; an omitted (`undefined`)
+   * `bloom` keeps the current value - the flag stays inert until a
+   * bloom mode lands.
+   */
+  setEmissiveOptions(options: EmissiveOptions): void;
+  /**
+   * Merges blink options (eye state and/or timing) at runtime and
+   * restarts the blink schedule.
+   *
+   * @param options - The partial blink options to apply.
+   */
+  setBlinkOptions(options: BlinkOptions): void;
+  /**
    * Merges villager nose options at runtime: an omitted `texture`
    * keeps the current one, `texture: undefined` restores the
    * built-in default, `null` disables villager noses and any other
@@ -198,11 +225,4 @@ export interface ETFController {
    * numbers fall back to the documented defaults.
    */
   setEnchantedOptions(options: EnchantedOptions): void;
-  /**
-   * Merges blink options (eye state and/or timing) at runtime and
-   * restarts the blink schedule.
-   *
-   * @param options - The partial blink options to apply.
-   */
-  setBlinkOptions(options: BlinkOptions): void;
 }
