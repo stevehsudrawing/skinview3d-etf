@@ -16,7 +16,7 @@ import type {
 } from "./types";
 
 /** Fully resolved emissive settings. */
-export interface NormalizedEmissiveOptions {
+interface NormalizedEmissiveOptions {
   /** Bloom switch; accepted and ignored - deferred quality mode. */
   bloom: boolean;
 }
@@ -100,7 +100,7 @@ export const DEFAULT_ENCHANTED_OPTIONS = {
 } as const;
 
 /** Fully resolved enchanted settings. */
-export interface NormalizedEnchantedOptions {
+interface NormalizedEnchantedOptions {
   /** Texture override: `undefined` = built-in, `null` = off. */
   texture: ETFTextureInput | null | undefined;
   /** Scroll speed in UV units per second. */
@@ -116,7 +116,7 @@ export interface NormalizedEnchantedOptions {
 }
 
 /** Internal, fully normalized options. */
-export interface NormalizedOptions {
+interface NormalizedOptions {
   /** Every feature switch with defaults applied. */
   features: Required<SkinFeatureToggles>;
   /** Normalized emissive options: the reserved bloom switch. */
@@ -285,7 +285,9 @@ export function normalizeEnchantedOptions(
 }
 
 /**
- * Applies defaults to the user options.
+ * Resolves the public options into fully normalized settings: the
+ * feature defaults applied and every group routed through its
+ * normalizer.
  *
  * @param options - The user options, if any.
  * @returns The normalized settings.

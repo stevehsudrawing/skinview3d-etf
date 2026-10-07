@@ -22,10 +22,10 @@ describe("BODY_PART_IDS", () => {
     expect(BODY_PART_IDS).toEqual([
       "head",
       "body",
-      "leftArm",
       "rightArm",
-      "leftLeg",
+      "leftArm",
       "rightLeg",
+      "leftLeg",
     ]);
   });
 });

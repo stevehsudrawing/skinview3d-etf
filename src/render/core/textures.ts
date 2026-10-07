@@ -1,7 +1,9 @@
 /**
  * Texture input resolution for the renderer options: every accepted
- * source is copied into our own canvas, and canvases are wrapped in
- * pixel-art textures that sample in skin space.
+ * source is copied into our own canvas, and canvases are wrapped as
+ * nearest-filtered pixel-art textures; the sampler convention - skin
+ * space or the host's default `flipY` - follows the consumer and is
+ * documented on each wrapper.
  */
 
 import type { PixelData } from "etf-skin-decoder";

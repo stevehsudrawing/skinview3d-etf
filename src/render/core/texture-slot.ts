@@ -13,9 +13,7 @@ import { resolveTextureInput } from "./textures";
 import type { ETFTextureInput } from "./types";
 
 /** Turns a texture input into a canvas. */
-export type TextureResolver = (
-  input: ETFTextureInput,
-) => Promise<HTMLCanvasElement>;
+type TextureResolver = (input: ETFTextureInput) => Promise<HTMLCanvasElement>;
 
 /** One on-demand texture resolution slot. */
 export interface TextureSlot {

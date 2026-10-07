@@ -9,21 +9,21 @@ import type { Rect } from "etf-skin-decoder";
 import type { SkinObject } from "skinview3d";
 import type { Mesh, MeshStandardMaterial, Texture } from "three";
 
-/** The six body-part keys, in model order. */
+/** The six body-part keys, in the host's part order. */
 export const BODY_PART_IDS = [
   "head",
   "body",
-  "leftArm",
   "rightArm",
-  "leftLeg",
+  "leftArm",
   "rightLeg",
+  "leftLeg",
 ] as const;
 
 /** One of the six body-part keys. */
 export type BodyPartId = (typeof BODY_PART_IDS)[number];
 
 /** The two layer meshes of one body part. */
-export interface PartLayers {
+interface PartLayers {
   /** The inner (base) layer mesh. */
   inner: Mesh;
   /** The outer (overlay) layer mesh. */
