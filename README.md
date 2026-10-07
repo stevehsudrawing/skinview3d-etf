@@ -222,14 +222,18 @@ A live build is deployed from `main` to the
 
 ## 5. Roadmap
 
-v0.0.4 (current milestone):
+v0.0.5 (current milestone):
 
-- [x] reuse the `skinview-utils` texture-input types (interop);
-- [x] hand the decoder over to the standalone `etf-skin-decoder` package and
-      re-export it for the v0.0.x line;
-- [x] add the README badges and the package links;
-- [x] refresh the documentation pages;
-- [x] v0.0.4 release.
+- [x] add the `enchanted.direction` scroll vector (a UV vector with a seamless
+      per-axis wrap);
+- [x] align the jacket's enchanted overlay with the host UV convention - it
+      scrolls with the body outer layer and stitches across the waist;
+- [x] move the reserved `bloom` flag under `emissive` (breaking; see the
+      migration note above);
+- [x] update `skinview3d-blockbench` to `^1.0.20` and extend the demo (linked
+      npm titles, cape controls, `null` labels);
+- [x] correct the nose box UV orientation and complete the milestone audit;
+- [x] v0.0.5 release.
 
 Planned:
 
@@ -242,6 +246,7 @@ Exploring (no timeline):
 
 History:
 
+- [x] v0.0.4 release.
 - [x] v0.0.3 release.
 - [x] v0.0.2 release.
 - [x] v0.0.1 release.

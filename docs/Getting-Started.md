@@ -88,11 +88,15 @@ const result = decodeSkin(imageData);
 // result.skin, result.emissive?.mask, result.blink?.frames, ...
 ```
 
-The decoder is also published as the standalone `etf-skin-decoder`
-([GitHub](https://github.com/stevehsudrawing/etf-skin-decoder) |
-[npm](https://www.npmjs.com/package/etf-skin-decoder)) package; `skinview3d-etf`
-depends on it and re-exports its API for the rest of the v0.0.x line. New code
-should **import it from `etf-skin-decoder`** directly.
+> [!CAUTION]
+>
+> The decoder API (`decodeSkin()` and its types) now lives in the standalone
+> `etf-skin-decoder`
+> ([GitHub](https://github.com/stevehsudrawing/etf-skin-decoder) |
+> [npm](https://www.npmjs.com/package/etf-skin-decoder)) package and is
+> re-exported here for the rest of the v0.0.x line. **v0.1.0 will remove it from
+> this package** (BREAKING). New code should import it from `etf-skin-decoder`
+> directly.
 
 Interop: any canvas works through `getImageData()` - including one painted by
 the host's utility layer `skinview-utils`
