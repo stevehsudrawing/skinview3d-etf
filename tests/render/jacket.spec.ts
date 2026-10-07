@@ -1,16 +1,26 @@
 /**
  * Jacket shell facts: the size table, the pattern shift, the six
- * skin-space face rects and the UV rewrite (pure parts - no viewer
- * required).
+ * skin-space face rects, the UV rewrite and the shell tree's
+ * construction / disposal helpers (pure parts - no viewer required).
  */
 
-import { BoxGeometry, MeshBasicMaterial } from "three";
+import {
+  BoxGeometry,
+  Group,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  ShaderMaterial,
+  Texture,
+} from "three";
 import { describe, expect, it } from "vitest";
 import {
   JACKET_PATTERN_SHIFT,
   JACKET_SIZES,
   createJacketGeometry,
+  createJacketMaterial,
   createJacketMesh,
+  createJacketOverlayMesh,
+  disposeJacketMesh,
   jacketFaceRects,
 } from "../../src/render/features/jacket";
 
@@ -73,6 +83,19 @@ describe("createJacketGeometry", () => {
   });
 });
 
+describe("createJacketMaterial", () => {
+  it("clones the host body material and swaps in the jacket texture", () => {
+    const source = new MeshStandardMaterial();
+    source.alphaTest = 0.5;
+    const texture = new Texture();
+    const material = createJacketMaterial(source, texture);
+    expect(material).not.toBe(source);
+    expect(material.alphaTest).toBe(0.5);
+    expect(material.map).toBe(texture);
+    expect(source.map).toBeNull();
+  });
+});
+
 describe("createJacketMesh", () => {
   it("anchors the shell at the body's bottom", () => {
     const mesh = createJacketMesh(
@@ -81,5 +104,86 @@ describe("createJacketMesh", () => {
     );
     expect(mesh.name).toBe("etf-jacket");
     expect(mesh.position.toArray()).toEqual([0, -12.5, 0]);
+  });
+});
+
+describe("createJacketOverlayMesh", () => {
+  it("builds a named overlay mesh sharing the shell geometry", () => {
+    const geometry = new BoxGeometry(1, 1, 1);
+    const material = new MeshBasicMaterial();
+    const mesh = createJacketOverlayMesh(
+      geometry,
+      material,
+      "etf-jacket-enchanted",
+      1,
+    );
+    expect(mesh.name).toBe("etf-jacket-enchanted");
+    expect(mesh.geometry).toBe(geometry);
+    expect(mesh.material).toBe(material);
+    expect(mesh.renderOrder).toBe(1);
+    expect(mesh.parent).toBeNull();
+  });
+});
+
+describe("disposeJacketMesh", () => {
+  it("disposes the tree's own materials and textures, then detaches", () => {
+    const geometry = new BoxGeometry(1, 1, 1);
+    const shellMaterial = createJacketMaterial(
+      new MeshStandardMaterial(),
+      new Texture(),
+    );
+    const shell = createJacketMesh(geometry, shellMaterial);
+    const emissiveMaterial = new MeshBasicMaterial({ map: new Texture() });
+    const emissiveMesh = createJacketOverlayMesh(
+      geometry,
+      emissiveMaterial,
+      "etf-jacket-emissive",
+      0,
+    );
+    const mask = new Texture();
+    const enchantedMaterial = new ShaderMaterial({
+      uniforms: { uMask: { value: mask } },
+    });
+    const enchantedMesh = createJacketOverlayMesh(
+      geometry,
+      enchantedMaterial,
+      "etf-jacket-enchanted",
+      1,
+    );
+    shell.add(emissiveMesh, enchantedMesh);
+    const host = new Group();
+    host.add(shell);
+
+    const disposed: string[] = [];
+    geometry.addEventListener("dispose", () => disposed.push("geometry"));
+    shellMaterial.addEventListener("dispose", () => disposed.push("shell"));
+    (shellMaterial.map as Texture).addEventListener("dispose", () =>
+      disposed.push("shell-map"),
+    );
+    emissiveMaterial.addEventListener("dispose", () =>
+      disposed.push("emissive"),
+    );
+    (emissiveMaterial.map as Texture).addEventListener("dispose", () =>
+      disposed.push("emissive-map"),
+    );
+    enchantedMaterial.addEventListener("dispose", () =>
+      disposed.push("enchanted"),
+    );
+    mask.addEventListener("dispose", () => disposed.push("enchanted-mask"));
+
+    disposeJacketMesh(shell);
+
+    expect(shell.parent).toBeNull();
+    expect(disposed).not.toContain("geometry");
+    expect(new Set(disposed)).toEqual(
+      new Set([
+        "shell",
+        "shell-map",
+        "emissive",
+        "emissive-map",
+        "enchanted",
+        "enchanted-mask",
+      ]),
+    );
   });
 });

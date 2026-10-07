@@ -51,18 +51,46 @@ describe("layersOf", () => {
 });
 
 describe("layer1Rects", () => {
-  it("pins the head and arm regions", () => {
-    expect(layer1Rects("head", "default")).toEqual([
-      { topLeft: { x: 8, y: 0 }, bottomRight: { x: 23, y: 7 } },
-      { topLeft: { x: 0, y: 8 }, bottomRight: { x: 31, y: 15 } },
-    ]);
-    expect(layer1Rects("rightArm", "default")).toEqual([
-      { topLeft: { x: 44, y: 16 }, bottomRight: { x: 51, y: 19 } },
-      { topLeft: { x: 40, y: 20 }, bottomRight: { x: 55, y: 31 } },
-    ]);
+  it("pins the six box regions of the default model", () => {
+    const expected = {
+      head: [
+        { topLeft: { x: 8, y: 0 }, bottomRight: { x: 23, y: 7 } },
+        { topLeft: { x: 0, y: 8 }, bottomRight: { x: 31, y: 15 } },
+      ],
+      body: [
+        { topLeft: { x: 20, y: 16 }, bottomRight: { x: 35, y: 19 } },
+        { topLeft: { x: 16, y: 20 }, bottomRight: { x: 39, y: 31 } },
+      ],
+      rightArm: [
+        { topLeft: { x: 44, y: 16 }, bottomRight: { x: 51, y: 19 } },
+        { topLeft: { x: 40, y: 20 }, bottomRight: { x: 55, y: 31 } },
+      ],
+      leftArm: [
+        { topLeft: { x: 36, y: 48 }, bottomRight: { x: 43, y: 51 } },
+        { topLeft: { x: 32, y: 52 }, bottomRight: { x: 47, y: 63 } },
+      ],
+      rightLeg: [
+        { topLeft: { x: 4, y: 16 }, bottomRight: { x: 11, y: 19 } },
+        { topLeft: { x: 0, y: 20 }, bottomRight: { x: 15, y: 31 } },
+      ],
+      leftLeg: [
+        { topLeft: { x: 20, y: 48 }, bottomRight: { x: 27, y: 51 } },
+        { topLeft: { x: 16, y: 52 }, bottomRight: { x: 31, y: 63 } },
+      ],
+    };
+    for (const id of BODY_PART_IDS) {
+      expect(layer1Rects(id, "default")).toEqual(expected[id]);
+    }
+  });
+
+  it("narrows both slim arms by one pixel per side", () => {
     expect(layer1Rects("rightArm", "slim")).toEqual([
       { topLeft: { x: 44, y: 16 }, bottomRight: { x: 49, y: 19 } },
       { topLeft: { x: 40, y: 20 }, bottomRight: { x: 53, y: 31 } },
+    ]);
+    expect(layer1Rects("leftArm", "slim")).toEqual([
+      { topLeft: { x: 36, y: 48 }, bottomRight: { x: 41, y: 51 } },
+      { topLeft: { x: 32, y: 52 }, bottomRight: { x: 45, y: 63 } },
     ]);
   });
 });

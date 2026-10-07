@@ -5,6 +5,7 @@
  */
 
 import {
+  Group,
   MeshStandardMaterial,
   Texture,
   type BoxGeometry,
@@ -91,13 +92,19 @@ describe("nose meshes", () => {
     expect(mesh.material.map).toBe(texture);
   });
 
-  it("disposes the geometry, material and texture", () => {
+  it("disposes the geometry, material and texture, then detaches", () => {
     const mesh = createVillagerNoseMesh(
       new MeshStandardMaterial(),
       new Texture(),
     );
+    const parent = new Group();
+    parent.add(mesh);
+    let geometryDisposed = false;
     let materialDisposed = false;
     let textureDisposed = false;
+    mesh.geometry.addEventListener("dispose", () => {
+      geometryDisposed = true;
+    });
     mesh.material.addEventListener("dispose", () => {
       materialDisposed = true;
     });
@@ -105,7 +112,9 @@ describe("nose meshes", () => {
       textureDisposed = true;
     });
     disposeNose(mesh);
+    expect(geometryDisposed).toBe(true);
     expect(materialDisposed).toBe(true);
     expect(textureDisposed).toBe(true);
+    expect(mesh.parent).toBeNull();
   });
 });
