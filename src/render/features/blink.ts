@@ -49,8 +49,8 @@ export interface BlinkScheduler {
 
 /** Overlay-mask integration for the painter. */
 export interface BlinkOverlay {
-  /** The open pattern mask, or `null` when the pattern is off. */
-  openMask: PixelData | null;
+  /** The open pattern mask. */
+  openMask: PixelData;
   /** Per-frame masks; `null` when a frame carries no overlay pixels. */
   frameMasks: readonly (PixelData | null)[];
   /**

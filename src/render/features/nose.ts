@@ -12,55 +12,38 @@ import {
   type Texture,
 } from "three";
 
-import type { Coordinate } from "etf-skin-decoder";
-
-/** A rectangle in skin space; edges in 64ths, not pixel indices. */
-interface FaceRect {
-  /** The top-left edge pair. */
-  topLeft: Coordinate;
-  /** The bottom-right edge pair. */
-  bottomRight: Coordinate;
-}
+import { writeHostBoxUVs, type BoxFaceEdges } from "../core/box-uvs";
 
 /**
- * Skin-space rectangles of the 2x4x2 nose box faces, in three.js
- * geometry face order (`+x`, `-x`, `+y`, `-y`, `+z`, `-z`), matching
- * the vanilla box unwrap of the region `(24,0)-(32,6)`.
+ * Skin-space edges of the 2x4x2 nose box faces, in three.js geometry
+ * face order (`+x`, `-x`, `+y`, `-y`, `+z`, `-z`): the vanilla box
+ * unwrap of the region `(24,0)-(32,6)`, as `[left, top, right,
+ * bottom]` pixel edges (the right and bottom edges are the last
+ * pixel + 1).
  */
-const FACE_RECTS: readonly FaceRect[] = [
-  { topLeft: { x: 28, y: 2 }, bottomRight: { x: 30, y: 6 } }, // +x side
-  { topLeft: { x: 24, y: 2 }, bottomRight: { x: 26, y: 6 } }, // -x side
-  { topLeft: { x: 26, y: 0 }, bottomRight: { x: 28, y: 2 } }, // +y top
-  { topLeft: { x: 28, y: 0 }, bottomRight: { x: 30, y: 2 } }, // -y bottom
-  { topLeft: { x: 26, y: 2 }, bottomRight: { x: 28, y: 6 } }, // +z front
-  { topLeft: { x: 30, y: 2 }, bottomRight: { x: 32, y: 6 } }, // -z back
+const FACE_EDGES: readonly BoxFaceEdges[] = [
+  [28, 2, 30, 6], // +x side
+  [24, 2, 26, 6], // -x side
+  [26, 0, 28, 2], // +y top
+  [28, 0, 30, 2], // -y bottom
+  [26, 2, 28, 6], // +z front
+  [30, 2, 32, 6], // -z back
 ];
 
 /** The nose mesh type used across the renderer. */
 export type NoseMesh = Mesh<BufferGeometry, MeshStandardMaterial>;
 
 /**
- * Builds the 2x4x2 nose box with UVs rewritten into skin space
- * (`flipY = false`, `u = x / 64`, `v = y / 64`).
+ * Builds the 2x4x2 nose box with its UVs written by the shared host
+ * box-unwrap writer in skin space (`flipY = false`): each face maps
+ * its top-left vertex to the region's `(x1, y1)`; only the bottom
+ * (`-y`) face keeps the host's rotated layout.
  *
  * @returns The prepared box geometry.
  */
 export function buildNoseGeometry(): BoxGeometry {
   const geometry = new BoxGeometry(2, 4, 2);
-  const uv = geometry.attributes.uv;
-  for (let face = 0; face < FACE_RECTS.length; face++) {
-    const {
-      topLeft: { x: x1, y: y1 },
-      bottomRight: { x: x2, y: y2 },
-    } = FACE_RECTS[face];
-    for (let corner = 0; corner < 4; corner++) {
-      const index = face * 4 + corner;
-      const fu = uv.getX(index);
-      const fv = 1 - uv.getY(index);
-      uv.setXY(index, (x1 + fu * (x2 - x1)) / 64, (y2 - fv * (y2 - y1)) / 64);
-    }
-  }
-  uv.needsUpdate = true;
+  writeHostBoxUVs(geometry, FACE_EDGES, false);
   return geometry;
 }
 

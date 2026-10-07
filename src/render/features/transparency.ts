@@ -78,7 +78,7 @@ interface SwapState {
 }
 
 /** The per-part swap manager behind the translucent look. */
-export interface TranslucentSides {
+interface TranslucentSides {
   /**
    * Re-applies the translucent look for the parts the decoded pixels
    * mark. Restores every previous swap first, so a skin change or a

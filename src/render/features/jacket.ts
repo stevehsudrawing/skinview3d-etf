@@ -9,7 +9,9 @@
  * (`v = 1 - y / 64` against default-`flipY` textures) over the
  * body-outer region of the 64x64 layout - the same regions the
  * decoder fills - so the shell carries exactly the host box's UVs
- * and the enchanted pattern samples like the body's. The pattern
+ * and the enchanted pattern samples like the body's. The mapping is
+ * written by the shared box-unwrap helper (`render/core/box-uvs.ts`).
+ * The pattern
  * phase then continues across the waist through the fixed sampling
  * shift (the shell's top edge restarts the region's layout one face
  * height above where the body outer's phase ends). The overlay meshes
@@ -28,6 +30,7 @@ import {
   type Material,
   type MeshStandardMaterial,
 } from "three";
+import { writeHostBoxUVs, type BoxFaceEdges } from "../core/box-uvs";
 
 /** One jacket shell's dimensions, in model units (1 unit = 1 px). */
 interface JacketBoxSize {
@@ -79,9 +82,6 @@ export const JACKET_PATTERN_SHIFT: readonly [number, number] = [
   -JACKET_UV_REGION.height / SKIN_SIZE,
 ];
 
-/** One box face as skin-space edges (`[x1, y1, x2, y2]`, exclusive ends). */
-type FaceEdges = readonly [number, number, number, number];
-
 /**
  * The six face regions of the jacket box layout, in three.js face
  * order (`+x`, `-x`, `+y`, `-y`, `+z`, `-z`): the classic box unwrap
@@ -90,7 +90,7 @@ type FaceEdges = readonly [number, number, number, number];
  *
  * @returns The six faces as exclusive-end edge tuples.
  */
-function jacketFaceEdges(): readonly FaceEdges[] {
+function jacketFaceEdges(): readonly BoxFaceEdges[] {
   const { u, v, width: w, height: h, depth: d } = JACKET_UV_REGION;
   return [
     [u + w + d, v + d, u + w + 2 * d, v + d + h],
@@ -118,65 +118,10 @@ export function jacketFaceRects(): readonly Rect[] {
 }
 
 /**
- * The four UV corners of one face in the classic unwrap order. The V
- * axis follows the host `setUVs` convention (`v = 1 - y / 64`
- * against default-`flipY` textures), so the corners carry over to
- * the host body-outer box's UVs verbatim.
- *
- * @param edges - The face edges (exclusive ends).
- * @returns The four corners as `[u, v]` pairs.
- */
-function faceCorners([x1, y1, x2, y2]: FaceEdges): readonly (readonly [
-  number,
-  number,
-])[] {
-  return [
-    [x1 / SKIN_SIZE, (SKIN_SIZE - y2) / SKIN_SIZE],
-    [x2 / SKIN_SIZE, (SKIN_SIZE - y2) / SKIN_SIZE],
-    [x2 / SKIN_SIZE, (SKIN_SIZE - y1) / SKIN_SIZE],
-    [x1 / SKIN_SIZE, (SKIN_SIZE - y1) / SKIN_SIZE],
-  ];
-}
-
-/**
- * Rewrites a box geometry's UVs to sample the jacket layout. The
- * per-face vertex arrangement replicates the host model's classic
- * box unwrap (its `setUVs`, MIT) - corner order and V convention
- * included - so a face carries the same UVs the host's body outer
- * layer box would.
- *
- * @param geometry - The box geometry to rewrite (mutated).
- */
-function writeJacketUVs(geometry: BoxGeometry): void {
-  const [right, left, top, bottom, front, back] = jacketFaceEdges();
-  // The host's per-face corner permutations: every face reads its
-  // corners as [3, 2, 0, 1] except the bottom face ([0, 1, 3, 2]).
-  const orders = [
-    [3, 2, 0, 1],
-    [3, 2, 0, 1],
-    [3, 2, 0, 1],
-    [0, 1, 3, 2],
-    [3, 2, 0, 1],
-    [3, 2, 0, 1],
-  ] as const;
-  const edges = [right, left, top, bottom, front, back];
-  const values: number[] = [];
-  for (let face = 0; face < edges.length; face++) {
-    const corners = faceCorners(edges[face]);
-    for (const corner of orders[face]) {
-      values.push(...corners[corner]);
-    }
-  }
-  const uvAttr = geometry.attributes.uv;
-  for (let index = 0; index < values.length; index += 2) {
-    uvAttr.setXY(index / 2, values[index], values[index + 1]);
-  }
-  uvAttr.needsUpdate = true;
-}
-
-/**
  * Builds one jacket shell geometry: a box at the requested width
- * whose UVs sample the jacket layout in the host `setUVs` convention.
+ * whose UVs reuse the host box-unwrap mapping over the jacket
+ * layout's face edges (`render/core/box-uvs.ts`), so a face carries
+ * the same UVs the host's body outer layer box would.
  *
  * @param wide - Whether to build the wide shell (`false` = thin).
  * @returns The prepared geometry, owned by the caller.
@@ -184,7 +129,7 @@ function writeJacketUVs(geometry: BoxGeometry): void {
 export function createJacketGeometry(wide: boolean): BoxGeometry {
   const size = JACKET_SIZES[wide ? "wide" : "thin"];
   const geometry = new BoxGeometry(size.width, size.height, size.depth);
-  writeJacketUVs(geometry);
+  writeHostBoxUVs(geometry, jacketFaceEdges(), true);
   return geometry;
 }
 

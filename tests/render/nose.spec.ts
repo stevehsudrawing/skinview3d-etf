@@ -19,31 +19,53 @@ import {
 } from "../../src/render/features/nose";
 
 describe("buildNoseGeometry", () => {
-  it("builds the 2x4x2 box with 24 skin-space UVs", () => {
+  it("builds the 2x4x2 box with the host's box-unwrap skin-space UVs", () => {
     const geometry = buildNoseGeometry();
     expect(geometry.parameters.width).toBe(2);
     expect(geometry.parameters.height).toBe(4);
     expect(geometry.parameters.depth).toBe(2);
     const uv = geometry.attributes.uv;
     expect(uv.count).toBe(24);
-    // The +x face (vertices 0-3) samples (28,2)-(30,6); its corner
-    // order reads (x1,y2), (x2,y2), (x1,y1), (x2,y1) - the host's
-    // box unwrap mapped into skin space (v grows down).
-    expect(uv.getX(0)).toBeCloseTo(28 / 64);
-    expect(uv.getY(0)).toBeCloseTo(6 / 64);
-    expect(uv.getX(1)).toBeCloseTo(30 / 64);
-    expect(uv.getY(2)).toBeCloseTo(2 / 64);
-    expect(uv.getX(3)).toBeCloseTo(30 / 64);
-    expect(uv.getY(3)).toBeCloseTo(2 / 64);
-    // The +y top face (vertices 8-11) samples (26,0)-(28,2).
-    expect(uv.getX(8)).toBeCloseTo(26 / 64);
-    expect(uv.getY(8)).toBeCloseTo(2 / 64);
-    expect(uv.getY(11)).toBeCloseTo(0);
-    // The -y bottom face (vertices 12-15) samples (28,0)-(30,2).
-    expect(uv.getX(12)).toBeCloseTo(28 / 64);
-    expect(uv.getY(12)).toBeCloseTo(2 / 64);
-    expect(uv.getX(15)).toBeCloseTo(30 / 64);
-    expect(uv.getY(15)).toBeCloseTo(0);
+    // Every face samples its region of the (24,0)-(32,6) unwrap in
+    // skin space (v grows down, `flipY = false`): the top-left vertex
+    // maps to the region's (x1, y1) on every face except the host's
+    // rotated bottom (`-y`) face, which reads (x1, y2) first.
+    const expected = [
+      // +x side (28,2)-(30,6)
+      [28, 2],
+      [30, 2],
+      [28, 6],
+      [30, 6],
+      // -x side (24,2)-(26,6)
+      [24, 2],
+      [26, 2],
+      [24, 6],
+      [26, 6],
+      // +y top (26,0)-(28,2)
+      [26, 0],
+      [28, 0],
+      [26, 2],
+      [28, 2],
+      // -y bottom (28,0)-(30,2), the rotated host layout
+      [28, 2],
+      [30, 2],
+      [28, 0],
+      [30, 0],
+      // +z front (26,2)-(28,6)
+      [26, 2],
+      [28, 2],
+      [26, 6],
+      [28, 6],
+      // -z back (30,2)-(32,6)
+      [30, 2],
+      [32, 2],
+      [30, 6],
+      [32, 6],
+    ];
+    expected.forEach(([x, y], index) => {
+      expect(uv.getX(index)).toBeCloseTo(x / 64);
+      expect(uv.getY(index)).toBeCloseTo(y / 64);
+    });
   });
 });
 
