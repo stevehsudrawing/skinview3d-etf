@@ -42,8 +42,10 @@ export interface BlockbenchGroupOptions {
   viewer: SkinViewer;
   /** Status-line sink for upload and finish messages. */
   report: (message: string) => void;
-  /** The group table's title (the demo keeps the version label). */
+  /** The group table's title (the versioned npm path). */
   title: string;
+  /** The title's link target (its versioned npm page). */
+  titleHref: string;
   /** Called whenever the group takes or releases the slot. */
   onSlotChange: () => void;
 }
@@ -65,7 +67,7 @@ export interface BlockbenchGroup {
 export function createBlockbenchGroup(
   options: BlockbenchGroupOptions,
 ): BlockbenchGroup {
-  const { viewer, report, title, onSlotChange } = options;
+  const { viewer, report, title, titleHref, onSlotChange } = options;
 
   /** The row resets in row order; the title row's `reset` runs them. */
   const resets: Array<() => void> = [];
@@ -372,7 +374,7 @@ export function createBlockbenchGroup(
       blockbench.speed = DEFAULT_SPEED;
     }
   });
-  const table = controlTable(title, rows, resets);
+  const table = controlTable(title, titleHref, rows, resets);
 
   /**
    * Clears the pickers; the demo calls this when the viewer's picker

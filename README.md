@@ -184,10 +184,11 @@ A live build is deployed from `main` to the
   ([GitHub](https://github.com/Andcool-Systems/skinview3d-blockbench-animation)
   | [npm](https://www.npmjs.com/package/skinview3d-blockbench)) (hidden until
   its `SkinViewBlockbench` mode is picked in the `viewer.animation` row); every
-  group title carries its package version. Each row carries one exact API
-  keyword at its API-path depth and its tooltip shows the dotted path plus a
-  description; after every load the demo decodes the skin and grays the rows the
-  skin has no data for (a skin without the ETF marker grays almost everything).
+  group title is a link to that package version on npm (`name/v/version`). Each
+  row carries one exact API keyword at its API-path depth and its tooltip shows
+  the dotted path plus a description; after every load the demo decodes the skin
+  and grays the rows the skin has no data for (a skin without the ETF marker
+  grays almost everything).
 - Function rows (`attachETFSkinFeatures`, `detach`, `loadSkin`, `setAnimation`)
   carry an `execute` button with their parameters as child rows; values the demo
   derives itself (the fixture source, the animation name) are locked read-only

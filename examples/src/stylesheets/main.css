@@ -94,6 +94,12 @@ select {
   padding-top: 8px;
 }
 
+/* The group title is a link: keep the muted tone and the underline. */
+.control-group .group-title a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .control-group td {
   align-items: center;
   display: flex;

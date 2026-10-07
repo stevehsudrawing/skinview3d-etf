@@ -94,19 +94,41 @@ const ANIMATIONS: ReadonlyArray<{
 ];
 
 /**
- * Display versions of the three control groups. The extension label
- * names the milestone release the demo ships with (the milestone's
- * demo commit updates it; the release-prep bump meets it); the
- * other two mirror the installed packages.
+ * The three control groups' packages: the npm name and the display
+ * version. The extension entry names the milestone release the demo
+ * ships with (the milestone's demo commit updates it; the
+ * release-prep bump meets it); the other two mirror the installed
+ * packages.
  */
-const GROUP_VERSIONS = {
+const GROUP_PACKAGES = {
   /** The extension's milestone version. */
-  etf: "v0.0.4",
+  etf: { name: "skinview3d-etf", version: "0.0.4" },
   /** The installed `skinview3d-blockbench`. */
-  blockbench: "v1.0.20",
+  blockbench: { name: "skinview3d-blockbench", version: "1.0.20" },
   /** The installed `skinview3d`. */
-  skinview3d: "v3.4.2",
+  skinview3d: { name: "skinview3d", version: "3.4.2" },
 } as const;
+
+/** One group package: its npm name and its display version. */
+type GroupPackage = { readonly name: string; readonly version: string };
+
+/**
+ * The `name/v/version` display path of a group package.
+ *
+ * @param pkg - The group package.
+ * @returns The versioned npm path.
+ */
+const packagePath = (pkg: GroupPackage): string =>
+  `${pkg.name}/v/${pkg.version}`;
+
+/**
+ * The versioned npm page URL of a group package.
+ *
+ * @param pkg - The group package.
+ * @returns The npm page URL of the selected version.
+ */
+const packageHref = (pkg: GroupPackage): string =>
+  `https://www.npmjs.com/package/${packagePath(pkg)}`;
 
 /** The `viewer.animation` option that reveals the blockbench group. */
 const BLOCKBENCH_MODE = "SkinViewBlockbench";
@@ -599,7 +621,8 @@ export function initDemo(container: HTMLElement): DemoHandle {
   const blockbenchGroup = createBlockbenchGroup({
     viewer,
     report,
-    title: `skinview3d-blockbench (${GROUP_VERSIONS.blockbench}):`,
+    title: packagePath(GROUP_PACKAGES.blockbench),
+    titleHref: packageHref(GROUP_PACKAGES.blockbench),
     onSlotChange: () => {
       controller?.rebind();
     },
@@ -950,7 +973,8 @@ export function initDemo(container: HTMLElement): DemoHandle {
   // texture rows their feature switches).
   etfResets.push(syncControlAvailability);
   const etfTable = controlTable(
-    `skinview3d-etf (${GROUP_VERSIONS.etf}):`,
+    packagePath(GROUP_PACKAGES.etf),
+    packageHref(GROUP_PACKAGES.etf),
     [
       attachRow,
       detachRow,
@@ -1001,7 +1025,8 @@ export function initDemo(container: HTMLElement): DemoHandle {
   const cameraLightResets: Array<() => void> = [];
   const loadSkinOptionsResets: Array<() => void> = [];
   const hostTable = controlTable(
-    `skinview3d (${GROUP_VERSIONS.skinview3d}):`,
+    packagePath(GROUP_PACKAGES.skinview3d),
+    packageHref(GROUP_PACKAGES.skinview3d),
     [
       optionRow(
         ["viewer"],

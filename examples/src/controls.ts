@@ -50,15 +50,15 @@ export function optionRow(
 }
 
 /**
- * Builds a control table for one owner group; the group title doubles
- * as the id namespace and the ids encode the API path
- * (`demo-option-<slug>-<lowercased path segments>`), so equal leaf
- * keywords in different groups stay addressable, and every control
- * without its own label is tied to its row header. A parenthetical
- * version suffix in the title (` (v0.0.4)`) is display-only and
- * drops out of the slug, so version bumps never move the ids.
+ * Builds a control table for one owner group; the group title renders
+ * as a link and doubles as the id namespace - the ids encode the API
+ * path (`demo-option-<slug>-<lowercased path segments>`), where the
+ * slug is the title's segment before the first `/` (the package
+ * name), so version bumps never move the ids, and every control
+ * without its own label is tied to its row header.
  *
- * @param title - The group title.
+ * @param title - The group title (the `name/v/version` display path).
+ * @param titleHref - The title's link target (its versioned npm page).
  * @param rows - The option rows.
  * @param resets - The row resets collected in row order; when given,
  *   the title row gains the group `reset` (it runs every callback
@@ -67,6 +67,7 @@ export function optionRow(
  */
 export function controlTable(
   title: string,
+  titleHref: string,
   rows: readonly HTMLTableRowElement[],
   resets?: readonly (() => void)[],
 ): HTMLTableElement {
@@ -76,13 +77,15 @@ export function controlTable(
   const header = document.createElement("th");
   header.colSpan = resets === undefined ? 3 : 2;
   header.className = "group-title";
-  header.textContent = title;
+  const link = document.createElement("a");
+  link.href = titleHref;
+  link.target = "_blank";
+  link.rel = "noopener";
+  link.textContent = title;
+  header.append(link);
   titleRow.append(header);
-  // The display-only version suffix stays out of the row ids.
-  const slug = title
-    .replace(/\s*\([^)]*\)/g, "")
-    .replace(/:$/, "")
-    .toLowerCase();
+  // The package name (before the first `/`) is the id namespace.
+  const slug = title.split("/")[0].toLowerCase();
   if (resets !== undefined) {
     const actionCell = document.createElement("td");
     actionCell.className = "row-action-cell";
