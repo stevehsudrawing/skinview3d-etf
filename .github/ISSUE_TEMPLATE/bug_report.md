@@ -11,10 +11,9 @@ assignees: ""
 ## 1. Before you report
 
 - [ ] I have searched the open and closed issues for duplicates.
-- [ ] I have read the README status and roadmap; the affected feature
-      is expected to work at the current stage. (The project is in
-      alpha; in-skin capes were removed upstream and are not
-      supported.)
+- [ ] I have read the README status and roadmap; the affected feature is
+      expected to work at the current stage. (The project is in alpha; in-skin
+      capes were removed upstream and are not supported.)
 - [ ] I can reproduce the problem with the latest published release
       (`npm install skinview3d-etf`).
 

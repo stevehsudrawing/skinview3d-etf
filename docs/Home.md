@@ -1,17 +1,17 @@
 # skinview3d-etf
 
 > [!WARNING]
-> This project is in **alpha**. The public API, rendering behavior,
-> package layout and documentation may still change in any `0.x`
-> release; treat every minor release as potentially breaking. Do not
-> use it in production yet.
+>
+> This project is in **alpha**. The public API, rendering behavior, package
+> layout and documentation may still change in any `0.x` release; treat every
+> minor release as potentially breaking. Do not use it in production yet.
 
 Unofficial, community-built extension for `skinview3d`
-([GitHub](https://github.com/bs-community/skinview3d) | [npm](https://www.npmjs.com/package/skinview3d))
-that renders
+([GitHub](https://github.com/bs-community/skinview3d) |
+[npm](https://www.npmjs.com/package/skinview3d)) that renders
 [ETF (Entity Texture Features)](https://github.com/Traben-0/Entity_Texture_Features)
-player skin features on the 3D player model. Not affiliated with or
-endorsed by the ETF or skinview3d projects.
+player skin features on the 3D player model. Not affiliated with or endorsed by
+the ETF or skinview3d projects.
 
 ## 1. What it renders
 
@@ -22,11 +22,10 @@ endorsed by the ETF or skinview3d projects.
 - enchanted pixel overlay;
 - jacket/dress extension.
 
-The decoder (`decodeSkin()`) reads every ETF player skin feature -
-the jacket and enchanted data included - and is complete and
-unit-tested; the renderer draws all six families on a live viewer.
-See [Options](Options.md) for every knob and
-[Getting Started](Getting-Started.md) for the integration guide.
+The decoder (`decodeSkin()`) reads every ETF player skin feature - the jacket
+and enchanted data included - and is complete and unit-tested; the renderer
+draws all six families on a live viewer. See [Options](Options.md) for every
+knob and [Getting Started](Getting-Started.md) for the integration guide.
 
 ## 2. Install and quick start
 
@@ -34,10 +33,9 @@ See [Options](Options.md) for every knob and
 npm install skinview3d-etf
 ```
 
-`skinview3d` and `three`
-([GitHub](https://github.com/mrdoob/three.js) | [npm](https://www.npmjs.com/package/three))
-are peer dependencies, so install the versions the viewer already
-uses.
+`skinview3d` and `three` ([GitHub](https://github.com/mrdoob/three.js) |
+[npm](https://www.npmjs.com/package/three)) are peer dependencies, so install
+the versions the viewer already uses.
 
 ```ts
 import { SkinViewer } from "skinview3d";
@@ -61,24 +59,24 @@ controller.detach();
 
 ## 3. Documentation
 
-- [Getting Started](Getting-Started.md) - install, attach, lifecycle
-  and the standalone decoder;
-- [Options](Options.md) - the option groups, defaults, runtime setters
-  and the migration notes;
+- [Getting Started](Getting-Started.md) - install, attach, lifecycle and the
+  standalone decoder;
+- [Options](Options.md) - the option groups, defaults, runtime setters and the
+  migration notes;
 - [FAQ](FAQ.md) - common questions and answers.
 
 ## 4. Project links
 
-- [Live demo](https://stevehsudrawing.github.io/skinview3d-etf/) - a
-  Vite page with several sample skins and a PNG upload;
+- [Live demo](https://stevehsudrawing.github.io/skinview3d-etf/) - a Vite page
+  with several sample skins and a PNG upload;
 - [npm package](https://www.npmjs.com/package/skinview3d-etf);
 - [Repository](https://github.com/stevehsudrawing/skinview3d-etf);
 - [Issues](https://github.com/stevehsudrawing/skinview3d-etf/issues)
-- [Wiki](https://github.com/stevehsudrawing/skinview3d-etf/wiki) -
-  the latest-state mirror of this documentation.
+- [Wiki](https://github.com/stevehsudrawing/skinview3d-etf/wiki) - the
+  latest-state mirror of this documentation.
 
 ## 5. Browser support
 
-The build targets ES2022 and the runtime expects WebGL 2 (matching
-the `three` release's own browser target); the current versions of
-Chrome, Edge, Opera, Firefox and Safari all qualify.
+The build targets ES2022 and the runtime expects WebGL 2 (matching the `three`
+release's own browser target); the current versions of Chrome, Edge, Opera,
+Firefox and Safari all qualify.

@@ -8,12 +8,11 @@ Install from npm:
 npm install skinview3d-etf
 ```
 
-`skinview3d`
-([GitHub](https://github.com/bs-community/skinview3d) | [npm](https://www.npmjs.com/package/skinview3d))
-and `three`
-([GitHub](https://github.com/mrdoob/three.js) | [npm](https://www.npmjs.com/package/three))
-are peer dependencies; install the versions your viewer already
-uses.
+`skinview3d` ([GitHub](https://github.com/bs-community/skinview3d) |
+[npm](https://www.npmjs.com/package/skinview3d)) and `three`
+([GitHub](https://github.com/mrdoob/three.js) |
+[npm](https://www.npmjs.com/package/three)) are peer dependencies; install the
+versions your viewer already uses.
 
 ## 2. Attach the features
 
@@ -34,54 +33,53 @@ const controller = attachETFSkinFeatures(viewer, {
 });
 ```
 
-Every feature defaults to enabled; [Options](Options.md) documents
-the option groups (`features`, `blink`, `enchanted`, `villagerNose`) and
-the exported defaults. The controller never rebuilds the scene graph and
-never seizes the viewer's animation slot: it adds artifacts under
-the existing meshes and cleans all of them up on `detach()`.
+Every feature defaults to enabled; [Options](Options.md) documents the option
+groups (`features`, `blink`, `enchanted`, `villagerNose`) and the exported
+defaults. The controller never rebuilds the scene graph and never seizes the
+viewer's animation slot: it adds artifacts under the existing meshes and cleans
+all of them up on `detach()`.
 
 ## 3. Lifecycle
 
 ### 3.1 Skin changes: refresh()
 
-Skin changes are never detected automatically: call
-`controller.refresh()` after every `viewer.loadSkin()` call. The
-host recreates the skin textures and resets its canvas, so the
-controller re-decodes the current skin and re-applies everything.
+Skin changes are never detected automatically: call `controller.refresh()` after
+every `viewer.loadSkin()` call. The host recreates the skin textures and resets
+its canvas, so the controller re-decodes the current skin and re-applies
+everything.
 
 ### 3.2 Re-parenting and slot swaps: rebind()
 
-Call `controller.rebind()` after the player object is replaced or
-the model is re-parented (another extension may move parts into its
-own groups), and after you replace `viewer.animation` yourself - a
-replaced slot object disconnects the ticker hook.
+Call `controller.rebind()` after the player object is replaced or the model is
+re-parented (another extension may move parts into its own groups), and after
+you replace `viewer.animation` yourself - a replaced slot object disconnects the
+ticker hook.
 
 ### 3.3 Timed features: the managed ticker and update(dt)
 
-Blinking (in the `"auto"` state) and the scrolling enchanted
-pattern need a clock. By default the controller manages one: it hooks the viewer's
-animation slot through `addAnimation()` while an animation is
-assigned, and installs a private `FunctionAnimation` while the slot
-is empty. Assigning `viewer.animation` resets the player's pose once
-(the host does that on every slot change) and drops a private
-ticker - call `controller.rebind()` afterwards.
+Blinking (in the `"auto"` state) and the scrolling enchanted pattern need a
+clock. By default the controller manages one: it hooks the viewer's animation
+slot through `addAnimation()` while an animation is assigned, and installs a
+private `FunctionAnimation` while the slot is empty. Assigning
+`viewer.animation` resets the player's pose once (the host does that on every
+slot change) and drops a private ticker - call `controller.rebind()` afterwards.
 
 For custom render loops, pass `manageTicker: false` and call
-`controller.update(dt)` yourself with the elapsed seconds; negative
-and non-finite deltas are ignored.
+`controller.update(dt)` yourself with the elapsed seconds; negative and
+non-finite deltas are ignored.
 
 ### 3.4 Teardown: detach()
 
-`controller.detach()` restores everything the extension touched -
-canvas pixels, material swaps, textures, overlays and ticker hooks -
-and is idempotent. Call `attachETFSkinFeatures()` again to
-re-attach; a fresh controller starts from the documented defaults.
+`controller.detach()` restores everything the extension touched - canvas pixels,
+material swaps, textures, overlays and ticker hooks - and is idempotent. Call
+`attachETFSkinFeatures()` again to re-attach; a fresh controller starts from the
+documented defaults.
 
 ## 4. Decode without rendering
 
-`decodeSkin()` is a standalone, three-free module that operates on
-plain pixel buffers (`ImageData`-compatible; 64x64, plus legacy
-64x32 skins, which are converted to the 1.8 layout first):
+`decodeSkin()` is a standalone, three-free module that operates on plain pixel
+buffers (`ImageData`-compatible; 64x64, plus legacy 64x32 skins, which are
+converted to the 1.8 layout first):
 
 ```ts
 import { decodeSkin } from "skinview3d-etf";
@@ -91,14 +89,15 @@ const result = decodeSkin(imageData);
 ```
 
 The decoder is also published as the standalone `etf-skin-decoder`
-([GitHub](https://github.com/stevehsudrawing/etf-skin-decoder) | [npm](https://www.npmjs.com/package/etf-skin-decoder))
-package; `skinview3d-etf` depends on it and
-re-exports its API for the rest of the v0.0.x line. New code should
-**import it from `etf-skin-decoder`** directly.
+([GitHub](https://github.com/stevehsudrawing/etf-skin-decoder) |
+[npm](https://www.npmjs.com/package/etf-skin-decoder)) package; `skinview3d-etf`
+depends on it and re-exports its API for the rest of the v0.0.x line. New code
+should **import it from `etf-skin-decoder`** directly.
 
-Interop: any canvas works through `getImageData()` - including one
-painted by the host's utility layer `skinview-utils`
-([GitHub](https://github.com/bs-community/skinview-utils) | [npm](https://www.npmjs.com/package/skinview-utils)):
+Interop: any canvas works through `getImageData()` - including one painted by
+the host's utility layer `skinview-utils`
+([GitHub](https://github.com/bs-community/skinview-utils) |
+[npm](https://www.npmjs.com/package/skinview-utils)):
 
 ```ts
 import { loadSkinToCanvas } from "skinview-utils";
@@ -111,21 +110,20 @@ const result = decodeSkin(
 );
 ```
 
-The live viewer takes the same route: `SkinViewer.loadSkin()` paints
-its skin canvas through `loadSkinToCanvas()` before the extension
-reads it, so a skin with zero transparent pixels first loses the
-regions the host's opaque-background fix clears (see
-[FAQ](FAQ.md) §7).
+The live viewer takes the same route: `SkinViewer.loadSkin()` paints its skin
+canvas through `loadSkinToCanvas()` before the extension reads it, so a skin
+with zero transparent pixels first loses the regions the host's
+opaque-background fix clears (see [FAQ](FAQ.md) §7).
 
-Any other size decodes as `supported: false` with a warning and no
-features; a malformed buffer throws a `TypeError`. A skin without
-the ETF marker decodes as `hasMarker: false` - use the demo's
-preview tab to inspect what a skin actually carries.
+Any other size decodes as `supported: false` with a warning and no features; a
+malformed buffer throws a `TypeError`. A skin without the ETF marker decodes as
+`hasMarker: false` - use the demo's preview tab to inspect what a skin actually
+carries.
 
 ## 5. The demo
 
-The repository ships a Vite demo (`pnpm dev` in a checkout) with
-several sample skins, a PNG upload, live control tables for every
-option and a decoder preview tab. A live build is deployed at
-<https://stevehsudrawing.github.io/skinview3d-etf/>; the demo is not
-part of the npm package.
+The repository ships a Vite demo (`pnpm dev` in a checkout) with several sample
+skins, a PNG upload, live control tables for every option and a decoder preview
+tab. A live build is deployed at
+<https://stevehsudrawing.github.io/skinview3d-etf/>; the demo is not part of the
+npm package.

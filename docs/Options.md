@@ -1,9 +1,8 @@
 # Options
 
-Every option is passed to `attachETFSkinFeatures(viewer, options)`
-and can be changed at runtime through the controller's setters; the
-groups and their defaults are listed below. Invalid values fall back
-to the documented defaults.
+Every option is passed to `attachETFSkinFeatures(viewer, options)` and can be
+changed at runtime through the controller's setters; the groups and their
+defaults are listed below. Invalid values fall back to the documented defaults.
 
 ## 1. Attach options
 
@@ -65,39 +64,37 @@ The documented defaults are exported as `DEFAULT_ENCHANTED_OPTIONS`.
 | `setEnchantedOptions(partial)`    | `enchanted`                     |
 | `setVillagerNoseOptions(partial)` | `villagerNose`                  |
 
-Every setter merges partial updates: an omitted property keeps its
-current value, and an explicit `undefined` counts as omitted (it
-does not clear the setting). The two texture options keep their
-presence-based contract - an explicit `texture: undefined` restores
-the built-in default, while `texture: null` turns the feature off.
+Every setter merges partial updates: an omitted property keeps its current
+value, and an explicit `undefined` counts as omitted (it does not clear the
+setting). The two texture options keep their presence-based contract - an
+explicit `texture: undefined` restores the built-in default, while
+`texture: null` turns the feature off.
 
 ## 3. Texture inputs
 
-Both texture options accept the same `ETFTextureInput` union - the
-host's input forms re-used from `skinview-utils`
-([GitHub](https://github.com/bs-community/skinview-utils) | [npm](https://www.npmjs.com/package/skinview-utils))
-(`RemoteImage` / `TextureSource`), plus a pixel buffer and a `three`
-([GitHub](https://github.com/mrdoob/three.js) | [npm](https://www.npmjs.com/package/three))
-`Texture`:
+Both texture options accept the same `ETFTextureInput` union - the host's input
+forms re-used from `skinview-utils`
+([GitHub](https://github.com/bs-community/skinview-utils) |
+[npm](https://www.npmjs.com/package/skinview-utils)) (`RemoteImage` /
+`TextureSource`), plus a pixel buffer and a `three`
+([GitHub](https://github.com/mrdoob/three.js) |
+[npm](https://www.npmjs.com/package/three)) `Texture`:
 
 - a URL string;
-- `{ src, crossOrigin?, referrerPolicy? }` for CORS-controlled
-  remote images;
-- an `HTMLImageElement`, `HTMLVideoElement`, `ImageBitmap`,
-  `HTMLCanvasElement` or `OffscreenCanvas`;
+- `{ src, crossOrigin?, referrerPolicy? }` for CORS-controlled remote images;
+- an `HTMLImageElement`, `HTMLVideoElement`, `ImageBitmap`, `HTMLCanvasElement`
+  or `OffscreenCanvas`;
 - an `ImageData`-compatible pixel buffer;
 - a `three` `Texture` wrapping any of the above in its `image`.
 
-Remote URLs load with `crossOrigin: "anonymous"` unless you supply
-the object form. Caller objects are only read, never mutated or
-disposed.
+Remote URLs load with `crossOrigin: "anonymous"` unless you supply the object
+form. Caller objects are only read, never mutated or disposed.
 
 ## 4. Migration
 
-Breaking (expected before 1.0): the flat v0.0.1 keys moved into
-option groups in v0.0.2, and v0.0.3 renamed the glint group after
-its feature family and reworked the decode geometry. The release
-notes list every mapping.
+Breaking (expected before 1.0): the flat v0.0.1 keys moved into option groups in
+v0.0.2, and v0.0.3 renamed the glint group after its feature family and reworked
+the decode geometry. The release notes list every mapping.
 
 | Entry              | v0.0.1                                               | v0.0.2                     | current                                               |
 | ------------------ | ---------------------------------------------------- | -------------------------- | ----------------------------------------------------- |

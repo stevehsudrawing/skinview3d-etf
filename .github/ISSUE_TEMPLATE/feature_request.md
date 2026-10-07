@@ -10,13 +10,12 @@ assignees: ""
 
 ## 1. Before you ask
 
-- [ ] I have searched the open and closed issues for existing
-      requests.
-- [ ] I have checked the README roadmap and the Wiki; the feature is
-      not already planned or listed as out of scope.
-- [ ] The request respects the project's constraints: no HD skins
-      (permanently excluded), no bundled Mojang assets, the in-skin
-      cape stays out of scope, and no new runtime dependencies.
+- [ ] I have searched the open and closed issues for existing requests.
+- [ ] I have checked the README roadmap and the Wiki; the feature is not already
+      planned or listed as out of scope.
+- [ ] The request respects the project's constraints: no HD skins (permanently
+      excluded), no bundled Mojang assets, the in-skin cape stays out of scope,
+      and no new runtime dependencies.
 
 ## 2. Problem / use case
 
@@ -38,7 +37,7 @@ assignees: ""
 ## 5. Scope checks
 
 - [ ] Works alongside `skinview3d-blockbench`.
-- [ ] Keeps the decode contract; any deviation from the upstream
-      rendering behavior is deliberate and described above.
+- [ ] Keeps the decode contract; any deviation from the upstream rendering
+      behavior is deliberate and described above.
 
 ## 6. Additional context
