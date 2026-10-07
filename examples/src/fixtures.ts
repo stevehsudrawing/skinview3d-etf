@@ -29,6 +29,28 @@ export const fixtures: Fixture[] = Object.entries(fixtureModules)
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
+/** One bundled cape texture. */
+export interface CapeFixture {
+  /** File name including the `.png` suffix. */
+  name: string;
+  /** URL the browser loads the image from. */
+  url: string;
+}
+
+const capeModules = import.meta.glob("./assets/capes/*.png", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+
+/** Every bundled cape texture, sorted by name. */
+export const capes: CapeFixture[] = Object.entries(capeModules)
+  .map(([path, url]) => ({
+    name: path.split("/").pop() ?? path,
+    url,
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
 /** The fixture preferred on load, when present. */
 const PREFERRED_FIXTURE_NAME = "example.png";
 

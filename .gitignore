@@ -13,6 +13,8 @@ dist/
 # Local-only project files
 **/*.psd
 
-# Demo fixtures: only the self-drawn example.png is committed
+# Demo fixtures: only the self-drawn example.png files are committed
 examples/src/assets/skins/*
 !examples/src/assets/skins/example.png
+examples/src/assets/capes/*
+!examples/src/assets/capes/example.png

@@ -189,10 +189,15 @@ A live build is deployed from `main` to the
   the dotted path plus a description; after every load the demo decodes the skin
   and grays the rows the skin has no data for (a skin without the ETF marker
   grays almost everything).
-- Function rows (`attachETFSkinFeatures`, `detach`, `loadSkin`, `setAnimation`)
-  carry an `execute` button with their parameters as child rows; values the demo
-  derives itself (the fixture source, the animation name) are locked read-only
-  inputs that explain the derivation in their tooltip.
+- Function rows (`attachETFSkinFeatures`, `detach`, `loadSkin`, `loadCape`,
+  `setAnimation`) carry an `execute` button with their parameters as child rows;
+  values the demo derives itself (the fixture source, the animation name) are
+  locked read-only inputs that explain the derivation in their tooltip.
+- The host tree's cape rows load or unload a cape (`loadCape.source`: `null`
+  first, the bundled self-made cape and a transient `[upload]` entry, applied
+  immediately) and pick the back equipment (`loadCape.options.backEquipment`:
+  cape / elytra); the empty choices in the cape, `viewer.animation` and
+  blockbench pickers display the API's `null`.
 - Every parameter row carries a `reset` in its own action column, and every
   table title and parameter group (the container rows) carries a group `reset`
   that restores every row in its group; the texture rows pick between the
@@ -205,8 +210,8 @@ A live build is deployed from `main` to the
   the villager nose.
 - The `skinview3d-blockbench:` tree picks its input file (`animation`, the
   bundled self-made copy or a transient `[upload]` entry) and plays its
-  animations (`animationName`, `setAnimation`, `forceLoop`, `paused`, `speed`)
-  next to the ETF features.
+  animations (`animationName`, `setAnimation`, `forceLoop`, `connectCape`,
+  `paused`, `speed`) next to the ETF features.
 - Uploaded files are processed in the browser only and are never sent anywhere.
 - The decoder preview tab draws every prepared `decodeSkin()` artifact next to
   the 3D view.

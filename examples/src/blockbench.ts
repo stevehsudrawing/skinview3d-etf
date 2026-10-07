@@ -2,13 +2,13 @@
  * The `skinview3d-blockbench` control group: the file picker (the
  * bundled fixture plus one transient `[upload]` entry), the animation
  * list that follows the selected file, and the playback controls
- * (`forceLoop`, `paused`, `speed`, `setAnimation`). The group owns the
- * provider state and drives the shared `viewer.animation` slot; the
- * demo reveals it through the `SkinViewBlockbench` mode of the
- * viewer's animation picker and calls `release()` when the mode is
- * left. Every parameter row and the provider row carry a `reset`;
- * both group resets also restore the bundled provider's playback
- * values.
+ * (`forceLoop`, `connectCape`, `paused`, `speed`, `setAnimation`).
+ * The group owns the provider state and drives the shared
+ * `viewer.animation` slot; the demo reveals it through the
+ * `SkinViewBlockbench` mode of the viewer's animation picker and
+ * calls `release()` when the mode is left. Every parameter row and
+ * the provider row carry a `reset`; both group resets also restore
+ * the bundled provider's playback and binding values.
  */
 
 import type { SkinViewer } from "skinview3d";
@@ -79,6 +79,15 @@ export function createBlockbenchGroup(
     const provider = currentProvider();
     if (provider !== null) {
       provider.forceLoop = forceLoopBox.checked;
+    }
+  });
+
+  const connectCapeBox = document.createElement("input");
+  connectCapeBox.type = "checkbox";
+  connectCapeBox.addEventListener("change", () => {
+    const provider = currentProvider();
+    if (provider !== null) {
+      provider.connectCape = connectCapeBox.checked;
     }
   });
 
@@ -183,6 +192,7 @@ export function createBlockbenchGroup(
       onSlotChange();
     }
     provider.forceLoop = forceLoopBox.checked;
+    provider.connectCape = connectCapeBox.checked;
     provider.setAnimation(name);
     pausedBox.checked = provider.paused;
     speedInput.value = String(provider.speed);
@@ -208,7 +218,7 @@ export function createBlockbenchGroup(
     animationNameSelect.replaceChildren();
     const noneOption = document.createElement("option");
     noneOption.value = "none";
-    noneOption.textContent = "none";
+    noneOption.textContent = "null";
     animationNameSelect.append(noneOption);
     for (const name of names) {
       const option = document.createElement("option");
@@ -310,8 +320,8 @@ export function createBlockbenchGroup(
     optionRow(
       ["SkinViewBlockbench", "animationName"],
       "SkinViewBlockbench.animationName: play a name from the selected " +
-        "file; none removes viewer.animation (the torso grouping " +
-        "persists once created)",
+        "file; null releases the slot (viewer.animation = null; the " +
+        "torso grouping persists once created)",
       [animationNameSelect],
       resetRow(
         ["SkinViewBlockbench", "animationName"],
@@ -335,6 +345,19 @@ export function createBlockbenchGroup(
       resetRow(
         ["SkinViewBlockbench", "forceLoop"],
         () => resetCheckbox(forceLoopBox, true),
+        resets,
+      ),
+    ),
+    optionRow(
+      ["SkinViewBlockbench", "connectCape"],
+      "SkinViewBlockbench.connectCape: wrap the cape while a " +
+        "Torso-bone animation drives the body; the binding forms " +
+        "once, on the first animated frame, and later toggles neither " +
+        "connect nor disconnect (reload to rebind)",
+      [connectCapeBox],
+      resetRow(
+        ["SkinViewBlockbench", "connectCape"],
+        () => resetCheckbox(connectCapeBox, false),
         resets,
       ),
     ),
@@ -370,6 +393,7 @@ export function createBlockbenchGroup(
   resets.push(() => {
     if (blockbench !== null) {
       blockbench.forceLoop = true;
+      blockbench.connectCape = false;
       blockbench.paused = false;
       blockbench.speed = DEFAULT_SPEED;
     }

@@ -19,7 +19,8 @@
  * and parameter group (the container rows) carries a group `reset`;
  * the texture rows pick between the built-in
  * default, off and an uploaded image through one `(select) [choose]`
- * pair. The host picker and the blockbench pair share the single
+ * pair (the cape source row reuses the picker). The host picker
+ * and the blockbench pair share the single
  * `viewer.animation` slot and call `controller.rebind()` whenever
  * the slot object changes; the skin shown comes from the shared
  * fixture bar above the tabs.
@@ -60,6 +61,7 @@ import {
   setRowInapplicable,
 } from "./controls";
 import {
+  capes,
   getSelectedFixture,
   loadImageData,
   onFixtureSelected,
@@ -593,7 +595,8 @@ export function initDemo(container: HTMLElement): DemoHandle {
   ]) {
     const option = document.createElement("option");
     option.value = id;
-    option.textContent = id;
+    // The empty choice displays the API's `null`.
+    option.textContent = id === "none" ? "null" : id;
     animationSelect.append(option);
   }
   /**
@@ -654,6 +657,45 @@ export function initDemo(container: HTMLElement): DemoHandle {
     );
     return match?.model ?? "auto-detect";
   };
+
+  /** The current cape source; `null` means the cape is unloaded. */
+  let capeSource: string | null = null;
+
+  const capeEquipmentSelect = document.createElement("select");
+  for (const value of ["cape", "elytra"]) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    capeEquipmentSelect.append(option);
+  }
+
+  /**
+   * Loads or unloads the cape: `null` runs `viewer.loadCape(null)`,
+   * otherwise the current source loads with the selected equipment.
+   */
+  const applyCape = (): void => {
+    if (capeSource === null) {
+      viewer.loadCape(null);
+      return;
+    }
+    viewer.loadCape(capeSource, {
+      backEquipment: capeEquipmentSelect.value === "elytra" ? "elytra" : "cape",
+    });
+  };
+  capeEquipmentSelect.addEventListener("change", () => {
+    applyCape();
+  });
+
+  const capePicker = createTexturePicker(
+    (source) => {
+      capeSource = source ?? null;
+      applyCape();
+    },
+    {
+      entries: capes.map((cape) => ({ value: cape.url, label: cape.name })),
+      empties: ["null"],
+    },
+  );
 
   const backgroundDefault = "#ffffff";
   const backgroundInput = document.createElement("input");
@@ -1011,6 +1053,10 @@ export function initDemo(container: HTMLElement): DemoHandle {
     }
   });
   loadSkinButton.disabled = true;
+
+  const loadCapeButton = executeButton("execute loadCape", () => {
+    applyCape();
+  });
   /** The `loadSkin.source` description: lock reason and row share it. */
   const loadSkinSourceDescription =
     "loadSkin.source: the texture source - locked, the demo fills " +
@@ -1126,6 +1172,30 @@ export function initDemo(container: HTMLElement): DemoHandle {
           () => resetValue(modelSelect, "auto-detect"),
           hostResets,
           loadSkinOptionsResets,
+        ),
+      ),
+      optionRow(
+        ["loadCape"],
+        "loadCape(source, options): load a cape texture; re-runs " +
+          "with the selected source and back equipment (null unloads)",
+        [loadCapeButton],
+      ),
+      optionRow(
+        ["loadCape", "source"],
+        "loadCape.source: the cape texture; null unloads, the " +
+          "bundled self-made cape or an upload loads it",
+        [capePicker.select, capePicker.choose, capePicker.input],
+        resetRow(["loadCape", "source"], capePicker.reset, hostResets),
+      ),
+      optionRow(
+        ["loadCape", "options", "backEquipment"],
+        "loadCape.options.backEquipment: what the back canvas shows - " +
+          "the cape or the elytra wings",
+        [capeEquipmentSelect],
+        resetRow(
+          ["loadCape", "options", "backEquipment"],
+          () => resetValue(capeEquipmentSelect, "cape"),
+          hostResets,
         ),
       ),
     ],
