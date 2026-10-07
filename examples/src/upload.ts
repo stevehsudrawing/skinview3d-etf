@@ -13,7 +13,7 @@ import {
 import { loadImageData, setUploadedFixture, type Fixture } from "./fixtures";
 
 /** Options accepted by {@link createFileControl}. */
-export interface FileControlOptions {
+interface FileControlOptions {
   /** The visible button text. */
   label: string;
   /** The `accept` attribute for the picker. */
@@ -25,7 +25,7 @@ export interface FileControlOptions {
 }
 
 /** Handle over one file control. */
-export interface FileControl {
+interface FileControl {
   /** The hidden native input (in the DOM so the picker opens). */
   input: HTMLInputElement;
   /** The visible button that opens the file picker. */

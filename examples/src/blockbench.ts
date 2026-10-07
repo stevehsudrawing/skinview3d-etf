@@ -37,7 +37,7 @@ const BUNDLED_FILE = "example.animation.json";
 const DEFAULT_SPEED = 1;
 
 /** Options accepted by {@link createBlockbenchGroup}. */
-export interface BlockbenchGroupOptions {
+interface BlockbenchGroupOptions {
   /** The viewer whose `animation` slot the group drives. */
   viewer: SkinViewer;
   /** Status-line sink for upload and finish messages. */
@@ -51,7 +51,7 @@ export interface BlockbenchGroupOptions {
 }
 
 /** Handle over the blockbench control group. */
-export interface BlockbenchGroup {
+interface BlockbenchGroup {
   /** The blockbench control table (the title comes from options). */
   table: HTMLTableElement;
   /** Clears the pickers; call when the host picker takes the slot. */

@@ -30,7 +30,7 @@ export const fixtures: Fixture[] = Object.entries(fixtureModules)
   .sort((a, b) => a.name.localeCompare(b.name));
 
 /** One bundled cape texture. */
-export interface CapeFixture {
+interface CapeFixture {
   /** File name including the `.png` suffix. */
   name: string;
   /** URL the browser loads the image from. */
@@ -96,7 +96,7 @@ export function getSelectedFixture(): Fixture | undefined {
  * @param force - Notify even when the same fixture is already
  *   selected.
  */
-export function setSelectedFixture(fixture: Fixture, force = false): void {
+function setSelectedFixture(fixture: Fixture, force = false): void {
   if (!force && selected === fixture) {
     return;
   }
@@ -125,7 +125,7 @@ export function setUploadedFixture(fixture: Fixture): void {
  *
  * @returns The uploaded fixture, or `null`.
  */
-export function getUploadedFixture(): Fixture | null {
+function getUploadedFixture(): Fixture | null {
   return uploaded;
 }
 

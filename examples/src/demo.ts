@@ -39,7 +39,12 @@ import {
   type PlayerAnimation,
   type SkinLoadOptions,
 } from "skinview3d";
-import type { BlinkState, DecodeResult, ETFController } from "../../src/index";
+import type {
+  BlinkState,
+  DecodeResult,
+  ETFController,
+  SkinFeatureToggles,
+} from "../../src/index";
 import {
   attachETFSkinFeatures,
   decodeSkin,
@@ -271,55 +276,36 @@ export function initDemo(container: HTMLElement): DemoHandle {
     report(`showing ${fixture.name}`);
   };
 
-  const transparencyBox = document.createElement("input");
-  transparencyBox.type = "checkbox";
-  transparencyBox.checked = true;
-  transparencyBox.disabled = true;
-  transparencyBox.addEventListener("change", () => {
-    controller?.setFeatures({ transparency: transparencyBox.checked });
-  });
+  /**
+   * Builds one feature switch: checked by default, disabled until
+   * attach, pushing its value into `setFeatures` on every change.
+   *
+   * @param key - The feature group key.
+   * @param extra - An extra change handler for coupled rows, when
+   *   the row needs one (the blink / enchanted subtrees resync).
+   * @returns The checkbox element.
+   */
+  function featureBox(
+    key: keyof SkinFeatureToggles,
+    extra?: () => void,
+  ): HTMLInputElement {
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = true;
+    box.disabled = true;
+    box.addEventListener("change", () => {
+      controller?.setFeatures({ [key]: box.checked });
+      extra?.();
+    });
+    return box;
+  }
 
-  const noseBox = document.createElement("input");
-  noseBox.type = "checkbox";
-  noseBox.checked = true;
-  noseBox.disabled = true;
-  noseBox.addEventListener("change", () => {
-    controller?.setFeatures({ nose: noseBox.checked });
-  });
-
-  const emissiveBox = document.createElement("input");
-  emissiveBox.type = "checkbox";
-  emissiveBox.checked = true;
-  emissiveBox.disabled = true;
-  emissiveBox.addEventListener("change", () => {
-    controller?.setFeatures({ emissive: emissiveBox.checked });
-  });
-
-  const blinkBox = document.createElement("input");
-  blinkBox.type = "checkbox";
-  blinkBox.checked = true;
-  blinkBox.disabled = true;
-  blinkBox.addEventListener("change", () => {
-    controller?.setFeatures({ blink: blinkBox.checked });
-    syncControlAvailability();
-  });
-
-  const enchantedBox = document.createElement("input");
-  enchantedBox.type = "checkbox";
-  enchantedBox.checked = true;
-  enchantedBox.disabled = true;
-  enchantedBox.addEventListener("change", () => {
-    controller?.setFeatures({ enchanted: enchantedBox.checked });
-    syncControlAvailability();
-  });
-
-  const jacketBox = document.createElement("input");
-  jacketBox.type = "checkbox";
-  jacketBox.checked = true;
-  jacketBox.disabled = true;
-  jacketBox.addEventListener("change", () => {
-    controller?.setFeatures({ jacket: jacketBox.checked });
-  });
+  const transparencyBox = featureBox("transparency");
+  const noseBox = featureBox("nose");
+  const emissiveBox = featureBox("emissive");
+  const blinkBox = featureBox("blink", syncControlAvailability);
+  const enchantedBox = featureBox("enchanted", syncControlAvailability);
+  const jacketBox = featureBox("jacket");
 
   const blinkStateSelect = document.createElement("select");
   for (const state of ["auto", "open", "halfClosed", "closed"]) {

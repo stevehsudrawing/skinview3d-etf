@@ -124,7 +124,7 @@ export function controlTable(
  * @param onClick - The click handler.
  * @returns The `<button>` element.
  */
-export function actionButton(
+function actionButton(
   text: string,
   label: string,
   onClick: () => void,

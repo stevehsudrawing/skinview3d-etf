@@ -18,7 +18,7 @@ const UNDEFINED = "undefined";
 const NULL = "null";
 
 /** One ready-made entry of a texture picker. */
-export interface TexturePickerEntry {
+interface TexturePickerEntry {
   /** The select value (passed to `apply` when chosen). */
   value: string;
   /** The visible option label. */
@@ -26,7 +26,7 @@ export interface TexturePickerEntry {
 }
 
 /** Options accepted by {@link createTexturePicker}. */
-export interface TexturePickerOptions {
+interface TexturePickerOptions {
   /** Ready-made entries, placed after the empty choices. */
   entries?: readonly TexturePickerEntry[];
   /** The API-state choices to offer, in order. */
@@ -34,7 +34,7 @@ export interface TexturePickerOptions {
 }
 
 /** Handle over one texture picker. */
-export interface TexturePicker {
+interface TexturePicker {
   /** The choice select for the row's control column. */
   select: HTMLSelectElement;
   /** The visible button opening the file picker. */
