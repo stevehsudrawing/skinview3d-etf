@@ -103,7 +103,7 @@ const GROUP_VERSIONS = {
   /** The extension's milestone version. */
   etf: "v0.0.4",
   /** The installed `skinview3d-blockbench`. */
-  blockbench: "v1.0.19",
+  blockbench: "v1.0.20",
   /** The installed `skinview3d`. */
   skinview3d: "v3.4.2",
 } as const;

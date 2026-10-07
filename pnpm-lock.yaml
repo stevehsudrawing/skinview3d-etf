@@ -213,8 +213,8 @@ importers:
         specifier: ^3.4.2
         version: 3.4.2
       skinview3d-blockbench:
-        specifier: ^1.0.19
-        version: 1.0.19
+        specifier: ^1.0.20
+        version: 1.0.20
       three:
         specifier: ^0.156.1
         version: 0.156.1
@@ -1567,8 +1567,8 @@ packages:
   skinview-utils@0.7.1:
     resolution: {integrity: sha512-4eLrMqR526ehlZbsd8SuZ/CHpS9GiH0xUMoV+PYlJVi95ZFz5HJu7Spt5XYa72DRS7wgt5qquvHZf0XZJgmu9Q==}
 
-  skinview3d-blockbench@1.0.19:
-    resolution: {integrity: sha512-lCcsF8u9zG8xQZ7Zh6LMQqnQRi4+FFCho9va9UjFFv1PLrRRW1acSPgDDkJvWnBo7BgbH4FCB1IsXCaSMBVeNQ==}
+  skinview3d-blockbench@1.0.20:
+    resolution: {integrity: sha512-fRYDfIK/LvtmU2GEvTH6YA34I/MF//1qAPI/nhnVndHbW3WEECC4eb8WPK5YrUwEDYReJrZBdA02U1CvYIE9Cg==}
 
   skinview3d@3.4.2:
     resolution: {integrity: sha512-nwxTmT+OWCckDu5CsbjFnyOqthNjl9Fahjqzyy55qcl6jXHIjMrmvDj0b1VZFvT39UKYuO1gnzAQicQ1TH4hvg==}
@@ -2980,7 +2980,7 @@ snapshots:
 
   skinview-utils@0.7.1: {}
 
-  skinview3d-blockbench@1.0.19:
+  skinview3d-blockbench@1.0.20:
     dependencies:
       skinview3d: 3.4.2
       tslib: 2.8.1

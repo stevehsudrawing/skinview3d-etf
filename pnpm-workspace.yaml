@@ -5,3 +5,4 @@ allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
   - etf-skin-decoder@0.1.0
+  - skinview3d-blockbench@1.0.20
