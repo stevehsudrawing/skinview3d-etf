@@ -96,13 +96,13 @@ change the timing at runtime. The documented defaults are exported as
 
 The options form four groups: `features` (the six toggles - `transparency`,
 `emissive`, `blink`, `nose`, `enchanted` and `jacket`), `blink`, `enchanted`
-(`texture`, `speed`, `opacity`, `scale`, `smooth`) and `villagerNose`
-(`texture`). `DEFAULT_ENCHANTED_OPTIONS` exports the enchanted defaults, and the
-runtime setters (`setFeatures()`, `setBlinkOptions()`, `setEnchantedOptions()`,
-`setVillagerNoseOptions()`) merge partial updates: an omitted property keeps its
-current value, while for the two texture options an explicit
-`texture: undefined` restores the built-in default and `null` turns the feature
-off.
+(`texture`, `speed`, `direction`, `opacity`, `scale`, `smooth`) and
+`villagerNose` (`texture`). `DEFAULT_ENCHANTED_OPTIONS` exports the enchanted
+defaults, and the runtime setters (`setFeatures()`, `setBlinkOptions()`,
+`setEnchantedOptions()`, `setVillagerNoseOptions()`) merge partial updates: an
+omitted property keeps its current value, while for the two texture options an
+explicit `texture: undefined` restores the built-in default and `null` turns the
+feature off.
 
 The texture options accept the host's input forms unchanged: the `TextureSource`
 / `RemoteImage` types are re-used from `skinview-utils`
@@ -229,8 +229,7 @@ Planned:
 Exploring (no timeline):
 
 - optional bloom quality mode;
-- headless rendering (Node) for screenshot tests;
-- enchanted direction / angle parameters.
+- headless rendering (Node) for screenshot tests.
 
 History:
 

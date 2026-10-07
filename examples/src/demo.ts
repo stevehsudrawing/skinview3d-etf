@@ -389,6 +389,27 @@ export function initDemo(container: HTMLElement): DemoHandle {
     0.05,
     (value) => controller?.setEnchantedOptions({ speed: value }),
   );
+  /**
+   * Sends the direction pair from its two inputs when both values
+   * are finite.
+   */
+  function applyEnchantedDirection(): void {
+    const u = Number.parseFloat(directionUInput.value);
+    const v = Number.parseFloat(directionVInput.value);
+    if (Number.isFinite(u) && Number.isFinite(v)) {
+      controller?.setEnchantedOptions({ direction: [u, v] });
+    }
+  }
+  const directionUInput = numberInput(
+    DEFAULT_ENCHANTED_OPTIONS.direction[0],
+    0.25,
+    applyEnchantedDirection,
+  );
+  const directionVInput = numberInput(
+    DEFAULT_ENCHANTED_OPTIONS.direction[1],
+    0.25,
+    applyEnchantedDirection,
+  );
   const enchantedOpacityInput = numberInput(
     DEFAULT_ENCHANTED_OPTIONS.opacity,
     0.05,
@@ -410,6 +431,8 @@ export function initDemo(container: HTMLElement): DemoHandle {
     controller?.setEnchantedOptions({ smooth: enchantedSmoothBox.checked });
   });
   enchantedSpeedInput.disabled = true;
+  directionUInput.disabled = true;
+  directionVInput.disabled = true;
   enchantedOpacityInput.disabled = true;
   enchantedScaleInput.disabled = true;
 
@@ -461,6 +484,11 @@ export function initDemo(container: HTMLElement): DemoHandle {
     const speed = Number.parseFloat(enchantedSpeedInput.value);
     if (Number.isFinite(speed)) {
       controller.setEnchantedOptions({ speed });
+    }
+    const directionU = Number.parseFloat(directionUInput.value);
+    const directionV = Number.parseFloat(directionVInput.value);
+    if (Number.isFinite(directionU) && Number.isFinite(directionV)) {
+      controller.setEnchantedOptions({ direction: [directionU, directionV] });
     }
     const opacity = Number.parseFloat(enchantedOpacityInput.value);
     if (Number.isFinite(opacity)) {
@@ -527,6 +555,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
     const enchantedOn = attached && uses.enchanted && enchantedBox.checked;
     updateRow(enchantedTextureRow, uses.enchanted, enchantedOn);
     updateRow(enchantedSpeedRow, uses.enchanted, enchantedOn);
+    updateRow(enchantedDirectionRow, uses.enchanted, enchantedOn);
     updateRow(enchantedOpacityRow, uses.enchanted, enchantedOn);
     updateRow(enchantedScaleRow, uses.enchanted, enchantedOn);
     updateRow(enchantedSmoothRow, uses.enchanted, enchantedOn);
@@ -820,8 +849,8 @@ export function initDemo(container: HTMLElement): DemoHandle {
   );
   const enchantedSpeedRow = optionRow(
     ["enchanted", "speed"],
-    `enchanted.speed: diagonal scroll in UV units per second (default ` +
-      `${DEFAULT_ENCHANTED_OPTIONS.speed}); 0 freezes, negative reverses`,
+    `enchanted.speed: scroll in UV units per second along the direction ` +
+      `vector (default ${DEFAULT_ENCHANTED_OPTIONS.speed}); 0 freezes`,
     [enchantedSpeedInput],
     resetRow(
       ["enchanted", "speed"],
@@ -830,6 +859,24 @@ export function initDemo(container: HTMLElement): DemoHandle {
           enchantedSpeedInput,
           String(DEFAULT_ENCHANTED_OPTIONS.speed),
         ),
+      etfResets,
+      enchantedResets,
+    ),
+  );
+  const enchantedDirectionRow = optionRow(
+    ["enchanted", "direction"],
+    `enchanted.direction: the UV-space scroll vector (default ` +
+      `[${DEFAULT_ENCHANTED_OPTIONS.direction[0]}, ` +
+      `${DEFAULT_ENCHANTED_OPTIONS.direction[1]}]); the offset advances ` +
+      `by speed x direction; [0, 0] freezes the pattern`,
+    [directionUInput, directionVInput],
+    resetRow(
+      ["enchanted", "direction"],
+      () => {
+        directionUInput.value = String(DEFAULT_ENCHANTED_OPTIONS.direction[0]);
+        directionVInput.value = String(DEFAULT_ENCHANTED_OPTIONS.direction[1]);
+        applyEnchantedDirection();
+      },
       etfResets,
       enchantedResets,
     ),
@@ -923,6 +970,7 @@ export function initDemo(container: HTMLElement): DemoHandle {
       enchantedGroupRow,
       enchantedTextureRow,
       enchantedSpeedRow,
+      enchantedDirectionRow,
       enchantedOpacityRow,
       enchantedScaleRow,
       enchantedSmoothRow,

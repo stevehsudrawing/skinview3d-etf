@@ -36,6 +36,7 @@ describe("normalizeOptions", () => {
     expect(settings.enchanted).toEqual({
       texture: undefined,
       speed: 0.1,
+      direction: [1, 1],
       opacity: 1,
       scale: 1,
       smooth: true,
@@ -97,6 +98,7 @@ describe("normalizeEnchantedOptions", () => {
     expect(normalizeEnchantedOptions()).toEqual({
       texture: undefined,
       speed: 0.1,
+      direction: [1, 1],
       opacity: 1,
       scale: 1,
       smooth: true,
@@ -107,6 +109,7 @@ describe("normalizeEnchantedOptions", () => {
     const settings = normalizeEnchantedOptions({});
     expect({
       speed: settings.speed,
+      direction: settings.direction,
       opacity: settings.opacity,
       scale: settings.scale,
       smooth: settings.smooth,
@@ -124,12 +127,36 @@ describe("normalizeEnchantedOptions", () => {
     expect(normalizeEnchantedOptions({ scale: 0 }).scale).toBe(1);
     expect(normalizeEnchantedOptions({ scale: -3 }).scale).toBe(1);
     expect(normalizeEnchantedOptions({ scale: Number.NaN }).scale).toBe(1);
+    expect(
+      normalizeEnchantedOptions({ direction: [Number.NaN, 1] }).direction,
+    ).toEqual([1, 1]);
+    expect(
+      normalizeEnchantedOptions({
+        direction: [1, Number.POSITIVE_INFINITY],
+      }).direction,
+    ).toEqual([1, 1]);
   });
 
   it("accepts zero and negative speeds and positive scales", () => {
     expect(normalizeEnchantedOptions({ speed: 0 }).speed).toBe(0);
     expect(normalizeEnchantedOptions({ speed: -0.5 }).speed).toBe(-0.5);
     expect(normalizeEnchantedOptions({ scale: 2.5 }).scale).toBe(2.5);
+  });
+
+  it("passes zero and negative direction vectors through", () => {
+    expect(normalizeEnchantedOptions({ direction: [0, 0] }).direction).toEqual([
+      0, 0,
+    ]);
+    expect(
+      normalizeEnchantedOptions({ direction: [-1, 0.5] }).direction,
+    ).toEqual([-1, 0.5]);
+  });
+
+  it("falls back for malformed direction tuples", () => {
+    const malformed = [1] as unknown as readonly [number, number];
+    expect(
+      normalizeEnchantedOptions({ direction: malformed }).direction,
+    ).toEqual([1, 1]);
   });
 
   it("accepts explicit smoothing and falls back for non-booleans", () => {

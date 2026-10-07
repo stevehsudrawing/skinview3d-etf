@@ -59,6 +59,12 @@ export interface NormalizedBlinkOptions {
 /** Default enchanted pattern scroll speed in UV units per second. */
 const DEFAULT_ENCHANTED_SPEED = 0.1;
 
+/**
+ * Default enchanted scroll direction: the (u, v) diagonal. One
+ * constant backs both the documented defaults and the resolver.
+ */
+const DEFAULT_ENCHANTED_DIRECTION: readonly [number, number] = [1, 1];
+
 /** Default enchanted additive brightness factor. */
 const DEFAULT_ENCHANTED_OPACITY = 1;
 
@@ -74,8 +80,10 @@ const DEFAULT_ENCHANTED_SMOOTH = true;
  * options are omitted; the option specs assert both stay in sync.
  */
 export const DEFAULT_ENCHANTED_OPTIONS = {
-  /** Diagonal scroll speed, in UV units per second. */
+  /** Scroll speed, in UV units per second. */
   speed: DEFAULT_ENCHANTED_SPEED,
+  /** Scroll direction as a UV-space (u, v) vector. */
+  direction: DEFAULT_ENCHANTED_DIRECTION,
   /** Additive brightness factor in 0..1. */
   opacity: DEFAULT_ENCHANTED_OPACITY,
   /** Pattern tiling across the UVs. */
@@ -88,8 +96,10 @@ export const DEFAULT_ENCHANTED_OPTIONS = {
 export interface NormalizedEnchantedOptions {
   /** Texture override: `undefined` = built-in, `null` = off. */
   texture: ETFTextureInput | null | undefined;
-  /** Diagonal scroll speed in UV units per second. */
+  /** Scroll speed in UV units per second. */
   speed: number;
+  /** Scroll direction as a UV-space (u, v) vector. */
+  direction: readonly [number, number];
   /** Additive brightness factor in 0..1. */
   opacity: number;
   /** Pattern tiling across the UVs. */
@@ -194,6 +204,24 @@ export function normalizeBlinkOptions(
 }
 
 /**
+ * Resolves the scroll-direction option: a pair of finite numbers
+ * passes through as given (zero and negative components are legal),
+ * anything else - a non-finite component included - falls back to
+ * the documented default.
+ *
+ * @param raw - The raw `direction` value.
+ * @returns The resolved direction pair.
+ */
+function resolveDirection(
+  raw: readonly [number, number] | undefined,
+): readonly [number, number] {
+  if (raw !== undefined && Number.isFinite(raw[0]) && Number.isFinite(raw[1])) {
+    return raw;
+  }
+  return DEFAULT_ENCHANTED_DIRECTION;
+}
+
+/**
  * Resolves the public enchanted options into fully normalized
  * settings: defaults applied, non-finite numbers replaced and
  * `opacity` clamped to 0..1.
@@ -222,7 +250,15 @@ export function normalizeEnchantedOptions(
     typeof options?.smooth === "boolean"
       ? options.smooth
       : DEFAULT_ENCHANTED_SMOOTH;
-  return { texture: options?.texture, speed, opacity, scale, smooth };
+  const direction = resolveDirection(options?.direction);
+  return {
+    texture: options?.texture,
+    speed,
+    direction,
+    opacity,
+    scale,
+    smooth,
+  };
 }
 
 /**

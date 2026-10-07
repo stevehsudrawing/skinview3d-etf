@@ -4,8 +4,9 @@
  *
  * The fragment stage samples the pattern with the scrolling offset
  * applied before the tiling scale, so the pattern's apparent movement
- * across the model is `speed` UV units per second no matter the
- * `scale` - the parameter stays decoupled from the perceived speed.
+ * across the model is `speed x direction` UV units per second no
+ * matter the `scale` - the parameters stay decoupled from the
+ * perceived speed.
  * The material is additive (three: SrcAlpha/One, so the contribution
  * is the pattern color x the mask alpha x `opacity`), depth-read-only
  * and pushed slightly in front of the source mesh via the shared
@@ -55,27 +56,55 @@ void main() {
 `;
 
 /**
- * Advances the enchanted pattern's phase by `speed * dt` and wraps
- * it into one tile period (`[0, 1 / scale)`). Positive speeds scroll
- * along the (u, v) diagonal, negative speeds against it. Because the
- * wrap period is a whole tile, every wrap shifts the pattern by
- * exactly one tile - the scroll stays seamless at any scale.
+ * The enchanted pattern's sampling offset, in UV units: each axis
+ * advances independently and wraps at one pattern tile.
+ */
+export interface EnchantedOffset {
+  /** Horizontal offset within `[0, 1 / scale)`. */
+  x: number;
+  /** Vertical offset within `[0, 1 / scale)`. */
+  y: number;
+}
+
+/**
+ * Wraps an offset value into `[0, wrap)` by subtracting whole
+ * periods, so any input range normalizes in one step.
  *
- * @param phase - The current phase in `[0, 1 / scale)`.
+ * @param value - The value to wrap.
+ * @param wrap - The wrap period.
+ * @returns The wrapped value within `[0, wrap)`.
+ */
+function wrapOffset(value: number, wrap: number): number {
+  return value - Math.floor(value / wrap) * wrap;
+}
+
+/**
+ * Advances the enchanted pattern's offset by `speed x direction x dt`
+ * and wraps each axis into one tile period (`[0, 1 / scale)`). The
+ * wrap period is a whole tile on both axes, so every wrap shifts the
+ * pattern by exactly one tile and the scroll stays seamless for any
+ * direction and scale; with `[1, 1]` both axes advance and wrap
+ * exactly like the original diagonal phase.
+ *
+ * @param offset - The current offset within `[0, 1 / scale)`.
  * @param speed - The scroll speed in UV units per second.
+ * @param direction - The UV-space scroll vector.
  * @param dt - Elapsed time in seconds (non-negative).
  * @param scale - The pattern tiling (the wrap period is `1 / scale`).
- * @returns The advanced phase in `[0, 1 / scale)`.
+ * @returns The advanced offset within `[0, 1 / scale)`.
  */
-export function advanceEnchantedPhase(
-  phase: number,
+export function advanceEnchantedOffset(
+  offset: EnchantedOffset,
   speed: number,
+  direction: readonly [number, number],
   dt: number,
   scale: number,
-): number {
+): EnchantedOffset {
   const wrap = 1 / scale;
-  const advanced = phase + speed * dt;
-  return advanced - Math.floor(advanced / wrap) * wrap;
+  return {
+    x: wrapOffset(offset.x + speed * direction[0] * dt, wrap),
+    y: wrapOffset(offset.y + speed * direction[1] * dt, wrap),
+  };
 }
 
 /**
@@ -145,7 +174,7 @@ export const ENCHANTED_RENDER_ORDER = 1;
  * @param pattern - The repeating pattern texture.
  * @param scale - The pattern tiling across the UVs.
  * @param opacity - The additive brightness factor, 0..1.
- * @param phase - The initial scroll phase in `[0, 1 / scale)`.
+ * @param offset - The initial scroll offset, in UV units.
  * @returns The prepared material, owned by the caller.
  */
 export function createEnchantedMaterial(
@@ -153,13 +182,13 @@ export function createEnchantedMaterial(
   pattern: Texture,
   scale: number,
   opacity: number,
-  phase: number,
+  offset: EnchantedOffset,
 ): ShaderMaterial {
   return new ShaderMaterial({
     uniforms: {
       uMask: { value: mask },
       uEnchanted: { value: pattern },
-      uOffset: { value: new Vector2(phase, phase) },
+      uOffset: { value: new Vector2(offset.x, offset.y) },
       uScale: { value: scale },
       uOpacity: { value: opacity },
     },
@@ -178,19 +207,19 @@ export function createEnchantedMaterial(
  * needs no `needsUpdate`.
  *
  * @param material - A material created by {@link createEnchantedMaterial}.
- * @param phase - The new phase in `[0, 1 / scale)`.
+ * @param offset - The new offset, in UV units per axis.
  */
-export function setEnchantedPhase(
+export function setEnchantedOffset(
   material: ShaderMaterial,
-  phase: number,
+  offset: EnchantedOffset,
 ): void {
-  (material.uniforms.uOffset.value as Vector2).set(phase, phase);
+  (material.uniforms.uOffset.value as Vector2).set(offset.x, offset.y);
 }
 
 /**
  * Updates the live tuning uniforms (tiling scale and additive
  * brightness) in place; the scroll offset stays with
- * {@link setEnchantedPhase}.
+ * {@link setEnchantedOffset}.
  *
  * @param material - A material created by {@link createEnchantedMaterial}.
  * @param scale - The pattern tiling across the UVs.

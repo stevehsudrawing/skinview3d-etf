@@ -97,10 +97,18 @@ export interface EnchantedOptions {
    */
   texture?: ETFTextureInput | null;
   /**
-   * Diagonal scroll speed in UV units per second (default 0.1).
-   * `0` freezes the pattern; negative values reverse the direction.
+   * Scroll speed in UV units per second (default 0.1); the pattern's
+   * sampling offset advances by `speed x direction` per second. `0`
+   * freezes the pattern; negative values reverse along `direction`.
    */
   speed?: number;
+  /**
+   * Scroll direction as a UV-space (u, v) vector (default `[1, 1]`,
+   * the diagonal). The vector is used as given - never normalized -
+   * so `speed` stays the perceived UV units per second; components
+   * may be negative or zero, and `[0, 0]` freezes the pattern.
+   */
+  direction?: readonly [number, number];
   /**
    * Additive brightness factor in 0..1 (default 1); values outside
    * the range are clamped.

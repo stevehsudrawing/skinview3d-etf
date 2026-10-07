@@ -1,5 +1,5 @@
 /**
- * Enchanted feature specs: the scrolling phase math and the shared
+ * Enchanted feature specs: the scrolling offset math and the shared
  * material wiring.
  */
 
@@ -13,49 +13,108 @@ import {
 } from "three";
 import { describe, expect, it } from "vitest";
 import {
-  advanceEnchantedPhase,
+  advanceEnchantedOffset,
   createEnchantedMaterial,
   createEnchantedTexture,
-  setEnchantedPhase,
+  setEnchantedOffset,
   setEnchantedTuning,
   updateEnchantedTexture,
 } from "../../src/render/features/enchanted";
 
-describe("advanceEnchantedPhase", () => {
-  it("advances the phase by speed x dt", () => {
-    expect(advanceEnchantedPhase(0, 0.2, 1, 1)).toBeCloseTo(0.2);
-    expect(advanceEnchantedPhase(0.5, 0.2, 2, 1)).toBeCloseTo(0.9);
+describe("advanceEnchantedOffset", () => {
+  it("advances both axes by speed x direction x dt", () => {
+    const offset = advanceEnchantedOffset({ x: 0, y: 0 }, 0.2, [1, 1], 1, 1);
+    expect(offset.x).toBeCloseTo(0.2);
+    expect(offset.y).toBeCloseTo(0.2);
   });
 
-  it("wraps the phase into the tile period", () => {
-    expect(advanceEnchantedPhase(0.9, 0.2, 1, 1)).toBeCloseTo(0.1);
-    expect(advanceEnchantedPhase(0.25, 0.5, 3, 1)).toBeCloseTo(0.75);
-    expect(advanceEnchantedPhase(0.5, 2, 5, 1)).toBeCloseTo(0.5);
+  it("advances each axis independently", () => {
+    const offset = advanceEnchantedOffset(
+      { x: 0.25, y: 0 },
+      0.1,
+      [2, -1],
+      1,
+      1,
+    );
+    expect(offset.x).toBeCloseTo(0.45);
+    expect(offset.y).toBeCloseTo(0.9);
   });
 
-  it("keeps the phase on dt = 0", () => {
-    expect(advanceEnchantedPhase(0.42, 0.2, 0, 1)).toBe(0.42);
+  it("wraps each axis into the tile period", () => {
+    const offset = advanceEnchantedOffset(
+      { x: 0.9, y: 0.5 },
+      0.2,
+      [1, 1],
+      1,
+      1,
+    );
+    expect(offset.x).toBeCloseTo(0.1);
+    expect(offset.y).toBeCloseTo(0.7);
+    const wrapped = advanceEnchantedOffset({ x: 0.5, y: 0.5 }, 2, [1, 1], 5, 1);
+    expect(wrapped.x).toBeCloseTo(0.5);
+    expect(wrapped.y).toBeCloseTo(0.5);
   });
 
-  it("reverses with a negative speed", () => {
-    expect(advanceEnchantedPhase(0.1, -0.2, 1, 1)).toBeCloseTo(0.9);
-    expect(advanceEnchantedPhase(0, -1, 0.25, 1)).toBeCloseTo(0.75);
+  it("keeps the offset on dt = 0", () => {
+    const offset = advanceEnchantedOffset(
+      { x: 0.42, y: 0.17 },
+      0.2,
+      [1, 1],
+      0,
+      1,
+    );
+    expect(offset.x).toBe(0.42);
+    expect(offset.y).toBe(0.17);
+  });
+
+  it("reverses an axis with a negative component", () => {
+    const offset = advanceEnchantedOffset(
+      { x: 0.1, y: 0.1 },
+      0.2,
+      [-1, 1],
+      1,
+      1,
+    );
+    expect(offset.x).toBeCloseTo(0.9);
+    expect(offset.y).toBeCloseTo(0.3);
+  });
+
+  it("keeps the offset frozen for a zero direction", () => {
+    const offset = advanceEnchantedOffset(
+      { x: 0.33, y: 0.66 },
+      1,
+      [0, 0],
+      10,
+      1,
+    );
+    expect(offset).toEqual({ x: 0.33, y: 0.66 });
   });
 
   it("wraps at the tile period for non-integer scales", () => {
     const scale = 2.5;
-    // 0.35 advances past the 0.4 tile period and lands at 0.05.
-    expect(advanceEnchantedPhase(0.35, 0.1, 1, scale)).toBeCloseTo(0.05);
-    // The wrap shifts the pattern by exactly one whole tile, so the
-    // scroll stays seamless.
-    const before = 0.3;
-    const after = advanceEnchantedPhase(before, 0.15, 1, scale);
-    const difference = 0.15 * scale - (after - before) * scale;
-    expect(Math.abs(difference - Math.round(difference))).toBeCloseTo(0);
-    // The phase always stays within one tile period.
-    const value = advanceEnchantedPhase(0.5, 1, 9, 8);
-    expect(value).toBeGreaterThanOrEqual(0);
-    expect(value).toBeLessThan(1 / 8 + 1e-9);
+    // 0.4 is the tile period at this scale: both axes wrap.
+    const before = { x: 0.37, y: 0.39 };
+    const after = advanceEnchantedOffset(before, 0.15, [0.5, 0.25], 1, scale);
+    expect(after.x).toBeCloseTo(0.045);
+    expect(after.y).toBeCloseTo(0.0275);
+    // The wrap shifts each axis by exactly one whole tile, so the
+    // scroll stays seamless at any direction.
+    const shiftX = 0.15 * 0.5 * scale - (after.x - before.x) * scale;
+    const shiftY = 0.15 * 0.25 * scale - (after.y - before.y) * scale;
+    expect(Math.abs(shiftX - Math.round(shiftX))).toBeCloseTo(0);
+    expect(Math.abs(shiftY - Math.round(shiftY))).toBeCloseTo(0);
+    // The offset always stays within one tile period.
+    const value = advanceEnchantedOffset(
+      { x: 0.5, y: 0.5 },
+      1,
+      [0.5, 0.25],
+      9,
+      8,
+    );
+    expect(value.x).toBeGreaterThanOrEqual(0);
+    expect(value.x).toBeLessThan(1 / 8 + 1e-9);
+    expect(value.y).toBeGreaterThanOrEqual(0);
+    expect(value.y).toBeLessThan(1 / 8 + 1e-9);
   });
 });
 
@@ -63,28 +122,43 @@ describe("createEnchantedMaterial", () => {
   const mask = new Texture();
   const pattern = new Texture();
 
-  it("wires the uniforms including the initial phase", () => {
-    const material = createEnchantedMaterial(mask, pattern, 8, 0.5, 0.25);
+  it("wires the uniforms including the initial offset", () => {
+    const material = createEnchantedMaterial(mask, pattern, 8, 0.5, {
+      x: 0.25,
+      y: 0.75,
+    });
     expect(material.uniforms.uMask.value).toBe(mask);
     expect(material.uniforms.uEnchanted.value).toBe(pattern);
     expect(material.uniforms.uScale.value).toBe(8);
     expect(material.uniforms.uOpacity.value).toBe(0.5);
-    const offset = material.uniforms.uOffset.value as { x: number; y: number };
+    const offset = material.uniforms.uOffset.value as {
+      x: number;
+      y: number;
+    };
     expect(offset.x).toBe(0.25);
-    expect(offset.y).toBe(0.25);
-  });
-
-  it("updates the offset in place via setEnchantedPhase", () => {
-    const material = createEnchantedMaterial(mask, pattern, 8, 1, 0);
-    const offset = material.uniforms.uOffset.value as { x: number; y: number };
-    setEnchantedPhase(material, 0.75);
-    expect(material.uniforms.uOffset.value).toBe(offset);
-    expect(offset.x).toBe(0.75);
     expect(offset.y).toBe(0.75);
   });
 
+  it("updates the offset in place via setEnchantedOffset", () => {
+    const material = createEnchantedMaterial(mask, pattern, 8, 1, {
+      x: 0,
+      y: 0,
+    });
+    const offset = material.uniforms.uOffset.value as {
+      x: number;
+      y: number;
+    };
+    setEnchantedOffset(material, { x: 0.75, y: 0.5 });
+    expect(material.uniforms.uOffset.value).toBe(offset);
+    expect(offset.x).toBe(0.75);
+    expect(offset.y).toBe(0.5);
+  });
+
   it("uses the additive overlay material flags", () => {
-    const material = createEnchantedMaterial(mask, pattern, 8, 1, 0);
+    const material = createEnchantedMaterial(mask, pattern, 8, 1, {
+      x: 0,
+      y: 0,
+    });
     expect(material.transparent).toBe(true);
     expect(material.depthWrite).toBe(false);
     expect(material.side).toBe(DoubleSide);
@@ -139,11 +213,18 @@ describe("setEnchantedTuning", () => {
   const pattern = new Texture();
 
   it("updates scale and opacity in place", () => {
-    const material = createEnchantedMaterial(mask, pattern, 1, 1, 0.5);
+    const material = createEnchantedMaterial(mask, pattern, 1, 1, {
+      x: 0.5,
+      y: 0.25,
+    });
     setEnchantedTuning(material, 2, 0.25);
     expect(material.uniforms.uScale.value).toBe(2);
     expect(material.uniforms.uOpacity.value).toBe(0.25);
-    const offset = material.uniforms.uOffset.value as { x: number; y: number };
+    const offset = material.uniforms.uOffset.value as {
+      x: number;
+      y: number;
+    };
     expect(offset.x).toBe(0.5);
+    expect(offset.y).toBe(0.25);
   });
 });

@@ -31,13 +31,14 @@ The documented defaults are exported as `DEFAULT_BLINK_OPTIONS`.
 
 ### 1.3 enchanted
 
-| Key       | Default  | Effect                                                                              |
-| --------- | -------- | ----------------------------------------------------------------------------------- |
-| `texture` | built-in | the pattern image; `null` renders no enchanted pixels;                              |
-| `speed`   | `0.1`    | diagonal scroll in UV units per second; `0` freezes, negative reverses;             |
-| `opacity` | `1`      | additive brightness factor, clamped to 0..1;                                        |
-| `scale`   | `1`      | pattern tiling across the UVs; `<= 0` falls back to the default;                    |
-| `smooth`  | `true`   | bilinear pattern filtering (the smoothed in-game look); `false` keeps crisp pixels. |
+| Key         | Default  | Effect                                                                                                                            |
+| ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `texture`   | built-in | the pattern image; `null` renders no enchanted pixels;                                                                            |
+| `speed`     | `0.1`    | scroll speed in UV units per second; the offset advances by `speed x direction`; `0` freezes, negative reverses;                  |
+| `direction` | `[1, 1]` | the scroll vector in UV space; each axis wraps at one tile period, so any direction stays seamless; `[0, 0]` freezes the pattern; |
+| `opacity`   | `1`      | additive brightness factor, clamped to 0..1;                                                                                      |
+| `scale`     | `1`      | pattern tiling across the UVs; `<= 0` falls back to the default;                                                                  |
+| `smooth`    | `true`   | bilinear pattern filtering (the smoothed in-game look); `false` keeps crisp pixels.                                               |
 
 The documented defaults are exported as `DEFAULT_ENCHANTED_OPTIONS`.
 

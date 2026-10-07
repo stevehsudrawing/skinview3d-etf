@@ -77,13 +77,14 @@ import {
 } from "./features/blink";
 import { createEmissiveMaterial } from "./features/emissive";
 import {
-  advanceEnchantedPhase,
+  advanceEnchantedOffset,
   createEnchantedMaterial,
   createEnchantedTexture,
   ENCHANTED_RENDER_ORDER,
-  setEnchantedPhase,
+  setEnchantedOffset,
   setEnchantedTuning,
   updateEnchantedTexture,
+  type EnchantedOffset,
 } from "./features/enchanted";
 import {
   createJacketGeometry,
@@ -157,7 +158,7 @@ export function attachETFSkinFeatures(
   let enchantedPatternTexture: CanvasTexture | null = null;
   let enchantedMaterial: ShaderMaterial | null = null;
   let enchantedMeshes: Mesh[] = [];
-  let enchantedPhase = 0;
+  let enchantedOffset: EnchantedOffset = { x: 0, y: 0 };
   let blinkPainter: BlinkPainter | null = null;
   let blinkScheduler: BlinkScheduler | null = null;
   let ticker: TickerHandle | null = null;
@@ -358,8 +359,8 @@ export function attachETFSkinFeatures(
 
   /**
    * Whether the enchanted overlay needs per-frame updates: the
-   * feature is on, a built material exists and the speed is not
-   * zero.
+   * feature is on, a built material exists and the pattern actually
+   * moves (the speed is not zero and the direction is not `[0, 0]`).
    *
    * @returns `true` while the enchanted pattern scrolls.
    */
@@ -367,6 +368,8 @@ export function attachETFSkinFeatures(
     return (
       settings.features.enchanted &&
       settings.enchanted.speed !== 0 &&
+      (settings.enchanted.direction[0] !== 0 ||
+        settings.enchanted.direction[1] !== 0) &&
       enchantedMaterial !== null
     );
   }
@@ -513,7 +516,7 @@ export function attachETFSkinFeatures(
         enchantedPatternTexture,
         settings.enchanted.scale,
         settings.enchanted.opacity,
-        enchantedPhase,
+        enchantedOffset,
       );
     } else {
       setEnchantedTuning(
@@ -603,7 +606,7 @@ export function attachETFSkinFeatures(
         enchantedPatternTexture,
         settings.enchanted.scale,
         settings.enchanted.opacity,
-        enchantedPhase,
+        enchantedOffset,
       );
       mesh.add(
         createJacketOverlayMesh(
@@ -749,7 +752,7 @@ export function attachETFSkinFeatures(
 
   /**
    * Advances the time-based features (the blink schedule and the
-   * enchanted phase) by `dt` seconds; negative and non-finite deltas
+   * enchanted offset) by `dt` seconds; negative and non-finite deltas
    * are ignored. The managed ticker calls this automatically unless
    * `manageTicker` is `false`.
    *
@@ -768,15 +771,16 @@ export function attachETFSkinFeatures(
       blinkPainter.show(blinkScheduler.advance(seconds * 1000));
     }
     if (enchantedActive() && enchantedMaterial !== null) {
-      enchantedPhase = advanceEnchantedPhase(
-        enchantedPhase,
+      enchantedOffset = advanceEnchantedOffset(
+        enchantedOffset,
         settings.enchanted.speed,
+        settings.enchanted.direction,
         seconds,
         settings.enchanted.scale,
       );
-      setEnchantedPhase(enchantedMaterial, enchantedPhase);
+      setEnchantedOffset(enchantedMaterial, enchantedOffset);
       if (jacketEnchantedMaterial !== null) {
-        setEnchantedPhase(jacketEnchantedMaterial, enchantedPhase);
+        setEnchantedOffset(jacketEnchantedMaterial, enchantedOffset);
       }
     }
   }
@@ -791,7 +795,7 @@ export function attachETFSkinFeatures(
     disposeJacketGeometries();
     villagerSlot.reset();
     enchantedSlot.reset();
-    enchantedPhase = 0;
+    enchantedOffset = { x: 0, y: 0 };
     baselinePixels = null;
     lastPainted = null;
     decoded = null;
@@ -858,6 +862,7 @@ export function attachETFSkinFeatures(
     settings.enchanted = normalizeEnchantedOptions({
       texture: hasTexture ? options.texture : settings.enchanted.texture,
       speed: options.speed ?? settings.enchanted.speed,
+      direction: options.direction ?? settings.enchanted.direction,
       opacity: options.opacity ?? settings.enchanted.opacity,
       scale: options.scale ?? settings.enchanted.scale,
       smooth: options.smooth ?? settings.enchanted.smooth,
